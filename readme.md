@@ -31,7 +31,9 @@ Create a symbolic link from the checked out repo to the Eclipse workspace...here
 
 cd
 /Users/jsirota/Documents/workspace
+
 ln -s ~/Documents/https\:/github.com/OpenSOC/opensoc-streaming/ opensoc-streaming
+
 ls -al
 
 You should now see a symbolic link to the git repo

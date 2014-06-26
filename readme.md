@@ -47,4 +47,3 @@ enter install in the goals box and run it
 The project should build
 
 I did not get any luck building it via the Eclipse GIT plugin.  If you can think of a better way of building this please post it here
-

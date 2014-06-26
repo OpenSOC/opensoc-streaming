@@ -31,7 +31,7 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Values;
 import backtype.storm.utils.Utils;
 
-public class SourcefireTestSpout extends BaseRichSpout {
+public class ESLoadingSpout extends BaseRichSpout {
 	/**
 	 * 
 	 */
@@ -61,13 +61,15 @@ public class SourcefireTestSpout extends BaseRichSpout {
 
 	public void nextTuple() {
 
+		Utils.sleep(100);
+
 		if (cnt < jsons.size()) {
 			_collector.emit(new Values(jsons.get(cnt)));
 		}
 		cnt++;
 
-		if (cnt == jsons.size() - 1)
-			cnt = 0;
+	//	if (cnt == jsons.size() - 1)
+		//	cnt = 0;
 	}
 
 	@Override

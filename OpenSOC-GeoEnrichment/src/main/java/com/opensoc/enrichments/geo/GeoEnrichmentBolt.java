@@ -54,6 +54,9 @@ public class GeoEnrichmentBolt extends BaseRichBolt {
 	private transient CacheLoader<String, String> loader;
 	private transient LoadingCache<String, String> cache;
 	private OutputCollector _collector;
+	
+	private Pattern pattern1;
+	private Pattern pattern2;
 
 	public GeoEnrichmentBolt(GeoAdapter adapter) {
 		this.adapter = adapter;
@@ -70,6 +73,9 @@ public class GeoEnrichmentBolt extends BaseRichBolt {
 		MAX_CACHE_SIZE = (Long) conf.get("MAX_CACHE_SIZE");
 		MAX_TIME_RETAIN= (Long) conf.get("MAX_TIME_RETAIN");
 		enrichment_source_ip = (String) conf.get("geo_enrichment_source_ip");
+		
+		pattern1 = Pattern.compile(originator_ip);
+		pattern2 = Pattern.compile(responder_ip);
 		
 		LOG.debug("Setting originator_ip: " + originator_ip);
 		LOG.debug("Setting responder_ip: " + responder_ip);
@@ -104,8 +110,7 @@ public class GeoEnrichmentBolt extends BaseRichBolt {
 		String original_message = tuple.getString(0).trim();
 		LOG.debug("Received tuple: " + original_message);
 		
-		Pattern pattern1 = Pattern.compile(originator_ip);
-		Pattern pattern2 = Pattern.compile(responder_ip);
+	
 
 		Matcher matcher = pattern1.matcher(original_message);
 

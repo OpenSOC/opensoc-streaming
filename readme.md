@@ -19,11 +19,32 @@ storm -jar /path/to/OpenSOC-Topologies-0.0.1-SNAPSHOT.jar ./storm jar com.openso
 To run the Sourcefire topology:
 storm -jar /path/to/OpenSOC-Topologies-0.0.1-SNAPSHOT.jar ./storm jar com.opensoc.topologies.SourcefireEnrichmentTestTopology
 
-## Importing to Eclipse
+## Importing to Eclipse on OSX
 
-I would recommend switching to a new workspace, but that is optional
+Download the git OSX app here: https://mac.github.com/
 
-In Eclipse perform the following actions:
+Use the app to check out the repository
 
-File->Import->maven->existing maven project
-Point to the checked out GIT repo
+Create a new Eclipse workspace
+
+Create a symbolic link from the checked out repo to the Eclipse workspace...here is an example
+
+cd
+/Users/jsirota/Documents/workspace
+ln -s ~/Documents/https\:/github.com/OpenSOC/opensoc-streaming/ opensoc-streaming
+ls -al
+
+You should now see a symbolic link to the git repo
+
+Now in Eclipse go to
+
+file->import->maven->existing maven project
+
+Then right-click on OpenSOC-Streaming and click on run as -> maven build
+
+enter install in the goals box and run it
+
+The project should build
+
+I did not get any luck building it via the Eclipse GIT plugin.  If you can think of a better way of building this please post it here
+

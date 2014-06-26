@@ -18,3 +18,12 @@ storm -jar /path/to/OpenSOC-Topologies-0.0.1-SNAPSHOT.jar ./storm jar com.openso
 
 To run the Sourcefire topology:
 storm -jar /path/to/OpenSOC-Topologies-0.0.1-SNAPSHOT.jar ./storm jar com.opensoc.topologies.SourcefireEnrichmentTestTopology
+
+## Importing to Eclipse
+
+I would recommend switching to a new workspace, but that is optional
+
+In Eclipse perform the following actions:
+
+File->Import->maven->existing maven project
+Point to the checked out GIT repo

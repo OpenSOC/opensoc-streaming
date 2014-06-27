@@ -4,4 +4,7 @@ Extensible set of Storm topologies and topology attributes for streaming, enrich
 
 
 ## Usage
-Comments go here
+To build the project in Eclipse do the following:
+
+Check out via git plugin or git app
+File->import->maven->exiting maven project

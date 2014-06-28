@@ -45,7 +45,7 @@ TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
 
 ###Parameters:
 
--IndexAdapter: adapter and strategy for indexing.  Adapters listed below are available
+IndexAdapter: adapter and strategy for indexing.  Adapters listed below are available
 - ESBaseBulkAdapter: adapter for bulk loading telemetry into a single index in ElasticSearch
 - ESBulkRotatingAdapter: adapter for bulk loading telemetry into Elastic search, rotating once per hour, and applying a single alias to all rotated indexes
 - SolrAdapter (stubbed out, on roadmap)
@@ -83,3 +83,23 @@ DualGeoEnrichmentBolt geo_enrichment = new DualGeoEnrichmentBolt()
 				.withMaxTimeRetain(MAX_TIME_RETAIN)
 				.withMaxCacheSize(MAX_CACHE_SIZE);
 ```
+
+###Parameters
+
+GeoAdapter: adapter for the MaxMind GeoLite dataset.  Adapters listed below are available
+- GeoMysqlAdapter: pulls geoIP data from MqSQL database
+- GeoPosgreSQLAdapter: pulls geoIP data from Posgress database (on road map, not yet available)
+
+originator_ip_regex: regex to extract the source ip form message
+
+responder_ip_regex: regex to extract dest ip from message
+The single bolt is currently undergoing testing and will be uploaded shortly
+
+geo_enrichment_tag: JSON field indicating how to tag the original message with the enrichment... {original_message:some_message, {geo_enrichment_tag:{from:xxx},{to:xxx}}}
+
+MAX_TIME_RETAIN: this bolt utilizes in-memory cache. this variable (in minutes) indicates now long to retain each entry in the cache
+
+MAX_CACHE_SIZE: this value defines the maximum size of the cache after which entries are evicted from cache
+
+OutputFieldName: name of the output field emitted by the bolt
+

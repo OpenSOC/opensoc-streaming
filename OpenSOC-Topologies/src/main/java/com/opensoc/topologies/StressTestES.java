@@ -45,7 +45,6 @@ import com.opensoc.enrichments.whois.WhoisEnrichmentBolt;
 import com.opensoc.enrichments.whois.adapters.WhoisHBaseAdapter;
 import com.opensoc.indexing.IndexingBolt;
 import com.opensoc.indexing.adapters.ESBaseBulkAdapter;
-import com.opensoc.parsing.ParserBolt;
 import com.opensoc.parsing.parsers.BasicSourcefireParser;
 import com.opensoc.test.spouts.ESLoadingSpout;
 import com.opensoc.test.spouts.SourcefireTestSpout;
@@ -86,9 +85,9 @@ public class StressTestES {
 		builder.setSpout("EnrichmentSpout", new ESLoadingSpout(),
 				parallelism_hint).setNumTasks(num_tasks);
 
-		builder.setBolt("ParserBolt",
+/*		builder.setBolt("ParserBolt",
 				new ParserBolt(new BasicSourcefireParser()), parallelism_hint)
-				.shuffleGrouping("EnrichmentSpout").setNumTasks(num_tasks);
+				.shuffleGrouping("EnrichmentSpout").setNumTasks(num_tasks);*/
 
 		builder.setBolt("IndexingBolt",
 				new IndexingBolt(new ESBaseBulkAdapter()), parallelism_hint)

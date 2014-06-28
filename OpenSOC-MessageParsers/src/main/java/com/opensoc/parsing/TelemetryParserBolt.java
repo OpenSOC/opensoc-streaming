@@ -15,47 +15,40 @@
  * limitations under the License.
  */
 
+
 package com.opensoc.parsing;
 
+import java.io.IOException;
 import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.opensoc.parser.interfaces.MessageParser;
 
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
-import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
-@SuppressWarnings("serial")
-public class ParserBolt extends BaseRichBolt {
+import com.opensoc.parser.interfaces.MessageParser;
 
-	private static final Logger LOG = LoggerFactory.getLogger(ParserBolt.class);
 
-	private OutputCollector _collector;
-	private MessageParser _parser;
+@SuppressWarnings("rawtypes")
+public class TelemetryParserBolt extends AbstractParserBolt {
 
-	public ParserBolt(MessageParser parser) {
+	/**
+	 * OpenSOC telemetry parsing bolt with JSON output
+	 */
+	private static final long serialVersionUID = -2647123143398352020L;
+
+
+	public TelemetryParserBolt withMessageParser(MessageParser parser) {
 		_parser = parser;
+		_parser.initialize(LOG);
+		return this;
 	}
 
-	@SuppressWarnings("rawtypes")
-	public void prepare(Map arg0, TopologyContext arg1,
-			OutputCollector collector) {
-
-		_collector = collector;
-		boolean success = _parser.initialize(LOG);
-
-		if (!success)
-			LOG.error("Failed to initialize parser");
-
-		LOG.info("Initializing ParserBolt...");
-
+	public TelemetryParserBolt withOutputFieldName(String OutputFieldName) {
+		this.OutputFieldName = OutputFieldName;
+		return this;
 	}
 
 	public void execute(Tuple tuple) {
@@ -63,24 +56,31 @@ public class ParserBolt extends BaseRichBolt {
 
 		try {
 
-			LOG.debug("Original message: " + original_mesasge);
+			LOG.debug("Original Telemetry message: " + original_mesasge);
 
 			String transformed_message = _parser.parse(original_mesasge);
-			LOG.debug("Transformed message: " + transformed_message);
+			LOG.debug("Transformed Telemetry message: " + transformed_message);
 
 			_collector.ack(tuple);
 			_collector.emit(new Values(transformed_message));
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			LOG.error("Failed to parse message :" + original_mesasge);
+			LOG.error("Failed to parse telemetry message :" + original_mesasge);
 			_collector.fail(tuple);
 		}
 	}
 
 	public void declareOutputFields(OutputFieldsDeclarer declearer) {
-		declearer.declare(new Fields("message"));
+		declearer.declare(new Fields(this.OutputFieldName));
 
 	}
 
+	
+	@Override
+	void doPrepare(Map conf, TopologyContext topologyContext,
+			OutputCollector collector) throws IOException {
+
+		LOG.info("Preparing TelemetryParser Bolt...");
+	}
 }

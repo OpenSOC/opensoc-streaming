@@ -32,11 +32,10 @@ public class BasicSourcefireParser implements MessageParser, Serializable {
 
 	private Logger _LOG;
 
-	private JSONObject jo = new JSONObject();
-
 	@SuppressWarnings({ "unchecked", "unused" })
 	public String parse(String toParse) {
 
+		JSONObject jo = new JSONObject();
 		_LOG.debug("Received message: " + toParse);
 
 		try {

@@ -26,7 +26,6 @@ import com.opensoc.enrichments.geo.GeoEnrichmentBolt;
 import com.opensoc.enrichments.geo.adapters.GeoMysqlAdapter;
 import com.opensoc.indexing.IndexingBolt;
 import com.opensoc.indexing.adapters.ESBulkRotatingAdapter;
-import com.opensoc.parsing.ParserBolt;
 import com.opensoc.parsing.parsers.BasicBroParser;
 import com.opensoc.test.bolts.PrintingBolt;
 import com.opensoc.test.spouts.BroTestSpout;
@@ -41,7 +40,7 @@ public class BroEnrichmentTestTopology
     TopologyBuilder builder = new TopologyBuilder();
 
     builder.setSpout("EnrichmentSpout", new BroTestSpout(), 1);
-    builder.setBolt("ParserBolt", new ParserBolt(new BasicBroParser()), 1).shuffleGrouping("EnrichmentSpout");
+//    builder.setBolt("ParserBolt", new ParserBolt(new BasicBroParser()), 1).shuffleGrouping("EnrichmentSpout");
     builder.setBolt("GeoEnrichBolt", new GeoEnrichmentBolt(new GeoMysqlAdapter()), 1).shuffleGrouping("ParserBolt");
     //builder.setBolt("WhoisEnrichBolt", new WhoisEnrichmentBolt(new HBaseAdapter()), 1).shuffleGrouping("GeoEnrichBolt");
     builder.setBolt("IndexingBolt", new IndexingBolt(new ESBulkRotatingAdapter()),

@@ -29,23 +29,16 @@ import org.apache.storm.hdfs.bolt.sync.CountSyncPolicy;
 import org.apache.storm.hdfs.bolt.sync.SyncPolicy;
 
 import storm.kafka.BrokerHosts;
-import storm.kafka.KafkaSpout;
-import storm.kafka.SpoutConfig;
-import storm.kafka.StringScheme;
-
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
-import backtype.storm.spout.SchemeAsMultiScheme;
 import backtype.storm.topology.TopologyBuilder;
 
 import com.opensoc.enrichments.geo.GeoEnrichmentBolt;
 import com.opensoc.enrichments.geo.adapters.GeoMysqlAdapter;
-import com.opensoc.enrichments.whois.WhoisEnrichmentBolt;
-import com.opensoc.enrichments.whois.adapters.WhoisHBaseAdapter;
 import com.opensoc.indexing.IndexingBolt;
 import com.opensoc.indexing.adapters.ESBaseBulkAdapter;
-import com.opensoc.parsing.ParserBolt;
+import com.opensoc.parsing.TelemetryParserBolt;
 import com.opensoc.parsing.parsers.BasicSourcefireParser;
 import com.opensoc.test.spouts.SourcefireTestSpout;
 
@@ -113,39 +106,48 @@ public class SourcefireEnrichmentTestTopology {
 		builder.setSpout("EnrichmentSpout", new SourcefireTestSpout(),
 				parallelism_hint).setNumTasks(num_tasks);
 
-		builder.setBolt("ParserBolt",
-				new ParserBolt(new BasicSourcefireParser()), parallelism_hint)
+		// ------------Parser Bolt Configuration
+
+		TelemetryParserBolt parser_bolt = new TelemetryParserBolt()
+				.withMessageParser(new BasicSourcefireParser())
+				.withOutputFieldName(topology_name);
+
+		builder.setBolt("ParserBolt", parser_bolt, parallelism_hint)
 				.shuffleGrouping("EnrichmentSpout").setNumTasks(num_tasks);
 
-		builder.setBolt("GeoEnrichBolt",
-				new GeoEnrichmentBolt(new GeoMysqlAdapter()), parallelism_hint)
-				.shuffleGrouping("ParserBolt").setNumTasks(num_tasks);
+		// builder.setBolt("ParserBolt",
+		// new ParserBolt(new BasicSourcefireParser()), parallelism_hint)
+		// .shuffleGrouping("EnrichmentSpout").setNumTasks(num_tasks);
+
+//		builder.setBolt("GeoEnrichBolt",
+//				new GeoEnrichmentBolt(new GeoMysqlAdapter()), parallelism_hint)
+//				.shuffleGrouping("ParserBolt").setNumTasks(num_tasks);
 
 		// builder.setBolt("WhoisEnrichmentBolt",
 		// new WhoisEnrichmentBolt(new WhoisHBaseAdapter()),
 		// parallelism_hint).shuffleGrouping("ParserBolt").setNumTasks(num_tasks);
 
-		builder.setBolt("IndexingBolt",
-				new IndexingBolt(new ESBaseBulkAdapter()), parallelism_hint)
-				.shuffleGrouping("GeoEnrichBolt").setNumTasks(num_tasks);
+//		builder.setBolt("IndexingBolt",
+//				new IndexingBolt(new ESBaseBulkAdapter()), parallelism_hint)
+//				.shuffleGrouping("GeoEnrichBolt").setNumTasks(num_tasks);
 
 		// ------------HDFS BOLT configuration
 
-		FileNameFormat fileNameFormat = new DefaultFileNameFormat()
-				.withPath("/" + topology_name + "/");
-		RecordFormat format = new DelimitedRecordFormat()
-				.withFieldDelimiter("|");
+//		FileNameFormat fileNameFormat = new DefaultFileNameFormat()
+//				.withPath("/" + topology_name + "/");
+//		RecordFormat format = new DelimitedRecordFormat()
+//				.withFieldDelimiter("|");
 
-		SyncPolicy syncPolicy = new CountSyncPolicy(5);
-		FileRotationPolicy rotationPolicy = new FileSizeRotationPolicy(5.0f,
-				Units.KB);
+//		SyncPolicy syncPolicy = new CountSyncPolicy(5);
+//		FileRotationPolicy rotationPolicy = new FileSizeRotationPolicy(5.0f,
+//				Units.KB);
 
-		HdfsBolt hdfsBolt = new HdfsBolt().withFsUrl(hdfs_path)
-				.withFileNameFormat(fileNameFormat).withRecordFormat(format)
-				.withRotationPolicy(rotationPolicy).withSyncPolicy(syncPolicy);
+//		HdfsBolt hdfsBolt = new HdfsBolt().withFsUrl(hdfs_path)
+//				.withFileNameFormat(fileNameFormat).withRecordFormat(format)
+//				.withRotationPolicy(rotationPolicy).withSyncPolicy(syncPolicy);
 
-		builder.setBolt("HDFSBolt", hdfsBolt, parallelism_hint)
-				.shuffleGrouping("EnrichmentSpout").setNumTasks(num_tasks);
+//		builder.setBolt("HDFSBolt", hdfsBolt, parallelism_hint)
+//				.shuffleGrouping("EnrichmentSpout").setNumTasks(num_tasks);
 
 		if (localMode == 1) {
 			conf.setNumWorkers(1);

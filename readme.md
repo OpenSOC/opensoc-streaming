@@ -13,9 +13,11 @@ File->import->maven->exiting maven project
 
 ## Message Parser Bolt
 
+```
 TelemetryParserBolt parser_bolt = new TelemetryParserBolt()
 				.withMessageParser(new BasicSourcefireParser())
 				.withOutputFieldName(topology_name);
+```
 				
 ###Parameters:
 

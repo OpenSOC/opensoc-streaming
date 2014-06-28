@@ -17,41 +17,12 @@
 
 package com.opensoc.topologies;
 
-import org.apache.storm.hdfs.bolt.HdfsBolt;
-import org.apache.storm.hdfs.bolt.format.DefaultFileNameFormat;
-import org.apache.storm.hdfs.bolt.format.DelimitedRecordFormat;
-import org.apache.storm.hdfs.bolt.format.FileNameFormat;
-import org.apache.storm.hdfs.bolt.format.RecordFormat;
-import org.apache.storm.hdfs.bolt.rotation.FileRotationPolicy;
-import org.apache.storm.hdfs.bolt.rotation.FileSizeRotationPolicy;
-import org.apache.storm.hdfs.bolt.rotation.FileSizeRotationPolicy.Units;
-import org.apache.storm.hdfs.bolt.sync.CountSyncPolicy;
-import org.apache.storm.hdfs.bolt.sync.SyncPolicy;
-
-import storm.kafka.BrokerHosts;
-import storm.kafka.KafkaSpout;
-import storm.kafka.SpoutConfig;
-import storm.kafka.StringScheme;
-
-import backtype.storm.Config;
-import backtype.storm.LocalCluster;
-import backtype.storm.StormSubmitter;
-import backtype.storm.spout.SchemeAsMultiScheme;
-import backtype.storm.topology.TopologyBuilder;
-
-import com.opensoc.enrichments.geo.GeoEnrichmentBolt;
-import com.opensoc.enrichments.geo.adapters.GeoMysqlAdapter;
-import com.opensoc.enrichments.whois.WhoisEnrichmentBolt;
-import com.opensoc.enrichments.whois.adapters.WhoisHBaseAdapter;
-import com.opensoc.indexing.IndexingBolt;
-import com.opensoc.indexing.adapters.ESBaseBulkAdapter;
-import com.opensoc.parsing.parsers.BasicSourcefireParser;
-import com.opensoc.test.spouts.ESLoadingSpout;
-import com.opensoc.test.spouts.SourcefireTestSpout;
 
 /**
  * This is a basic example of a Storm topology.
  */
+
+/*
 public class StressTestES {
 
 	public static void main(String[] args) throws Exception {
@@ -87,10 +58,10 @@ public class StressTestES {
 
 /*		builder.setBolt("ParserBolt",
 				new ParserBolt(new BasicSourcefireParser()), parallelism_hint)
-				.shuffleGrouping("EnrichmentSpout").setNumTasks(num_tasks);*/
+				.shuffleGrouping("EnrichmentSpout").setNumTasks(num_tasks);
 
 		builder.setBolt("IndexingBolt",
-				new IndexingBolt(new ESBaseBulkAdapter()), parallelism_hint)
+				new TelemetryIndexingBolt(new ESBaseBulkAdapter()), parallelism_hint)
 				.shuffleGrouping("GeoEnrichBolt").setNumTasks(num_tasks);
 
 		if (localMode == 1) {
@@ -108,4 +79,4 @@ public class StressTestES {
 		}
 
 	}
-}
+}*/

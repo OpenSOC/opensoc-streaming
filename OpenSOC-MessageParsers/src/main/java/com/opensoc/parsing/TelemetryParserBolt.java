@@ -42,13 +42,19 @@ public class TelemetryParserBolt extends AbstractParserBolt {
 
 	public TelemetryParserBolt withMessageParser(MessageParser parser) {
 		_parser = parser;
-		_parser.initialize(LOG);
 		return this;
 	}
 
 	public TelemetryParserBolt withOutputFieldName(String OutputFieldName) {
 		this.OutputFieldName = OutputFieldName;
 		return this;
+	}
+	
+	@Override
+	void doPrepare(Map conf, TopologyContext topologyContext,
+			OutputCollector collector) throws IOException {
+
+		LOG.info("Preparing TelemetryParser Bolt...");
 	}
 
 	public void execute(Tuple tuple) {
@@ -70,17 +76,9 @@ public class TelemetryParserBolt extends AbstractParserBolt {
 			_collector.fail(tuple);
 		}
 	}
-
+	
 	public void declareOutputFields(OutputFieldsDeclarer declearer) {
 		declearer.declare(new Fields(this.OutputFieldName));
 
-	}
-
-	
-	@Override
-	void doPrepare(Map conf, TopologyContext topologyContext,
-			OutputCollector collector) throws IOException {
-
-		LOG.info("Preparing TelemetryParser Bolt...");
 	}
 }

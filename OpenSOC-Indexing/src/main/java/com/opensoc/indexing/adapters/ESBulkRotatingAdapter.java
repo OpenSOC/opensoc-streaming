@@ -1,6 +1,5 @@
 package com.opensoc.indexing.adapters;
 
-import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -20,16 +19,10 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.slf4j.Logger;
 
-import com.opensoc.index.interfaces.IndexAdapter;
+import backtype.storm.tuple.Tuple;
 
-@SuppressWarnings("deprecation")
-public class ESBulkRotatingAdapter implements IndexAdapter, Serializable {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-
-	private Logger _LOG;
+@SuppressWarnings({ "deprecation", "serial" })
+public class ESBulkRotatingAdapter extends AbstractIndexAdapter {
 
 	private Client client;
 	private BulkRequestBuilder bulkRequest;
@@ -47,9 +40,7 @@ public class ESBulkRotatingAdapter implements IndexAdapter, Serializable {
 
 	public boolean initializeConnection(String ip, int port,
 			String cluster_name, String index_name, String document_name,
-			int bulk_size, Logger LOG) {
-
-		_LOG = LOG;
+			int bulk_size) {
 
 		_LOG.info("Initializing ESBulkAdapter...");
 
@@ -85,7 +76,7 @@ public class ESBulkRotatingAdapter implements IndexAdapter, Serializable {
 	public boolean bulkIndex(String raw_message) {
 
 		index_postfix = dateFormat.format(new Date());
-		
+
 		bulkRequest.add(client.prepareIndex(_index_name + "-" + index_postfix,
 				_document_name).setSource(raw_message));
 

@@ -24,3 +24,6 @@ TelemetryParserBolt parser_bolt = new TelemetryParserBolt()
 MesageParser: parsers a raw message to JSON
 - BasicSourcefireParser: will parse a Sourcefire message to JSON
 - BasicBroParser: will parser a bro message to JSON
+
+OutputFieldName: name of the output field emitted by the bolt
+

@@ -17,22 +17,12 @@
 
 package com.opensoc.topologies;
 
-import backtype.storm.Config;
-import backtype.storm.LocalCluster;
-import backtype.storm.StormSubmitter;
-import backtype.storm.topology.TopologyBuilder;
-
-import com.opensoc.enrichments.geo.GeoEnrichmentBolt;
-import com.opensoc.enrichments.geo.adapters.GeoMysqlAdapter;
-import com.opensoc.indexing.IndexingBolt;
-import com.opensoc.indexing.adapters.ESBulkRotatingAdapter;
-import com.opensoc.parsing.parsers.BasicBroParser;
-import com.opensoc.test.bolts.PrintingBolt;
-import com.opensoc.test.spouts.BroTestSpout;
 
 /**
  * This is a basic example of a Storm topology.
  */
+
+/*
 public class BroEnrichmentTestTopology 
 {
 
@@ -43,7 +33,7 @@ public class BroEnrichmentTestTopology
 //    builder.setBolt("ParserBolt", new ParserBolt(new BasicBroParser()), 1).shuffleGrouping("EnrichmentSpout");
     builder.setBolt("GeoEnrichBolt", new GeoEnrichmentBolt(new GeoMysqlAdapter()), 1).shuffleGrouping("ParserBolt");
     //builder.setBolt("WhoisEnrichBolt", new WhoisEnrichmentBolt(new HBaseAdapter()), 1).shuffleGrouping("GeoEnrichBolt");
-    builder.setBolt("IndexingBolt", new IndexingBolt(new ESBulkRotatingAdapter()),
+    builder.setBolt("IndexingBolt", new TelemetryIndexingBolt(new ESBulkRotatingAdapter()),
 			1).shuffleGrouping("GeoEnrichBolt");
     builder.setBolt("PrintgBolt", new PrintingBolt(), 1).shuffleGrouping("GeoEnrichBolt");
     
@@ -86,3 +76,4 @@ public class BroEnrichmentTestTopology
     }
   }
 }
+*/

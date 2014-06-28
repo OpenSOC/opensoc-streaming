@@ -17,18 +17,29 @@
 
 package com.opensoc.parsing.parsers;
 
+import java.io.Serializable;
+
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.opensoc.parser.interfaces.MessageParser;
+import com.opensoc.parsing.AbstractParserBolt;
 
 @SuppressWarnings("serial")
-public class BasicBroParser extends AbstractParser
-{
-	
-	private Logger _LOG;
+public class AbstractParser implements MessageParser, Serializable {
 
+	protected static final Logger _LOG = LoggerFactory
+			.getLogger(AbstractParserBolt.class);
+
+	public void initializeParser() {
+		_LOG.debug("Initializing adapter...");
+		
+	}
+	
 	public String parse(String raw_message) 
 	{
-		_LOG.debug("Received message: " + raw_message);
-		return raw_message;
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

@@ -1,7 +1,5 @@
 package com.opensoc.indexing.adapters;
 
-import java.io.Serializable;
-
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.client.Client;
@@ -11,15 +9,8 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.slf4j.Logger;
 
-import com.opensoc.index.interfaces.IndexAdapter;
-
-public class ESBaseBulkAdapter implements IndexAdapter, Serializable {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-
-	private Logger _LOG;
+@SuppressWarnings("serial")
+public class ESBaseBulkAdapter extends AbstractIndexAdapter {
 
 	private Client client;
 	private BulkRequestBuilder bulkRequest;
@@ -30,9 +21,7 @@ public class ESBaseBulkAdapter implements IndexAdapter, Serializable {
 
 	public boolean initializeConnection(String ip, int port,
 			String cluster_name, String index_name, String document_name,
-			int bulk_size, Logger LOG) {
-
-		_LOG = LOG;
+			int bulk_size) {
 
 		_LOG.info("Initializing ESBulkAdapter...");
 

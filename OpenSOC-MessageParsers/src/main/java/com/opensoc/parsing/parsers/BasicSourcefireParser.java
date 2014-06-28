@@ -17,20 +17,9 @@
 
 package com.opensoc.parsing.parsers;
 
-import java.io.Serializable;
-
 import org.json.simple.JSONObject;
-import org.slf4j.Logger;
 
-import com.opensoc.parser.interfaces.MessageParser;
-
-public class BasicSourcefireParser implements MessageParser, Serializable {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 6894149801563690057L;
-
-	private Logger _LOG;
+public class BasicSourcefireParser extends AbstractParser{
 
 	@SuppressWarnings({ "unchecked", "unused" })
 	public String parse(String toParse) {
@@ -87,11 +76,6 @@ public class BasicSourcefireParser implements MessageParser, Serializable {
 			_LOG.error("Failed to parse: " + toParse);
 			return "{}";
 		}
-	}
-
-	public boolean initialize(Logger LOG) {
-		_LOG = LOG;
-		return true;
 	}
 
 }

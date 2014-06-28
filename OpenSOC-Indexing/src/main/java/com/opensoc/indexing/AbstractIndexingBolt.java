@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.opensoc.parsing;
+package com.opensoc.indexing;
 
 import java.io.IOException;
 import java.util.Map;
@@ -25,32 +25,61 @@ import org.slf4j.LoggerFactory;
 
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
+import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichBolt;
+import backtype.storm.tuple.Fields;
 
+import com.opensoc.index.interfaces.IndexAdapter;
 import com.opensoc.parser.interfaces.MessageParser;
 
 @SuppressWarnings("rawtypes")
-public abstract class AbstractParserBolt extends BaseRichBolt {
+public abstract class AbstractIndexingBolt extends BaseRichBolt {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -6710596708304282838L;
 
 	protected static final Logger LOG = LoggerFactory
-			.getLogger(AbstractParserBolt.class);
+			.getLogger(AbstractIndexingBolt.class);
 
 	protected OutputCollector _collector;
-	protected MessageParser _parser;
+	protected IndexAdapter _adapter;
+
+	protected String _IndexIP;
+	protected int _IndexPort = 0;
+	protected String _ClusterName;
+	protected String _IndexName;
+	protected String _DocumentName;
+	protected int _BulkIndexNumber = 10;
 
 	protected String OutputFieldName;
 
 	public final void prepare(Map conf, TopologyContext topologyContext,
 			OutputCollector collector) {
 		_collector = collector;
-		if (this._parser == null)
-			throw new IllegalStateException("MessageParser must be specified");
+		
+		if (this._IndexIP == null)
+			throw new IllegalStateException("_IndexIP must be specified");
+		if (this._IndexPort == 0)
+			throw new IllegalStateException(
+					"_IndexPort must be specified");
+		if (this._ClusterName == null)
+			throw new IllegalStateException(
+					"_ClusterName must be specified");
+		if (this._IndexName == null)
+			throw new IllegalStateException(
+					"_IndexName must be specified");
+		if (this._DocumentName == null)
+			throw new IllegalStateException(
+					"_DocumentName must be specified");
 		if (this.OutputFieldName == null)
 			throw new IllegalStateException("OutputFieldName must be specified");
+		if (this._adapter == null)
+			throw new IllegalStateException("IndexAdapter must be specified");
+	}
+
+	public void declareOutputFields(OutputFieldsDeclarer declearer) {
+		declearer.declare(new Fields(this.OutputFieldName));
 	}
 
 	abstract void doPrepare(Map conf, TopologyContext topologyContext,

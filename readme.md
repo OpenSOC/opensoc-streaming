@@ -66,5 +66,8 @@ Bulk: number of documents to bulk load into ElasticSearch/Solr.  If no value is 
 
 ## Geo Enrichment Bolt
 
-Bolt for enriching IPs with geo data from the MaxMind GeoLite database. This database must be setup prior to using the bolt. Please see the wiki entry on how to setup the database: https://github.com/OpenSOC/opensoc-streaming/wiki/Setting-up-GeoLite-Data  
+Bolt for enriching IPs with geo data from the MaxMind GeoLite database. This database must be setup prior to using the bolt. Please see the wiki entry on how to setup the database: https://github.com/OpenSOC/opensoc-streaming/wiki/Setting-up-GeoLite-Data.
+
+There are two flavors of GeoEnrichment bolts: Single and Dual.  The single bolt enriches a single IP in a message and a dual bolt enriches an IP pair (source and dest).
+
 

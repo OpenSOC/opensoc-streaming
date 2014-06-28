@@ -23,6 +23,8 @@ import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
 import backtype.storm.topology.TopologyBuilder;
 
+import com.opensoc.enrichments.geo.DualGeoEnrichmentBolt;
+import com.opensoc.enrichments.geo.adapters.GeoMysqlAdapter;
 import com.opensoc.indexing.TelemetryIndexingBolt;
 import com.opensoc.indexing.adapters.ESBaseBulkAdapter;
 import com.opensoc.parsing.TelemetryParserBolt;
@@ -52,15 +54,10 @@ public class SourcefireEnrichmentTestTopology {
 		Config conf = new Config();
 		conf.setDebug(true);
 
-		conf.put("MAX_CACHE_SIZE", 10000);
-		conf.put("MAX_TIME_RETAIN", 10);
+		long MAX_CACHE_SIZE = 10000;
+		long MAX_TIME_RETAIN = 10;
 
 		// ------------Geo BOLT configuration
-
-		conf.put("geo_enrichment_source_ip", "172.30.9.54");
-		conf.put("originator_ip_regex", "ip_src_addr\":\"(.*?)\"");
-		conf.put("responder_ip_regex", "ip_dst_addr\":\"(.*?)\"");
-		conf.put("geo_enrichment_tag", "geo_enrichment");
 
 		// ------------Whois BOLT configuration
 
@@ -93,6 +90,26 @@ public class SourcefireEnrichmentTestTopology {
 		builder.setBolt("ParserBolt", parser_bolt, parallelism_hint)
 				.shuffleGrouping("EnrichmentSpout").setNumTasks(num_tasks);
 
+		// ------------Geo Enrichment Bolt Configuration
+
+		String geo_enrichment_source_ip = "172.30.9.54";
+		String originator_ip_regex = "ip_src_addr\":\"(.*?)\"";
+		String responder_ip_regex = "ip_dst_addr\":\"(.*?)\"";
+		String geo_enrichment_tag = "geo_enrichment";
+
+		DualGeoEnrichmentBolt geo_enrichment = new DualGeoEnrichmentBolt()
+				.withEnrichmentSourceIP(geo_enrichment_source_ip)
+				.withSurceIpRegex(originator_ip_regex)
+				.withDestIpRegex(responder_ip_regex)
+				.withEnrichmentTag(geo_enrichment_tag)
+				.withOutputFieldName(topology_name)
+				.withGeoAdapter(new GeoMysqlAdapter())
+				.withMaxTimeRetain(MAX_TIME_RETAIN)
+				.withMaxCacheSize(MAX_CACHE_SIZE);
+
+		builder.setBolt("GeoEnrichBolt", geo_enrichment, parallelism_hint)
+				.shuffleGrouping("ParserBolt").setNumTasks(num_tasks);
+
 		// builder.setBolt("GeoEnrichBolt",
 		// new GeoEnrichmentBolt(new GeoMysqlAdapter()), parallelism_hint)
 		// .shuffleGrouping("ParserBolt").setNumTasks(num_tasks);
@@ -119,7 +136,7 @@ public class SourcefireEnrichmentTestTopology {
 				.withIndexAdapter(new ESBaseBulkAdapter());
 
 		builder.setBolt("IndexingBolt", indexing_bolt, parallelism_hint)
-				.shuffleGrouping("ParserBolt").setNumTasks(num_tasks);
+				.shuffleGrouping("GeoEnrichBolt").setNumTasks(num_tasks);
 
 		// ------------HDFS BOLT configuration
 

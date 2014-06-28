@@ -15,10 +15,23 @@
  * limitations under the License.
  */
 
-package com.opensoc.enrichment.interfaces;
+package com.opensoc.enrichments.geo.adapters;
 
-public interface GeoAdapter
-{
-	String enrich(String metadata);
-	boolean initializeAdapter(String ip);
+import java.io.Serializable;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.opensoc.enrichment.interfaces.GeoAdapter;
+import com.opensoc.enrichments.geo.DualGeoEnrichmentBolt;
+
+@SuppressWarnings("serial")
+public abstract class AbstractGeoAdapter implements GeoAdapter, Serializable{
+
+	protected static final Logger _LOG = LoggerFactory.getLogger(DualGeoEnrichmentBolt.class);
+	
+	abstract public String enrich(String metadata);
+	abstract public boolean initializeAdapter(String ip);
+	
+
 }

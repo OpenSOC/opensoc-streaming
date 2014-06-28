@@ -70,4 +70,16 @@ Bolt for enriching IPs with geo data from the MaxMind GeoLite database. This dat
 
 There are two flavors of GeoEnrichment bolts: Single and Dual.  The single bolt enriches a single IP in a message and a dual bolt enriches an IP pair (source and dest).
 
+This is how to invoke the dual bolt:
 
+```
+DualGeoEnrichmentBolt geo_enrichment = new DualGeoEnrichmentBolt()
+				.withEnrichmentSourceIP(geo_enrichment_source_ip)
+				.withSurceIpRegex(originator_ip_regex)
+				.withDestIpRegex(responder_ip_regex)
+				.withEnrichmentTag(geo_enrichment_tag)
+				.withOutputFieldName(topology_name)
+				.withGeoAdapter(new GeoMysqlAdapter())
+				.withMaxTimeRetain(MAX_TIME_RETAIN)
+				.withMaxCacheSize(MAX_CACHE_SIZE);
+```

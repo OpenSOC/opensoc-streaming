@@ -17,7 +17,6 @@
 
 package com.opensoc.enrichments.geo.adapters;
 
-import java.io.Serializable;
 import java.net.InetAddress;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -25,20 +24,16 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 
 import org.json.simple.JSONObject;
-import org.slf4j.Logger;
 
-import com.opensoc.enrichment.interfaces.GeoAdapter;
-
-public class GeoMysqlAdapter implements GeoAdapter, Serializable {
-
-	private static final long serialVersionUID = 2675621052400811942L;
-	private Logger _LOG;
+@SuppressWarnings("serial")
+public class GeoMysqlAdapter extends AbstractGeoAdapter {
 
 	private Connection connection = null;
 	private Statement statement = null;
 	private ResultSet resultSet = null;
 
 	@SuppressWarnings("unchecked")
+	@Override
 	public String enrich(String metadata) {
 		try {
 
@@ -90,8 +85,9 @@ public class GeoMysqlAdapter implements GeoAdapter, Serializable {
 		}
 	}
 
-	public boolean initializeAdapter(String ip, Logger LOG) {
-		_LOG = LOG;
+	@Override
+	public boolean initializeAdapter(String ip) {
+
 
 		_LOG.info("Initializing MysqlAdapter....");
 

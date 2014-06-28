@@ -45,10 +45,10 @@ TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
 
 ###Parameters:
 
-IndexAdapter: adapter and strategy for indexing.  Adapters listed below are available
-- ESBaseBulkAdapter: adapter for bulk loading telemetry into a single index in ElasticSearch
-- ESBulkRotatingAdapter: adapter for bulk loading telemetry into Elastic search, rotating once per hour, and applying a single alias to all rotated indexes
-- SolrAdapter (stubbed out, on roadmap)
+-IndexAdapter: adapter and strategy for indexing.  Adapters listed below are available
+-- ESBaseBulkAdapter: adapter for bulk loading telemetry into a single index in ElasticSearch
+-- ESBulkRotatingAdapter: adapter for bulk loading telemetry into Elastic search, rotating once per hour, and applying a single alias to all rotated indexes
+-- SolrAdapter (stubbed out, on roadmap)
 
 OutputFieldName: name of the output field emitted by the bolt
 

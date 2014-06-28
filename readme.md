@@ -1,6 +1,6 @@
 # OpenSOC-Streaming
 
-Extensible set of Storm topologies and topology attributes for streaming, enriching, indexing, and storing telemetry in Hadoop.
+Extensible set of Storm topologies and topology attributes for streaming, enriching, indexing, and storing telemetry in Hadoop.  Please see the wiki for more detailed documentation. For general information on the project see our slides on www.getopensoc.com
 
 
 ## Build Instructions
@@ -25,7 +25,7 @@ TelemetryParserBolt parser_bolt = new TelemetryParserBolt()
 
 MesageParser: parsers a raw message to JSON. Parsers listed below are available
 - BasicSourcefireParser: will parse a Sourcefire message to JSON
-- BasicBroParser: will parser a bro message to JSON
+- BasicBroParser: will parse a Bro message to JSON
 
 OutputFieldName: name of the output field emitted by the bolt
 
@@ -64,4 +64,7 @@ DocumentName: DocumentName of ElasticSearch/Solr
 
 Bulk: number of documents to bulk load into ElasticSearch/Solr.  If no value is passed, default is 10
 
-## Enrichment Bolt
+## Geo Enrichment Bolt
+
+Bolt for enriching IPs with geo data from the MaxMind GeoLite database. This database must be setup prior to using the bolt. Please see the wiki entry on how to setup the database: https://github.com/OpenSOC/opensoc-streaming/wiki/Setting-up-GeoLite-Data  
+

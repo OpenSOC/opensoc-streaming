@@ -67,7 +67,8 @@ public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 	}
 
 	public TelemetryIndexingBolt withIndexAdapter(IndexAdapter adapter) {
-		this._adapter = adapter;
+		_adapter = adapter;
+
 		return this;
 	}
 
@@ -76,7 +77,8 @@ public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 	void doPrepare(Map conf, TopologyContext topologyContext,
 			OutputCollector collector) throws IOException {
 
-		boolean success = this._adapter.initializeConnection(_IndexIP,
+		
+		boolean success = _adapter.initializeConnection(_IndexIP,
 				_IndexPort, _ClusterName, _IndexName, _DocumentName,
 				_BulkIndexNumber);
 
@@ -105,63 +107,3 @@ public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 	}
 
 }
-
-/*
- * @SuppressWarnings("serial") public class TelemetryIndexingBolt extends
- * BaseRichBolt {
- * 
- * private static final Logger LOG =
- * LoggerFactory.getLogger(TelemetryIndexingBolt.class);
- * 
- * OutputCollector _collector; IndexAdapter _adapter;
- * 
- * public TelemetryIndexingBolt(IndexAdapter adapter) { _adapter = adapter; }
- * 
- * @SuppressWarnings("rawtypes") public void prepare(Map conf, TopologyContext
- * context, OutputCollector collector) {
- * 
- * LOG.info("Initializing IndexingBolt...");
- * 
- * _collector = collector;
- * 
- * String ip = (String) conf.get("es_ip"); int port = ((Long)
- * conf.get("es_port")).intValue(); String cluster_name = (String)
- * conf.get("es_cluster_name"); String index_name = (String)
- * conf.get("index_name"); String document_name = (String)
- * conf.get("document_name"); int bulk = ((Long)
- * conf.get("es_bulk")).intValue();
- * 
- * LOG.debug("Setting ip: " + ip); LOG.debug("Setting port: " + port);
- * LOG.debug("Setting cluster_name: " + cluster_name);
- * LOG.debug("Setting index_name: " + index_name);
- * LOG.debug("Setting document_name: " + document_name);
- * LOG.debug("Setting bulk: " + bulk);
- * 
- * LOG.debug("Initializing adapter...");
- * 
- * boolean success = _adapter.initializeConnection(ip, port, cluster_name,
- * index_name, document_name, bulk, LOG);
- * 
- * if(!success) LOG.error("Failed to initialize adapter...");
- * 
- * LOG.info("Indexing bolt initialized..."); }
- * 
- * public void execute(Tuple tuple) {
- * 
- * String message = tuple.getString(0);
- * 
- * LOG.debug("Received message: " + message);
- * 
- * boolean success = _adapter.bulkIndex(message);
- * 
- * if (success) _collector.ack(tuple); else _collector.fail(tuple);
- * 
- * }
- * 
- * public void declareOutputFields(OutputFieldsDeclarer arg0) { // TODO
- * Auto-generated method stub
- * 
- * }
- * 
- * }
- */

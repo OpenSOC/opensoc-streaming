@@ -76,6 +76,13 @@ public abstract class AbstractIndexingBolt extends BaseRichBolt {
 			throw new IllegalStateException("OutputFieldName must be specified");
 		if (this._adapter == null)
 			throw new IllegalStateException("IndexAdapter must be specified");
+		
+		try {
+			doPrepare(conf, topologyContext, collector);
+		} catch (IOException e) {
+			LOG.error("Counld not initialize...");
+			e.printStackTrace();
+		}
 	}
 
 	public void declareOutputFields(OutputFieldsDeclarer declearer) {

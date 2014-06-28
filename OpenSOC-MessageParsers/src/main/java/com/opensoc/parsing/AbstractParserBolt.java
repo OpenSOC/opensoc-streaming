@@ -51,6 +51,13 @@ public abstract class AbstractParserBolt extends BaseRichBolt {
 			throw new IllegalStateException("MessageParser must be specified");
 		if (this.OutputFieldName == null)
 			throw new IllegalStateException("OutputFieldName must be specified");
+
+		try {
+			doPrepare(conf, topologyContext, collector);
+		} catch (IOException e) {
+			LOG.error("Counld not initialize...");
+			e.printStackTrace();
+		}
 	}
 
 	abstract void doPrepare(Map conf, TopologyContext topologyContext,

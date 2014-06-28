@@ -26,7 +26,7 @@ import com.opensoc.parser.interfaces.MessageParser;
 import com.opensoc.parsing.AbstractParserBolt;
 
 @SuppressWarnings("serial")
-public class AbstractParser implements MessageParser, Serializable {
+public abstract class AbstractParser implements MessageParser, Serializable {
 
 	protected static final Logger _LOG = LoggerFactory
 			.getLogger(AbstractParserBolt.class);
@@ -36,10 +36,6 @@ public class AbstractParser implements MessageParser, Serializable {
 		
 	}
 	
-	public String parse(String raw_message) 
-	{
-		// TODO Auto-generated method stub
-		return null;
-	}
+	abstract public String parse(String raw_message);
 
 }

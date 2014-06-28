@@ -19,6 +19,7 @@ package com.opensoc.parsing.parsers;
 
 import org.json.simple.JSONObject;
 
+@SuppressWarnings("serial")
 public class BasicSourcefireParser extends AbstractParser{
 
 	@SuppressWarnings({ "unchecked", "unused" })

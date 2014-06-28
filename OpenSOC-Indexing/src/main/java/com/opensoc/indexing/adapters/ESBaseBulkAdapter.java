@@ -19,6 +19,7 @@ public class ESBaseBulkAdapter extends AbstractIndexAdapter {
 	private String _document_name;
 	private int element_count;
 
+	@Override
 	public boolean initializeConnection(String ip, int port,
 			String cluster_name, String index_name, String document_name,
 			int bulk_size) {
@@ -41,7 +42,7 @@ public class ESBaseBulkAdapter extends AbstractIndexAdapter {
 							port));
 
 			bulkRequest = client.prepareBulk();
-
+			
 			return true;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -49,10 +50,11 @@ public class ESBaseBulkAdapter extends AbstractIndexAdapter {
 		}
 	}
 
+	@Override
 	public boolean bulkIndex(String raw_message) {
 
 		try {
-
+			
 			bulkRequest.add(client.prepareIndex(_index_name, _document_name)
 					.setSource(raw_message));
 

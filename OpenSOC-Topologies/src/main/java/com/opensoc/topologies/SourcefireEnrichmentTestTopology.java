@@ -23,7 +23,10 @@ import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
 import backtype.storm.topology.TopologyBuilder;
 
+import com.opensoc.indexing.TelemetryIndexingBolt;
+import com.opensoc.indexing.adapters.ESBaseBulkAdapter;
 import com.opensoc.parsing.TelemetryParserBolt;
+import com.opensoc.parsing.parsers.BasicSourcefireParser;
 import com.opensoc.test.spouts.SourcefireTestSpout;
 
 /**
@@ -112,10 +115,11 @@ public class SourcefireEnrichmentTestTopology {
 				.withClusterName(ElasticSearchClusterName)
 				.withIndexName(ElasticSearchIndexName)
 				.withDocumentName(ElasticSearchDocumentName).withBulk(bulk)
-				.withOutputFieldName(topology_name);
+				.withOutputFieldName(topology_name)
+				.withIndexAdapter(new ESBaseBulkAdapter());
 
 		builder.setBolt("IndexingBolt", indexing_bolt, parallelism_hint)
-				.shuffleGrouping("GeoEnrichBolt").setNumTasks(num_tasks);
+				.shuffleGrouping("ParserBolt").setNumTasks(num_tasks);
 
 		// ------------HDFS BOLT configuration
 

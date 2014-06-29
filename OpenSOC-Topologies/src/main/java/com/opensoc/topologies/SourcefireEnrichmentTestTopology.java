@@ -25,6 +25,8 @@ import backtype.storm.topology.TopologyBuilder;
 
 import com.opensoc.enrichments.geo.DualGeoEnrichmentBolt;
 import com.opensoc.enrichments.geo.adapters.GeoMysqlAdapter;
+import com.opensoc.enrichments.whois.WhoisEnrichmentBolt;
+import com.opensoc.enrichments.whois.adapters.WhoisHBaseAdapter;
 import com.opensoc.indexing.TelemetryIndexingBolt;
 import com.opensoc.indexing.adapters.ESBaseBulkAdapter;
 import com.opensoc.parsing.TelemetryParserBolt;
@@ -110,13 +112,10 @@ public class SourcefireEnrichmentTestTopology {
 		builder.setBolt("GeoEnrichBolt", geo_enrichment, parallelism_hint)
 				.shuffleGrouping("ParserBolt").setNumTasks(num_tasks);
 
-		// builder.setBolt("GeoEnrichBolt",
-		// new GeoEnrichmentBolt(new GeoMysqlAdapter()), parallelism_hint)
-		// .shuffleGrouping("ParserBolt").setNumTasks(num_tasks);
-
-		// builder.setBolt("WhoisEnrichmentBolt",
-		// new WhoisEnrichmentBolt(new WhoisHBaseAdapter()),
-		// parallelism_hint).shuffleGrouping("ParserBolt").setNumTasks(num_tasks);
+		builder.setBolt("WhoisEnrichmentBolt",
+				new WhoisEnrichmentBolt(new WhoisHBaseAdapter()),
+				parallelism_hint).shuffleGrouping("ParserBolt")
+				.setNumTasks(num_tasks);
 
 		// ------------ES BOLT configuration
 

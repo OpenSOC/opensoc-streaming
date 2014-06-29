@@ -44,17 +44,37 @@ public class WhoisHBaseAdapter implements WhoisAdapter, Serializable {
 		
 		_LOG = LOG;
 		
+		System.out.println("--------------- A");
+		
 		try {
 			Configuration config = HBaseConfiguration.create();
-			config.set("hbase.master", ip);
-			config.set("hbase.zookeeper.quorum","172.30.9.95");
+			config.set("hbase.master", "172.30.9.108");
+			config.set("hbase.zookeeper.quorum","172.30.9.116");
 			config.set("hbase.zookeeper.property.clientPort", "2181");
+		    config.set("hbase.client.retries.number", "1");
+		    config.set("zookeeper.session.timeout", "60000");
+		    config.set("zookeeper.recovery.retry", "0");
+		    
+		    System.out.println("--------------- B");
 			
 			HTable table = new HTable(config, "whois");
+			
+			System.out.println("--------------- C");
+			
 			Get g = new Get(Bytes.toBytes("002391.com"));
+			
+			System.out.println("--------------- D");
+			
 			Result r = table.get(g);
+			
+			System.out.println("--------------- E");
+			
 			byte [] value = r.getValue(Bytes.toBytes("data:json"),Bytes.toBytes("values"));
+			
+			System.out.println("--------------- F");
+			
 			String valueStr = Bytes.toString(value);
+			
 		    System.out.println("---------------------------GET: " + valueStr);
 		    
 		    return true;

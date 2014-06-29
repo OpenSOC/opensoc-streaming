@@ -90,39 +90,11 @@ public class WhoisEnrichmentBolt extends BaseRichBolt {
 		_collector = collector;
 		
 		System.out.println("--------------- INITIALIZING ADAPTER");
-	//	boolean success = adapter.initializeAdapter(enrichment_source_ip, LOG);
+		boolean success = adapter.initializeAdapter(enrichment_source_ip, LOG);
 		
-		
-		Configuration config = HBaseConfiguration.create();
-		config.set("hbase.master", enrichment_source_ip);
-		config.set("hbase.zookeeper.quorum","172.30.9.95");
-		config.set("hbase.zookeeper.property.clientPort", "2181");
-		
-		String resp = "NULL"; 
-		String error = "NULL";
-		
-		HTable table;
-		try {
-			table = new HTable(config, "whois");
-		
-		Get g = new Get(Bytes.toBytes("002391.com"));
-		Result r = table.get(g);
-		byte [] value = r.getValue(Bytes.toBytes("data:json"),Bytes.toBytes("values"));
-		String valueStr = Bytes.toString(value);
-		resp = valueStr;
-	    System.out.println("---------------------------GET: " + valueStr);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			
-			error = e.getLocalizedMessage();
-		}
-		
-		System.out.println("---------------------------EXAMPLE: " + resp);
-		System.out.println("---------------------------ERROR: " + error);
 
-	//	if (!success)
-		//	LOG.error("Failed to initialize adapter");
+		if (!success)
+			LOG.error("Failed to initialize adapter");
 
 		loader = new CacheLoader<String, String>() {
 			public String load(String key) throws Exception {

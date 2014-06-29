@@ -35,7 +35,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.opensoc.enrichment.interfaces.GeoAdapter;
 
-@SuppressWarnings("serial")
+@SuppressWarnings({ "rawtypes", "serial" })
 public class DualGeoEnrichmentBolt extends AbstractGeoEnrichmentBolt {
 
 	protected transient CacheLoader<String, String> loader;
@@ -138,6 +138,7 @@ public class DualGeoEnrichmentBolt extends AbstractGeoEnrichmentBolt {
 		declarer.declare(new Fields("message"));
 	}
 
+	
 	@Override
 	void doPrepare(Map conf, TopologyContext topologyContext,
 			OutputCollector collector) throws IOException {

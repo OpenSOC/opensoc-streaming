@@ -84,7 +84,7 @@ DualGeoEnrichmentBolt geo_enrichment = new DualGeoEnrichmentBolt()
 				.withMaxCacheSize(MAX_CACHE_SIZE);
 ```
 
-###Parameters
+###Parameters:
 
 GeoAdapter: adapter for the MaxMind GeoLite dataset.  Adapters listed below are available
 - GeoMysqlAdapter: pulls geoIP data from MqSQL database

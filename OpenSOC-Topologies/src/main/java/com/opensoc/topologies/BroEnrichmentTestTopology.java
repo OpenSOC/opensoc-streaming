@@ -17,63 +17,73 @@
 
 package com.opensoc.topologies;
 
+import storm.kafka.BrokerHosts;
+import storm.kafka.KafkaSpout;
+import storm.kafka.SpoutConfig;
+import storm.kafka.StringScheme;
+import storm.kafka.ZkHosts;
+import backtype.storm.Config;
+import backtype.storm.LocalCluster;
+import backtype.storm.StormSubmitter;
+import backtype.storm.topology.TopologyBuilder;
+import backtype.storm.utils.Utils;
+
+import backtype.storm.spout.SchemeAsMultiScheme;
 
 /**
  * This is a basic example of a Storm topology.
  */
 
-/*
-public class BroEnrichmentTestTopology 
-{
+public class BroEnrichmentTestTopology {
 
-  public static void main(String[] args) throws Exception {
-    TopologyBuilder builder = new TopologyBuilder();
+	public static void main(String[] args) throws Exception {
+		TopologyBuilder builder = new TopologyBuilder();
 
-    builder.setSpout("EnrichmentSpout", new BroTestSpout(), 1);
-//    builder.setBolt("ParserBolt", new ParserBolt(new BasicBroParser()), 1).shuffleGrouping("EnrichmentSpout");
-    builder.setBolt("GeoEnrichBolt", new GeoEnrichmentBolt(new GeoMysqlAdapter()), 1).shuffleGrouping("ParserBolt");
-    //builder.setBolt("WhoisEnrichBolt", new WhoisEnrichmentBolt(new HBaseAdapter()), 1).shuffleGrouping("GeoEnrichBolt");
-    builder.setBolt("IndexingBolt", new TelemetryIndexingBolt(new ESBulkRotatingAdapter()),
-			1).shuffleGrouping("GeoEnrichBolt");
-    builder.setBolt("PrintgBolt", new PrintingBolt(), 1).shuffleGrouping("GeoEnrichBolt");
-    
-    Config conf = new Config();
-    conf.setDebug(true);
-    
-    conf.put("MAX_CACHE_SIZE", 10000);
-    conf.put("MAX_TIME_RETAIN", 10);
-    
-    conf.put("geo_enrichment_source_ip", "172.30.9.54");
-    conf.put("originator_ip_regex", "id.orig_h\":\"(.*?)\"");
-    conf.put("responder_ip_regex", "id.resp_h\":\"(.*?)\"");
-    conf.put("geo_enrichment_tag", "geo_enrichment");
-    
-    conf.put("whois_enrichment_tag", "whois_enrichment");
-    conf.put("host_regex", "host\":\"(.*?)\"");
-    conf.put("enrichment_source_ip",  "172.30.9.108:60000");
+		// ------------KAFKA spout configuration
 
-    
-	conf.put("es_ip", "172.30.9.148");
-	conf.put("es_port", 9300);
-	conf.put("es_cluster_name", "devo_es");
-	conf.put("index_name", "bro_index");
-	conf.put("document_name", "bro_doc");
-	conf.put("es_bulk", 50);
-	
+		BrokerHosts zk = new ZkHosts("172.30.9.115:2181");
 
-    if (args != null && args.length > 0) {
-      conf.setNumWorkers(1);
+		SpoutConfig kafkaConfig = new SpoutConfig(zk, "metadata", "/", "bro");
 
-      StormSubmitter.submitTopology(args[0], conf, builder.createTopology());
-    }
-    else {
+		kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
+		kafkaConfig.forceFromStart = Boolean.valueOf("True");
+		kafkaConfig.startOffsetTime = -1;
 
-      LocalCluster cluster = new LocalCluster();
-      cluster.submitTopology("test", conf, builder.createTopology());
-     // Utils.sleep(10000);
-      //cluster.killTopology("test");
-      //cluster.shutdown();
-    }
-  }
+		builder.setSpout("kafka-spout", new KafkaSpout(kafkaConfig), 1)
+				.setNumTasks(1);
+
+		/*
+		 * builder.setSpout("EnrichmentSpout", new BroTestSpout(), 1); //
+		 * builder.setBolt("ParserBolt", new ParserBolt(new BasicBroParser()),
+		 * 1).shuffleGrouping("EnrichmentSpout");
+		 * builder.setBolt("GeoEnrichBolt", new GeoEnrichmentBolt(new
+		 * GeoMysqlAdapter()), 1).shuffleGrouping("ParserBolt");
+		 * //builder.setBolt("WhoisEnrichBolt", new WhoisEnrichmentBolt(new
+		 * HBaseAdapter()), 1).shuffleGrouping("GeoEnrichBolt");
+		 * builder.setBolt("IndexingBolt", new TelemetryIndexingBolt(new
+		 * ESBulkRotatingAdapter()), 1).shuffleGrouping("GeoEnrichBolt");
+		 * builder.setBolt("PrintgBolt", new PrintingBolt(),
+		 * 1).shuffleGrouping("GeoEnrichBolt");
+		
+		*/
+		
+		  Config conf = new Config(); 
+		  conf.setDebug(true);
+		  
+		
+		 
+		if (args != null && args.length > 0) {
+			conf.setNumWorkers(1);
+
+			StormSubmitter.submitTopology(args[0], conf,
+					builder.createTopology());
+		} else {
+
+			LocalCluster cluster = new LocalCluster();
+			cluster.submitTopology("test", conf, builder.createTopology()); //
+			Utils.sleep(10000); // cluster.killTopology("test");
+			cluster.shutdown();
+		}
+
+	}
 }
-*/

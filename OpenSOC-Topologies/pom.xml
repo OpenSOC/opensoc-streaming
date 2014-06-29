@@ -32,6 +32,8 @@
 		<hadoop.version>2.2.0</hadoop.version>
 		<cli.version>20040117.000000</cli.version>
 		<kafka.storm.version>0.9.2-incubating</kafka.storm.version>
+		<cif.enrichment.version>0.0.1-SNAPSHOT</cif.enrichment.version>
+		<lancope.enrichment.version>0.0.1-SNAPSHOT</lancope.enrichment.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -58,6 +60,16 @@
 			<groupId>com.opensoc</groupId>
 			<artifactId>OpenSOC-Indexing</artifactId>
 			<version>${indexing.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.opensoc</groupId>
+			<artifactId>OpenSOC-CIFEnrichment</artifactId>
+			<version>${cif.enrichment.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.opensoc</groupId>
+			<artifactId>OpenSOC-LancopeEnrichment</artifactId>
+			<version>${lancope.enrichment.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.storm</groupId>

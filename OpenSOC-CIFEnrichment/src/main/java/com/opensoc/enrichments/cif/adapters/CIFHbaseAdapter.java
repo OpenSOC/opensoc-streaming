@@ -15,41 +15,32 @@
  * limitations under the License.
  */
 
-package com.opensoc.enrichments.cif;
+package com.opensoc.enrichments.cif.adapters;
 
-import java.io.IOException;
-import java.util.Map;
+public class CIFHbaseAdapter extends AbstractCIFAdapter{
 
-import com.opensoc.enrichments.cif.adapters.AbstractCIFAdapter;
-
-import backtype.storm.task.OutputCollector;
-import backtype.storm.task.TopologyContext;
-import backtype.storm.tuple.Tuple;
-
-@SuppressWarnings("serial")
-public class CIFEnrichmentBolt extends AbstractCIFEnrichmentBolt{
-
-	public CIFEnrichmentBolt withOutputFieldName(String OutputFieldName) {
-		_OutputFieldName = OutputFieldName;
-		return this;
-	}
-	
-	public CIFEnrichmentBolt withAdapter(AbstractCIFAdapter adapter) {
-		_adapter = adapter;
-		return this;
-	}
-
-	public void execute(Tuple arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@SuppressWarnings("rawtypes")
 	@Override
-	void doPrepare(Map conf, TopologyContext topologyContext,
-			OutputCollector collector) throws IOException {
+	public boolean initializeAdapter(String ip) {
 		// TODO Auto-generated method stub
-		
+		return false;
+	}
+
+	@Override
+	public String enrichByIP(String metadata) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String enrichByDomain(String metadata) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String enrichByEmail(String metadata) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

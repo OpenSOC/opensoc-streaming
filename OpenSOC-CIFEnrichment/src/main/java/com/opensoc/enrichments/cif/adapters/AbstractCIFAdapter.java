@@ -15,12 +15,21 @@
  * limitations under the License.
  */
 
-package com.opensoc.enrichment.interfaces;
+package com.opensoc.enrichments.cif.adapters;
 
-public interface CIFAdapter
-{
-	boolean initializeAdapter(String ip);
-	String enrichByIP(String metadata);
-	String enrichByDomain(String metadata);
-	String enrichByEmail(String metadata);
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.opensoc.enrichment.interfaces.CIFAdapter;
+
+public abstract class AbstractCIFAdapter implements CIFAdapter{
+
+	protected static final Logger LOG = LoggerFactory
+			.getLogger(AbstractCIFAdapter.class);
+	
+	abstract public boolean initializeAdapter(String ip);
+	abstract public String enrichByIP(String metadata);
+	abstract public String enrichByDomain(String metadata);
+	abstract public String enrichByEmail(String metadata);
+
 }

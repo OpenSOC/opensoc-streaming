@@ -17,18 +17,41 @@
 
 package com.opensoc.topologies;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.storm.hdfs.bolt.HdfsBolt;
+import org.apache.storm.hdfs.bolt.format.DefaultFileNameFormat;
+import org.apache.storm.hdfs.bolt.format.DelimitedRecordFormat;
+import org.apache.storm.hdfs.bolt.format.FileNameFormat;
+import org.apache.storm.hdfs.bolt.format.RecordFormat;
+import org.apache.storm.hdfs.bolt.rotation.FileRotationPolicy;
+import org.apache.storm.hdfs.bolt.rotation.FileSizeRotationPolicy;
+import org.apache.storm.hdfs.bolt.rotation.FileSizeRotationPolicy.Units;
+import org.apache.storm.hdfs.bolt.sync.CountSyncPolicy;
+import org.apache.storm.hdfs.bolt.sync.SyncPolicy;
+
 import storm.kafka.BrokerHosts;
 import storm.kafka.KafkaSpout;
 import storm.kafka.SpoutConfig;
 import storm.kafka.StringScheme;
 import storm.kafka.ZkHosts;
+import storm.kafka.bolt.KafkaBolt;
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
+import backtype.storm.spout.SchemeAsMultiScheme;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.utils.Utils;
 
-import backtype.storm.spout.SchemeAsMultiScheme;
+import com.opensoc.enrichments.cif.CIFEnrichmentBolt;
+import com.opensoc.enrichments.cif.adapters.CIFHbaseAdapter;
+import com.opensoc.enrichments.lancope.LancopeEnrichmentBolt;
+import com.opensoc.enrichments.lancope.adapters.LancopeHbaseAdapter;
+import com.opensoc.indexing.TelemetryIndexingBolt;
+import com.opensoc.indexing.adapters.ESBaseBulkAdapter;
+import com.opensoc.parsing.TelemetryParserBolt;
+import com.opensoc.parsing.parsers.BasicBroParser;
 
 /**
  * This is a basic example of a Storm topology.
@@ -38,6 +61,15 @@ public class BroEnrichmentTestTopology {
 
 	public static void main(String[] args) throws Exception {
 		TopologyBuilder builder = new TopologyBuilder();
+
+		String topology_name = "bro";
+		int parallelism_hint = 1;
+		int num_tasks = 1;
+		int localMode = 1;
+		String hdfs_path = "hdfs://172.30.9.110:8020";
+
+		Config conf = new Config();
+		conf.setDebug(true);
 
 		// ------------KAFKA spout configuration
 
@@ -49,30 +81,87 @@ public class BroEnrichmentTestTopology {
 		kafkaConfig.forceFromStart = Boolean.valueOf("True");
 		kafkaConfig.startOffsetTime = -1;
 
-		builder.setSpout("kafka-spout", new KafkaSpout(kafkaConfig), 1)
-				.setNumTasks(1);
+		builder.setSpout("kafka-spout", new KafkaSpout(kafkaConfig),
+				parallelism_hint).setNumTasks(1);
 
-		/*
-		 * builder.setSpout("EnrichmentSpout", new BroTestSpout(), 1); //
-		 * builder.setBolt("ParserBolt", new ParserBolt(new BasicBroParser()),
-		 * 1).shuffleGrouping("EnrichmentSpout");
-		 * builder.setBolt("GeoEnrichBolt", new GeoEnrichmentBolt(new
-		 * GeoMysqlAdapter()), 1).shuffleGrouping("ParserBolt");
-		 * //builder.setBolt("WhoisEnrichBolt", new WhoisEnrichmentBolt(new
-		 * HBaseAdapter()), 1).shuffleGrouping("GeoEnrichBolt");
-		 * builder.setBolt("IndexingBolt", new TelemetryIndexingBolt(new
-		 * ESBulkRotatingAdapter()), 1).shuffleGrouping("GeoEnrichBolt");
-		 * builder.setBolt("PrintgBolt", new PrintingBolt(),
-		 * 1).shuffleGrouping("GeoEnrichBolt");
-		
-		*/
-		
-		  Config conf = new Config(); 
-		  conf.setDebug(true);
-		  
-		
-		 
-		if (args != null && args.length > 0) {
+		// ------------ParserBolt configuration
+
+		TelemetryParserBolt parser_bolt = new TelemetryParserBolt()
+				.withMessageParser(new BasicBroParser()).withOutputFieldName(
+						topology_name);
+
+		builder.setBolt("ParserBolt", parser_bolt, parallelism_hint)
+				.shuffleGrouping("EnrichmentSpout").setNumTasks(num_tasks);
+
+		// ------------CIF bolt configuration
+
+		CIFEnrichmentBolt cif_enrichment = new CIFEnrichmentBolt().withAdapter(
+				new CIFHbaseAdapter()).withOutputFieldName(topology_name);
+
+		builder.setBolt("CIFEnrichmentBolt", cif_enrichment, parallelism_hint)
+				.shuffleGrouping("ParserBolt").setNumTasks(num_tasks);
+
+		// ------------Lancope bolt configuration
+
+		LancopeEnrichmentBolt lancope_enrichment = new LancopeEnrichmentBolt()
+				.withAdapter(new LancopeHbaseAdapter()).withOutputFieldName(
+						topology_name);
+
+		builder.setBolt("LancopeEnrichmentBolt", lancope_enrichment,
+				parallelism_hint).shuffleGrouping("CIFEnrichmentBolt")
+				.setNumTasks(num_tasks);
+
+		// ------------Kafka Bolt Configuration
+
+		Map<String, String> kafka_broker_properties = new HashMap<String, String>();
+		// add some properties?
+
+		conf.put("KAFKA_BROKER_PROPERTIES", kafka_broker_properties);
+		conf.put("TOPIC", topology_name + "_cnt");
+
+		builder.setBolt("KafkaBolt", new KafkaBolt<String, String>(),
+				parallelism_hint).shuffleGrouping("LancopeEnrichmentBolt")
+				.setNumTasks(num_tasks);
+
+		// ------------ES BOLT configuration
+
+		String ElasticSearchIP = "172.30.9.148";
+		int elasticSearchPort = 9300;
+		String ElasticSearchClusterName = "devo_es";
+		String ElasticSearchIndexName = "sourcefire_index";
+		String ElasticSearchDocumentName = "sourcefire_doc";
+		int bulk = 200;
+
+		TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
+				.withIndexIP(ElasticSearchIP).withIndexPort(elasticSearchPort)
+				.withClusterName(ElasticSearchClusterName)
+				.withIndexName(ElasticSearchIndexName)
+				.withDocumentName(ElasticSearchDocumentName).withBulk(bulk)
+				.withOutputFieldName(topology_name)
+				.withIndexAdapter(new ESBaseBulkAdapter());
+
+		builder.setBolt("IndexingBolt", indexing_bolt, parallelism_hint)
+				.shuffleGrouping("LancopeEnrichmentBolt").setNumTasks(num_tasks);
+
+		 //------------HDFS BOLT configuration
+
+		 FileNameFormat fileNameFormat = new DefaultFileNameFormat()
+		 .withPath("/" + topology_name + "/");
+		 RecordFormat format = new DelimitedRecordFormat()
+		 .withFieldDelimiter("|");
+
+		 SyncPolicy syncPolicy = new CountSyncPolicy(5);
+		 FileRotationPolicy rotationPolicy = new FileSizeRotationPolicy(5.0f,
+		 Units.KB);
+
+		 HdfsBolt hdfsBolt = new HdfsBolt().withFsUrl(hdfs_path)
+		 .withFileNameFormat(fileNameFormat).withRecordFormat(format)
+		 .withRotationPolicy(rotationPolicy).withSyncPolicy(syncPolicy);
+
+		 builder.setBolt("HDFSBolt", hdfsBolt, parallelism_hint)
+		 .shuffleGrouping("EnrichmentSpout").setNumTasks(num_tasks);
+
+		if (localMode == 1) {
 			conf.setNumWorkers(1);
 
 			StormSubmitter.submitTopology(args[0], conf,

@@ -4,6 +4,17 @@ Extensible set of Storm topologies and topology attributes for streaming, enrich
 
 
 ## Build Instructions
+
+If building via maven add the following dependency:
+
+```
+<dependency>
+	<groupId>com.opensoc</groupId>
+	<artifactId>OpenSOC-Streaming</artifactId>
+	<version>${opensoc.streaming.version}</version>
+</dependency>
+```
+
 To build the project in Eclipse do the following:
 
 Check out via git plugin or git app

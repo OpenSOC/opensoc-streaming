@@ -47,7 +47,7 @@ import backtype.storm.utils.Utils;
 
 import com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter;
 import com.opensoc.enrichment.adapters.lancope.LancopeHbaseAdapter;
-import com.opensoc.enrichments.common.GenericEnrichmentBolt;
+import com.opensoc.enrichment.common.GenericEnrichmentBolt;
 import com.opensoc.indexing.TelemetryIndexingBolt;
 import com.opensoc.indexing.adapters.ESBaseBulkAdapter;
 import com.opensoc.parsing.TelemetryParserBolt;

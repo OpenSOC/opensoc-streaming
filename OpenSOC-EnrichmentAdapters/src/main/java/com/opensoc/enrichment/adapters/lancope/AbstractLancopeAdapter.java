@@ -3,7 +3,7 @@ package com.opensoc.enrichment.adapters.lancope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.opensoc.enrichments.common.EnrichmentAdapter;
+import com.opensoc.enrichment.common.EnrichmentAdapter;
 
 public abstract class AbstractLancopeAdapter implements EnrichmentAdapter{
 

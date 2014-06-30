@@ -28,7 +28,7 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 
-import com.opensoc.enrichments.common.EnrichmentAdapter;
+import com.opensoc.enrichment.common.EnrichmentAdapter;
 
 public class WhoisHBaseAdapter implements EnrichmentAdapter, Serializable {
 

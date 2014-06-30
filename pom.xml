@@ -48,10 +48,7 @@
 	</developers>
 	<modules>
 		<module>OpenSOC-Common</module>
-		<module>OpenSOC-CIFEnrichment</module>
-		<module>OpenSOC-LancopeEnrichment</module>
-		<module>OpenSOC-GeoEnrichment</module>
-		<module>OpenSOC-WhoisEnrichment</module>
+		<module>OpenSOC-EnrichmentAdapters</module>
 		<module>OpenSOC-MessageParsers</module>
 		<module>OpenSOC-Indexing</module>
 		<module>OpenSOC-Topologies</module>

@@ -19,6 +19,7 @@ package com.opensoc.topologies;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.apache.storm.hdfs.bolt.HdfsBolt;
 import org.apache.storm.hdfs.bolt.format.DefaultFileNameFormat;
@@ -44,9 +45,9 @@ import backtype.storm.spout.SchemeAsMultiScheme;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.utils.Utils;
 
-import com.enrichments.common.GenericEnrichmentBolt;
-import com.opensoc.enrichments.cif.adapters.CIFHbaseAdapter;
-import com.opensoc.enrichments.lancope.adapters.LancopeHbaseAdapter;
+import com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter;
+import com.opensoc.enrichment.adapters.lancope.LancopeHbaseAdapter;
+import com.opensoc.enrichments.common.GenericEnrichmentBolt;
 import com.opensoc.indexing.TelemetryIndexingBolt;
 import com.opensoc.indexing.adapters.ESBaseBulkAdapter;
 import com.opensoc.parsing.TelemetryParserBolt;
@@ -66,6 +67,9 @@ public class BroEnrichmentTestTopology {
 		int num_tasks = 1;
 		int localMode = 1;
 		String hdfs_path = "hdfs://172.30.9.110:8020";
+
+		long MAX_CACHE_SIZE = 10000;
+		long MAX_TIME_RETAIN = 10;
 
 		Config conf = new Config();
 		conf.setDebug(true);
@@ -94,17 +98,34 @@ public class BroEnrichmentTestTopology {
 
 		// ------------CIF bolt configuration
 
-		GenericEnrichmentBolt cif_enrichment = new GenericEnrichmentBolt().withAdapter(
-				new CIFHbaseAdapter()).withOutputFieldName(topology_name);
+		Map<String, Pattern> cif_patterns = new HashMap<String, Pattern>();
+		cif_patterns.put("somepattern", Pattern.compile("somevalue"));
+		cif_patterns.put("somepattern", Pattern.compile("somevalue"));
+
+		GenericEnrichmentBolt cif_enrichment = new GenericEnrichmentBolt()
+				.withAdapter(new CIFHbaseAdapter())
+				.withOutputFieldName(topology_name)
+				.withOutputFieldName(topology_name)
+				.withEnrichmentTag("sometag")
+				.withMaxTimeRetain(MAX_TIME_RETAIN)
+				.withMaxCacheSize(MAX_CACHE_SIZE).withPatterns(cif_patterns);
 
 		builder.setBolt("CIFEnrichmentBolt", cif_enrichment, parallelism_hint)
 				.shuffleGrouping("ParserBolt").setNumTasks(num_tasks);
 
 		// ------------Lancope bolt configuration
 
+		Map<String, Pattern> lancope_patterns = new HashMap<String, Pattern>();
+		lancope_patterns.put("somepattern", Pattern.compile("somevalue"));
+		lancope_patterns.put("somepattern", Pattern.compile("somevalue"));
+
 		GenericEnrichmentBolt lancope_enrichment = new GenericEnrichmentBolt()
-				.withAdapter(new LancopeHbaseAdapter()).withOutputFieldName(
-						topology_name);
+				.withAdapter(new LancopeHbaseAdapter())
+				.withOutputFieldName(topology_name)
+				.withEnrichmentTag("sometag")
+				.withMaxTimeRetain(MAX_TIME_RETAIN)
+				.withMaxCacheSize(MAX_CACHE_SIZE)
+				.withPatterns(lancope_patterns);
 
 		builder.setBolt("LancopeEnrichmentBolt", lancope_enrichment,
 				parallelism_hint).shuffleGrouping("CIFEnrichmentBolt")

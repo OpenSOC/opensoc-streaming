@@ -43,13 +43,8 @@
 		</dependency>
 		<dependency>
 			<groupId>com.opensoc</groupId>
-			<artifactId>OpenSOC-GeoEnrichment</artifactId>
+			<artifactId>OpenSOC-EnrichmentAdapters</artifactId>
 			<version>${enrichment.geo.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.opensoc</groupId>
-			<artifactId>OpenSOC-WhoisEnrichment</artifactId>
-			<version>${enrichment.whois.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.opensoc</groupId>
@@ -61,16 +56,7 @@
 			<artifactId>OpenSOC-Indexing</artifactId>
 			<version>${indexing.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>com.opensoc</groupId>
-			<artifactId>OpenSOC-CIFEnrichment</artifactId>
-			<version>${cif.enrichment.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.opensoc</groupId>
-			<artifactId>OpenSOC-LancopeEnrichment</artifactId>
-			<version>${lancope.enrichment.version}</version>
-		</dependency>
+
 		<dependency>
 			<groupId>org.apache.storm</groupId>
 			<artifactId>storm-core</artifactId>

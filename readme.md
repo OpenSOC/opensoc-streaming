@@ -183,3 +183,21 @@ Lancope bolt signature
 ###Parameters
 
 Hortonworks to finish documentation
+
+## Internal Test Spout
+
+We provide a capability to test a topology with messages stored in a file and packaged in a jar that is sent to storm.  This functionality is exposed through a special spout that is able to replay test messages into a topology.
+
+```
+GenericInternalTestSpout test_spout = new GenericInternalTestSpout()
+				.withFilename("sourcefire_enriched").withRepeating(false)
+				.withMilisecondDelay(100);
+```
+
+###Parameters
+
+Filename: name of a file in a jar you want to replay
+
+Repeating: do you want to repeatedly play messages or stop after all the messages in the file have been read
+
+WithMilisecondDelay: the amount of the delay (sleep) between replayed messages

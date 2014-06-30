@@ -114,6 +114,45 @@ MAX_CACHE_SIZE: this value defines the maximum size of the cache after which ent
 
 OutputFieldName: name of the output field emitted by the bolt
 
+## Whois Enrichment Bolt
+
+Bolt for enriching IPs with whois data. This data is available from a variety of sources, but is not free.  At Cisco we have our own internal data store of this data.  We maintain a list of sources where you can obtain whois data in the following wiki entry: https://github.com/OpenSOC/opensoc-streaming/wiki/Obtaining-Whois-data
+This data must be stored into a ke-value store in order to be accessible the bolt.  As of release only HBase stores are supported.  Information on how to transform and load this data into HBase is available in the following wiki entry: https://github.com/OpenSOC/opensoc-streaming/wiki/Setting-up-Whois-Data
+
+There are two flavors of WhoisEnrichment bolts: Single and Dual.  The single bolt enriches a single IP in a message and a dual bolt enriches an IP pair (source and dest).
+
+This is how to invoke the dual bolt:
+
+```
+DualWhoisEnrichmentBolt geo_enrichment = new DualWhoisEnrichmentBolt()
+				.withEnrichmentSourceIP(geo_enrichment_source_ip)
+				.withSurceIpRegex(originator_ip_regex)
+				.withDestIpRegex(responder_ip_regex)
+				.withEnrichmentTag(geo_enrichment_tag)
+				.withOutputFieldName(topology_name)
+				.withGeoAdapter(new WhoisHBaseAdapter())
+				.withMaxTimeRetain(MAX_TIME_RETAIN)
+				.withMaxCacheSize(MAX_CACHE_SIZE);
+```
+
+###Parameters:
+
+WhoisAdapter: adapter for whois database.  Adapters listed below are available
+- WhoisHBaseAdapter: adapter for HBase
+
+originator_ip_regex: regex to extract the source ip form message
+
+responder_ip_regex: regex to extract dest ip from message
+The single bolt is currently undergoing testing and will be uploaded shortly
+
+geo_enrichment_tag: JSON field indicating how to tag the original message with the enrichment... {original_message:some_message, {geo_enrichment_tag:{from:xxx},{to:xxx}}}
+
+MAX_TIME_RETAIN: this bolt utilizes in-memory cache. this variable (in minutes) indicates now long to retain each entry in the cache
+
+MAX_CACHE_SIZE: this value defines the maximum size of the cache after which entries are evicted from cache
+
+OutputFieldName: name of the output field emitted by the bolt
+
 ## CIF Enrichment Bolt
 
 Bolt for enriching telemetry with the information from CIF threat intelligence feeds.  In order to use the bolt you must first integrate CIF with HBase or another key-value store to make the data available for access via the bolt.  As of release only HBase stores are supported.  The instructions for setting this up are provided in the following wiki entry: https://github.com/OpenSOC/opensoc-streaming/wiki/Setting-up-CIF-Data

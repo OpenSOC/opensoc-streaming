@@ -32,17 +32,36 @@ import backtype.storm.tuple.Values;
 import backtype.storm.utils.Utils;
 
 
-public class BroTestSpout extends BaseRichSpout {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	final String JsonFilename = "BroExampleOutput";
-	List<String> jsons;
+public class GenericInternalTestSpout extends BaseRichSpout {
 
-	SpoutOutputCollector _collector;
-	FileReader Reader;
-	int cnt = 0;
+	
+	List<String> jsons;
+	
+	private String _filename;
+	private int _delay = 100;
+	private boolean _repeating = true;
+	
+	private SpoutOutputCollector _collector;
+	private FileReader Reader;
+	private int cnt = 0;
+	
+	public GenericInternalTestSpout withFilename(String filename)
+	{
+		_filename = filename;
+		return this;
+	}
+	public GenericInternalTestSpout withMilisecondDelay(int delay)
+	{
+		_delay = delay;
+		return this;
+	}
+	
+	public GenericInternalTestSpout withRepeating(boolean repeating)
+	{
+		_repeating = repeating;
+		return this;
+	}
+
 
 	@SuppressWarnings("rawtypes") 
 	public void open(Map conf, TopologyContext context,
@@ -51,7 +70,7 @@ public class BroTestSpout extends BaseRichSpout {
 		_collector = collector;
 		try {
 			Reader =  new FileReader();
-			jsons = Reader.readFromFile(JsonFilename);
+			jsons = Reader.readFromFile(_filename);
 
 			
 		} catch (IOException e) 
@@ -63,7 +82,7 @@ public class BroTestSpout extends BaseRichSpout {
 	}
 
 	public void nextTuple() {
-		Utils.sleep(100);
+		Utils.sleep(_delay);
 		
 		if(cnt < jsons.size())
 		{
@@ -71,7 +90,7 @@ public class BroTestSpout extends BaseRichSpout {
 		}
 		cnt ++;
 		
-		if(cnt == jsons.size() -1 )
+		if(_repeating && cnt == jsons.size() -1 )
 			cnt = 0;
 	}
 

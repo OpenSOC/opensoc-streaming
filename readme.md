@@ -1,6 +1,6 @@
 # OpenSOC-Streaming
 
-Extensible set of Storm topologies and topology attributes for streaming, enriching, indexing, and storing telemetry in Hadoop.  Please see the wiki for more detailed documentation. For general information on the project see our slides on www.getopensoc.com
+Extensible set of Storm topologies and topology attributes for streaming, enriching, indexing, and storing telemetry in Hadoop.  General information on OpenSOC is available at www.getopensoc.com
 
 
 ## Build Instructions
@@ -114,3 +114,31 @@ MAX_CACHE_SIZE: this value defines the maximum size of the cache after which ent
 
 OutputFieldName: name of the output field emitted by the bolt
 
+## CIF Enrichment Bolt
+
+Bolt for enriching telemetry with the information from CIF threat intelligence feeds.  In order to use the bolt you must first integrate CIF with HBase or another key-value store to make the data available for access via the bolt.  As of release only HBase stores are supported.  The instructions for setting this up are provided in the following wiki entry: https://github.com/OpenSOC/opensoc-streaming/wiki/Setting-up-CIF-Data
+
+Hortonworks to finish documentation
+
+```
+CIF bolt signature
+
+```
+###Parameters
+
+Hortonworks to finish documentation
+
+##Lancope Enrichment Bolt
+
+Bolt for enriching telemetry with the information from Lancope.  In order to use the bolt you must first setup Lancope data in HBase.  or another key-value store to make the data available for access via the bolt.  As of release only HBase stores are supported.   The instructions for setting this up are provided in the following wiki entry: https://github.com/OpenSOC/opensoc-streaming/wiki/Setting-up-Lancope-data
+
+Hortonworks to finish documentation
+
+```
+Lancope bolt signature
+
+```
+
+###Parameters
+
+Hortonworks to finish documentation

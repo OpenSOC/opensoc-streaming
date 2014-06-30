@@ -128,8 +128,8 @@ public class BroEnrichmentTestTopology {
 		String ElasticSearchIP = "172.30.9.148";
 		int elasticSearchPort = 9300;
 		String ElasticSearchClusterName = "devo_es";
-		String ElasticSearchIndexName = "sourcefire_index";
-		String ElasticSearchDocumentName = "sourcefire_doc";
+		String ElasticSearchIndexName = "bro_index";
+		String ElasticSearchDocumentName = "bro_doc";
 		int bulk = 200;
 
 		TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
@@ -141,25 +141,26 @@ public class BroEnrichmentTestTopology {
 				.withIndexAdapter(new ESBaseBulkAdapter());
 
 		builder.setBolt("IndexingBolt", indexing_bolt, parallelism_hint)
-				.shuffleGrouping("LancopeEnrichmentBolt").setNumTasks(num_tasks);
+				.shuffleGrouping("LancopeEnrichmentBolt")
+				.setNumTasks(num_tasks);
 
-		 //------------HDFS BOLT configuration
+		// ------------HDFS BOLT configuration
 
-		 FileNameFormat fileNameFormat = new DefaultFileNameFormat()
-		 .withPath("/" + topology_name + "/");
-		 RecordFormat format = new DelimitedRecordFormat()
-		 .withFieldDelimiter("|");
+		FileNameFormat fileNameFormat = new DefaultFileNameFormat()
+				.withPath("/" + topology_name + "/");
+		RecordFormat format = new DelimitedRecordFormat()
+				.withFieldDelimiter("|");
 
-		 SyncPolicy syncPolicy = new CountSyncPolicy(5);
-		 FileRotationPolicy rotationPolicy = new FileSizeRotationPolicy(5.0f,
-		 Units.KB);
+		SyncPolicy syncPolicy = new CountSyncPolicy(5);
+		FileRotationPolicy rotationPolicy = new FileSizeRotationPolicy(5.0f,
+				Units.KB);
 
-		 HdfsBolt hdfsBolt = new HdfsBolt().withFsUrl(hdfs_path)
-		 .withFileNameFormat(fileNameFormat).withRecordFormat(format)
-		 .withRotationPolicy(rotationPolicy).withSyncPolicy(syncPolicy);
+		HdfsBolt hdfsBolt = new HdfsBolt().withFsUrl(hdfs_path)
+				.withFileNameFormat(fileNameFormat).withRecordFormat(format)
+				.withRotationPolicy(rotationPolicy).withSyncPolicy(syncPolicy);
 
-		 builder.setBolt("HDFSBolt", hdfsBolt, parallelism_hint)
-		 .shuffleGrouping("EnrichmentSpout").setNumTasks(num_tasks);
+		builder.setBolt("HDFSBolt", hdfsBolt, parallelism_hint)
+				.shuffleGrouping("EnrichmentSpout").setNumTasks(num_tasks);
 
 		if (localMode == 1) {
 			conf.setNumWorkers(1);

@@ -31,10 +31,21 @@ public class GeoMysqlAdapter extends AbstractGeoAdapter {
 	private Connection connection = null;
 	private Statement statement = null;
 	private ResultSet resultSet = null;
+	
+	private String _ip;
+	private String _username;
+	private String _password;
+	
+	public GeoMysqlAdapter(String ip, int port, String username, String password)
+	{
+		_ip = ip;
+		_username = username;
+		_password = password;
+	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public String enrich(String metadata) {
+	public JSONObject enrich(String metadata) {
 		try {
 
 			_LOG.debug("Received metadata: " + metadata);
@@ -46,7 +57,7 @@ public class GeoMysqlAdapter extends AbstractGeoAdapter {
 				_LOG.debug("Not a remote IP: " + metadata);
 				_LOG.debug("Returning enrichment: " + "{}");
 
-				return "{}";
+				return new JSONObject();
 			}
 
 			_LOG.debug("Is a valid remote IP: " + metadata);
@@ -73,36 +84,34 @@ public class GeoMysqlAdapter extends AbstractGeoAdapter {
 			jo.put("dmaCode", resultSet.getString("dmaCode"));
 			jo.put("locID", resultSet.getString("locID"));
 
-			String enrichment = jo.toJSONString();
-			_LOG.debug("Returning enrichment: " + enrichment);
+			_LOG.debug("Returning enrichment: " + jo);
 
-			return enrichment;
+			return jo;
 
 		} catch (Exception e) {
 			e.printStackTrace();
 			_LOG.error("Enrichment failure");
-			return "{}";
+			return new JSONObject();
 		}
 	}
 
 	@Override
-	public boolean initializeAdapter(String ip) {
-
+	public boolean initializeAdapter() {
 
 		_LOG.info("Initializing MysqlAdapter....");
 
 		try {
 			Class.forName("com.mysql.jdbc.Driver");
-			connection = DriverManager.getConnection("jdbc:mysql://" + ip
+			connection = DriverManager.getConnection("jdbc:mysql://" + _ip
 					+ "/GEO?user=james&password=d3velop");
-
+			
 			_LOG.info("Set JDBC connection....");
 
 			return true;
 		} catch (Exception e) {
 			e.printStackTrace();
 			_LOG.error("JDBC connection failed....");
-
+			
 			return false;
 		}
 

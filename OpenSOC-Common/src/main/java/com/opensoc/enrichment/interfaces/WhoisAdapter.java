@@ -17,10 +17,9 @@
 
 package com.opensoc.enrichment.interfaces;
 
-import org.slf4j.Logger;
 
 public interface WhoisAdapter
 {
 	String enrich(String metadata);
-	boolean initializeAdapter(String ip, Logger LOG);
+	boolean initializeAdapter(String ip);
 }

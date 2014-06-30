@@ -17,13 +17,17 @@
 
 package com.opensoc.topologies;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Pattern;
+
 import storm.kafka.BrokerHosts;
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
 import backtype.storm.topology.TopologyBuilder;
 
-import com.opensoc.enrichments.geo.DualGeoEnrichmentBolt;
+import com.enrichments.common.GenericEnrichmentBolt;
 import com.opensoc.enrichments.geo.adapters.GeoMysqlAdapter;
 import com.opensoc.enrichments.whois.WhoisEnrichmentBolt;
 import com.opensoc.enrichments.whois.adapters.WhoisHBaseAdapter;
@@ -94,66 +98,66 @@ public class SourcefireEnrichmentTestTopology {
 
 		// ------------Geo Enrichment Bolt Configuration
 
-		String geo_enrichment_source_ip = "172.30.9.54";
-		String originator_ip_regex = "ip_src_addr\":\"(.*?)\"";
-		String responder_ip_regex = "ip_dst_addr\":\"(.*?)\"";
+
 		String geo_enrichment_tag = "geo_enrichment";
 
-		DualGeoEnrichmentBolt geo_enrichment = new DualGeoEnrichmentBolt()
-				.withEnrichmentSourceIP(geo_enrichment_source_ip)
-				.withSurceIpRegex(originator_ip_regex)
-				.withDestIpRegex(responder_ip_regex)
+		Map<String, Pattern> patterns = new HashMap<String, Pattern>();
+		patterns.put("originator_ip_regex", Pattern.compile("ip_src_addr\":\"(.*?)\""));
+		patterns.put("responder_ip_regex", Pattern.compile("ip_dst_addr\":\"(.*?)\""));
+
+		GeoMysqlAdapter geo_adapter = new GeoMysqlAdapter("172.30.9.54", 0,
+				"test", "test");
+
+		GenericEnrichmentBolt geo_enrichment = new GenericEnrichmentBolt()
 				.withEnrichmentTag(geo_enrichment_tag)
-				.withOutputFieldName(topology_name)
-				.withGeoAdapter(new GeoMysqlAdapter())
+				.withOutputFieldName(topology_name).withAdapter(geo_adapter)
 				.withMaxTimeRetain(MAX_TIME_RETAIN)
-				.withMaxCacheSize(MAX_CACHE_SIZE);
+				.withMaxCacheSize(MAX_CACHE_SIZE).withPatterns(patterns);
 
 		builder.setBolt("GeoEnrichBolt", geo_enrichment, parallelism_hint)
 				.shuffleGrouping("ParserBolt").setNumTasks(num_tasks);
 
-		builder.setBolt("WhoisEnrichmentBolt",
-				new WhoisEnrichmentBolt(new WhoisHBaseAdapter()),
-				parallelism_hint).shuffleGrouping("ParserBolt")
-				.setNumTasks(num_tasks);
+		// builder.setBolt("WhoisEnrichmentBolt",
+		// new WhoisEnrichmentBolt(new WhoisHBaseAdapter()),
+		// parallelism_hint).shuffleGrouping("ParserBolt")
+		// .setNumTasks(num_tasks);
 
 		// ------------ES BOLT configuration
 
-		String ElasticSearchIP = "172.30.9.148";
-		int elasticSearchPort = 9300;
-		String ElasticSearchClusterName = "devo_es";
-		String ElasticSearchIndexName = "sourcefire_index";
-		String ElasticSearchDocumentName = "sourcefire_doc";
-		int bulk = 200;
-
-		TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
-				.withIndexIP(ElasticSearchIP).withIndexPort(elasticSearchPort)
-				.withClusterName(ElasticSearchClusterName)
-				.withIndexName(ElasticSearchIndexName)
-				.withDocumentName(ElasticSearchDocumentName).withBulk(bulk)
-				.withOutputFieldName(topology_name)
-				.withIndexAdapter(new ESBaseBulkAdapter());
-
-		builder.setBolt("IndexingBolt", indexing_bolt, parallelism_hint)
-				.shuffleGrouping("GeoEnrichBolt").setNumTasks(num_tasks);
-
-		// ------------HDFS BOLT configuration
-
-		// FileNameFormat fileNameFormat = new DefaultFileNameFormat()
-		// .withPath("/" + topology_name + "/");
-		// RecordFormat format = new DelimitedRecordFormat()
-		// .withFieldDelimiter("|");
-
-		// SyncPolicy syncPolicy = new CountSyncPolicy(5);
-		// FileRotationPolicy rotationPolicy = new FileSizeRotationPolicy(5.0f,
-		// Units.KB);
-
-		// HdfsBolt hdfsBolt = new HdfsBolt().withFsUrl(hdfs_path)
-		// .withFileNameFormat(fileNameFormat).withRecordFormat(format)
-		// .withRotationPolicy(rotationPolicy).withSyncPolicy(syncPolicy);
-
-		// builder.setBolt("HDFSBolt", hdfsBolt, parallelism_hint)
-		// .shuffleGrouping("EnrichmentSpout").setNumTasks(num_tasks);
+		/*
+		 * String ElasticSearchIP = "172.30.9.148"; int elasticSearchPort =
+		 * 9300; String ElasticSearchClusterName = "devo_es"; String
+		 * ElasticSearchIndexName = "sourcefire_index"; String
+		 * ElasticSearchDocumentName = "sourcefire_doc"; int bulk = 200;
+		 * 
+		 * TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
+		 * .withIndexIP(ElasticSearchIP).withIndexPort(elasticSearchPort)
+		 * .withClusterName(ElasticSearchClusterName)
+		 * .withIndexName(ElasticSearchIndexName)
+		 * .withDocumentName(ElasticSearchDocumentName).withBulk(bulk)
+		 * .withOutputFieldName(topology_name) .withIndexAdapter(new
+		 * ESBaseBulkAdapter());
+		 * 
+		 * builder.setBolt("IndexingBolt", indexing_bolt, parallelism_hint)
+		 * .shuffleGrouping("GeoEnrichBolt").setNumTasks(num_tasks);
+		 * 
+		 * // ------------HDFS BOLT configuration
+		 * 
+		 * // FileNameFormat fileNameFormat = new DefaultFileNameFormat() //
+		 * .withPath("/" + topology_name + "/"); // RecordFormat format = new
+		 * DelimitedRecordFormat() // .withFieldDelimiter("|");
+		 * 
+		 * // SyncPolicy syncPolicy = new CountSyncPolicy(5); //
+		 * FileRotationPolicy rotationPolicy = new FileSizeRotationPolicy(5.0f,
+		 * // Units.KB);
+		 * 
+		 * // HdfsBolt hdfsBolt = new HdfsBolt().withFsUrl(hdfs_path) //
+		 * .withFileNameFormat(fileNameFormat).withRecordFormat(format) //
+		 * .withRotationPolicy(rotationPolicy).withSyncPolicy(syncPolicy);
+		 * 
+		 * // builder.setBolt("HDFSBolt", hdfsBolt, parallelism_hint) //
+		 * .shuffleGrouping("EnrichmentSpout").setNumTasks(num_tasks);
+		 */
 
 		if (localMode == 1) {
 			conf.setNumWorkers(1);

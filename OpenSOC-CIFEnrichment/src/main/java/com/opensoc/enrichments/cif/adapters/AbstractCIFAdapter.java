@@ -20,14 +20,14 @@ package com.opensoc.enrichments.cif.adapters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.opensoc.enrichment.interfaces.CIFAdapter;
+import com.enrichments.common.EnrichmentAdapter;
 
-public abstract class AbstractCIFAdapter implements CIFAdapter{
+public abstract class AbstractCIFAdapter implements EnrichmentAdapter{
 
 	protected static final Logger LOG = LoggerFactory
 			.getLogger(AbstractCIFAdapter.class);
 	
-	abstract public boolean initializeAdapter(String ip);
+	abstract public boolean initializeAdapter();
 	abstract public String enrichByIP(String metadata);
 	abstract public String enrichByDomain(String metadata);
 	abstract public String enrichByEmail(String metadata);

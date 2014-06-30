@@ -15,10 +15,12 @@
  * limitations under the License.
  */
 
-package com.opensoc.enrichment.interfaces;
+package com.enrichments.common;
 
-public interface GeoAdapter
+import org.json.simple.JSONObject;
+
+public interface EnrichmentAdapter
 {
-	String enrich(String metadata);
-	boolean initializeAdapter(String ip);
+	JSONObject enrich(String metadata);
+	boolean initializeAdapter();
 }

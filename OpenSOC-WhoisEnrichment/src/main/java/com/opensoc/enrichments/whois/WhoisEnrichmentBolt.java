@@ -90,7 +90,7 @@ public class WhoisEnrichmentBolt extends BaseRichBolt {
 		_collector = collector;
 		
 		System.out.println("--------------- INITIALIZING ADAPTER");
-		boolean success = adapter.initializeAdapter(enrichment_source_ip, LOG);
+		boolean success = adapter.initializeAdapter(enrichment_source_ip);
 		
 
 		if (!success)

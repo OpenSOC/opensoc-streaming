@@ -44,9 +44,8 @@ import backtype.storm.spout.SchemeAsMultiScheme;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.utils.Utils;
 
-import com.opensoc.enrichments.cif.CIFEnrichmentBolt;
+import com.enrichments.common.GenericEnrichmentBolt;
 import com.opensoc.enrichments.cif.adapters.CIFHbaseAdapter;
-import com.opensoc.enrichments.lancope.LancopeEnrichmentBolt;
 import com.opensoc.enrichments.lancope.adapters.LancopeHbaseAdapter;
 import com.opensoc.indexing.TelemetryIndexingBolt;
 import com.opensoc.indexing.adapters.ESBaseBulkAdapter;
@@ -95,7 +94,7 @@ public class BroEnrichmentTestTopology {
 
 		// ------------CIF bolt configuration
 
-		CIFEnrichmentBolt cif_enrichment = new CIFEnrichmentBolt().withAdapter(
+		GenericEnrichmentBolt cif_enrichment = new GenericEnrichmentBolt().withAdapter(
 				new CIFHbaseAdapter()).withOutputFieldName(topology_name);
 
 		builder.setBolt("CIFEnrichmentBolt", cif_enrichment, parallelism_hint)
@@ -103,7 +102,7 @@ public class BroEnrichmentTestTopology {
 
 		// ------------Lancope bolt configuration
 
-		LancopeEnrichmentBolt lancope_enrichment = new LancopeEnrichmentBolt()
+		GenericEnrichmentBolt lancope_enrichment = new GenericEnrichmentBolt()
 				.withAdapter(new LancopeHbaseAdapter()).withOutputFieldName(
 						topology_name);
 

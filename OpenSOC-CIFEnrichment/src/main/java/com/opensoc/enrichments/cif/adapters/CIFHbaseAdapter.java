@@ -17,10 +17,17 @@
 
 package com.opensoc.enrichments.cif.adapters;
 
-public class CIFHbaseAdapter extends AbstractCIFAdapter{
+import org.json.simple.JSONObject;
+
+public class CIFHbaseAdapter extends AbstractCIFAdapter {
+
+	public JSONObject enrich(String metadata) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 	@Override
-	public boolean initializeAdapter(String ip) {
+	public boolean initializeAdapter() {
 		// TODO Auto-generated method stub
 		return false;
 	}

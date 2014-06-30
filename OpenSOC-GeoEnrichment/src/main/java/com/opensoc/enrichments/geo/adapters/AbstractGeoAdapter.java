@@ -19,19 +19,20 @@ package com.opensoc.enrichments.geo.adapters;
 
 import java.io.Serializable;
 
+import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.opensoc.enrichment.interfaces.GeoAdapter;
-import com.opensoc.enrichments.geo.DualGeoEnrichmentBolt;
+import com.enrichments.common.EnrichmentAdapter;
+import com.enrichments.common.GenericEnrichmentBolt;
 
 @SuppressWarnings("serial")
-public abstract class AbstractGeoAdapter implements GeoAdapter, Serializable{
+public abstract class AbstractGeoAdapter implements EnrichmentAdapter, Serializable{
 
-	protected static final Logger _LOG = LoggerFactory.getLogger(DualGeoEnrichmentBolt.class);
+	protected static final Logger _LOG = LoggerFactory.getLogger(GenericEnrichmentBolt.class);
 	
-	abstract public String enrich(String metadata);
-	abstract public boolean initializeAdapter(String ip);
+	abstract public JSONObject enrich(String metadata);
+	abstract public boolean initializeAdapter();
 	
 
 }

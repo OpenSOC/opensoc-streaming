@@ -89,4 +89,9 @@ public class WhoisHBaseAdapter implements WhoisAdapter, Serializable {
 		
 	}
 
+	public boolean initializeAdapter(String ip) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
 }

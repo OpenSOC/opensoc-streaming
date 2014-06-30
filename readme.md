@@ -77,7 +77,7 @@ DocumentName: DocumentName of ElasticSearch/Solr
 
 Bulk: number of documents to bulk load into ElasticSearch/Solr.  If no value is passed, default is 10
 
-## Enrichment Enrichment Bolt
+## Enrichment Bolt
 
 This bolt is for enriching telemetry messages with additional metadata from external data sources.  At the time of the release the data sources supported are GeoIP (MaxMind GeoLite), WhoisDomain, Collective Intelligence Framework (CIF), and Lancope. In order to use the bolt the data sources have to be setup and data has to be bulk-loaded into them.  The information on bulk-loading data sources and making them interoperable with the enrichment bolt is provided in the following wiki entries:
 
@@ -91,7 +91,7 @@ Map<String, Pattern> patterns = new HashMap<String, Pattern>();
 		patterns.put("originator_ip_regex", Pattern.compile("ip_src_addr\":\"(.*?)\""));
 		patterns.put("responder_ip_regex", Pattern.compile("ip_dst_addr\":\"(.*?)\""));
 
-GeoMysqlAdapter geo_adapter = new GeoMysqlAdapter("172.30.9.54", 0, "test", "test");
+GeoMysqlAdapter geo_adapter = new GeoMysqlAdapter("IP", 0, "test", "test");
 
 GenericEnrichmentBolt geo_enrichment = new GenericEnrichmentBolt()
 				.withEnrichmentTag(geo_enrichment_tag)

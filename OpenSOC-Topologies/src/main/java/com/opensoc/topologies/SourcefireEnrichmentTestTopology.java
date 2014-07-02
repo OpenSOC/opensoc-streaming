@@ -17,9 +17,18 @@
 
 package com.opensoc.topologies;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
+
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.DefaultConfigurationBuilder;
+import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.io.IOUtils;
 
 import storm.kafka.BrokerHosts;
 import backtype.storm.Config;
@@ -39,14 +48,19 @@ import com.opensoc.test.spouts.SourcefireTestSpout;
 public class SourcefireEnrichmentTestTopology {
 
 	public static void main(String[] args) throws Exception {
+		
+	
+		
+		Configuration config = new PropertiesConfiguration("/Users/jsirota/Documents/github-opensoc-streaming/opensoc-streaming/OpenSOC-Topologies/src/main/resources/TopologyConfigs/sourcefire.conf");
+		
+		
+		String topology_name = config.getString("topology.name");
+		
+		
 		TopologyBuilder builder = new TopologyBuilder();
 
-		int parallelism_hint = 1;
-		int num_tasks = 1;
-		int num_workers = 3;
-
-		String topology_name = "sourcefire";
-		int localMode = 1;
+		
+		boolean localMode = true;
 		String hdfs_path = "hdfs://172.30.9.110:8020";
 
 		// /--------TODO: what should this be set to?
@@ -59,29 +73,8 @@ public class SourcefireEnrichmentTestTopology {
 		long MAX_CACHE_SIZE = 10000;
 		long MAX_TIME_RETAIN = 10;
 
-		// ------------Geo BOLT configuration
-
-		// ------------Whois BOLT configuration
-
-		conf.put("whois_enrichment_tag", "whois_enrichment");
-		conf.put("host_regex", "host\":\"(.*?)\"");
-		conf.put("enrichment_source_ip", "172.30.9.108:60000");
-
-		// ------------KAFKA spout configuration
-
-		// SpoutConfig kafkaConfig = new SpoutConfig(zk_broker_hosts,
-		// topology_name, zkRoot, topology_name);
-
-		// kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
-		// kafkaConfig.forceFromStart = Boolean.valueOf("True");
-		// kafkaConfig.startOffsetTime = -1;
-
-		// builder.setSpout("kafka-spout", new KafkaSpout(kafkaConfig),
-		// parallelism_hint)
-		// .setNumTasks(1);
-
 		builder.setSpout("EnrichmentSpout", new SourcefireTestSpout(),
-				parallelism_hint).setNumTasks(num_tasks);
+				config.getInt("spout.test.parallelism.hint")).setNumTasks(config.getInt("spout.test.num.tasks"));
 
 		// ------------Parser Bolt Configuration
 
@@ -89,29 +82,32 @@ public class SourcefireEnrichmentTestTopology {
 				.withMessageParser(new BasicSourcefireParser())
 				.withOutputFieldName(topology_name);
 
-		builder.setBolt("ParserBolt", parser_bolt, parallelism_hint)
-				.shuffleGrouping("EnrichmentSpout").setNumTasks(num_tasks);
+		builder.setBolt("ParserBolt", parser_bolt, config.getInt("bolt.parser.parallelism.hint"))
+				.shuffleGrouping("EnrichmentSpout").setNumTasks(config.getInt("bolt.parser.num.tasks"));
 
 		// ------------Geo Enrichment Bolt Configuration
 
 
-		String geo_enrichment_tag = "geo_enrichment";
 
 		Map<String, Pattern> patterns = new HashMap<String, Pattern>();
-		patterns.put("originator_ip_regex", Pattern.compile("ip_src_addr\":\"(.*?)\""));
-		patterns.put("responder_ip_regex", Pattern.compile("ip_dst_addr\":\"(.*?)\""));
+		patterns.put("originator_ip_regex", Pattern.compile(config.getString("bolt.enrichment.geo.originator_ip_regex")));
+		patterns.put("responder_ip_regex", Pattern.compile(config.getString("bolt.enrichment.geo.responder_ip_regex")));
 
-		GeoMysqlAdapter geo_adapter = new GeoMysqlAdapter("172.30.9.54", 0,
-				"test", "test");
+		GeoMysqlAdapter geo_adapter = new GeoMysqlAdapter(
+				config.getString("bolt.enrichment.geo.adapter.ip"), 
+				config.getInt("bolt.enrichment.geo.adapter.port"),
+				config.getString("bolt.enrichment.geo.adapter.username"), 
+				config.getString("bolt.enrichment.geo.adapter.password"), 
+				config.getString("bolt.enrichment.geo.adapter.table"));
 
 		GenericEnrichmentBolt geo_enrichment = new GenericEnrichmentBolt()
-				.withEnrichmentTag(geo_enrichment_tag)
+				.withEnrichmentTag(config.getString("bolt.enrichment.geo.geo_enrichment_tag"))
 				.withOutputFieldName(topology_name).withAdapter(geo_adapter)
 				.withMaxTimeRetain(MAX_TIME_RETAIN)
 				.withMaxCacheSize(MAX_CACHE_SIZE).withPatterns(patterns);
 
-		builder.setBolt("GeoEnrichBolt", geo_enrichment, parallelism_hint)
-				.shuffleGrouping("ParserBolt").setNumTasks(num_tasks);
+		builder.setBolt("GeoEnrichBolt", geo_enrichment, config.getInt("bolt.enrichment.geo.parallelism.hint"))
+				.shuffleGrouping("ParserBolt").setNumTasks(config.getInt("bolt.enrichment.geo.num.tasks"));
 
 		// builder.setBolt("WhoisEnrichmentBolt",
 		// new WhoisEnrichmentBolt(new WhoisHBaseAdapter()),
@@ -155,15 +151,15 @@ public class SourcefireEnrichmentTestTopology {
 		 * .shuffleGrouping("EnrichmentSpout").setNumTasks(num_tasks);
 		 */
 
-		if (localMode == 1) {
-			conf.setNumWorkers(1);
+		if (config.getBoolean("local.mode")) {
+			conf.setNumWorkers(config.getInt("num.workers"));
 			conf.setMaxTaskParallelism(1);
 			LocalCluster cluster = new LocalCluster();
 			cluster.submitTopology(topology_name, conf,
 					builder.createTopology());
 		} else {
 
-			conf.setNumWorkers(num_workers);
+			conf.setNumWorkers(config.getInt("num.workers"));
 			StormSubmitter.submitTopology(topology_name, conf,
 					builder.createTopology());
 

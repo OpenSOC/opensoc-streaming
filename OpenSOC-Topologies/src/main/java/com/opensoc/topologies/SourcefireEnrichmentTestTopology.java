@@ -48,18 +48,14 @@ import com.opensoc.test.spouts.SourcefireTestSpout;
 public class SourcefireEnrichmentTestTopology {
 
 	public static void main(String[] args) throws Exception {
-		
-	
-		
-		Configuration config = new PropertiesConfiguration("/Users/jsirota/Documents/github-opensoc-streaming/opensoc-streaming/OpenSOC-Topologies/src/main/resources/TopologyConfigs/sourcefire.conf");
-		
-		
+
+		Configuration config = new PropertiesConfiguration(
+				"/Users/jsirota/Documents/github-opensoc-streaming/opensoc-streaming/OpenSOC-Topologies/src/main/resources/TopologyConfigs/sourcefire.conf");
+
 		String topology_name = config.getString("topology.name");
-		
-		
+
 		TopologyBuilder builder = new TopologyBuilder();
 
-		
 		boolean localMode = true;
 		String hdfs_path = "hdfs://172.30.9.110:8020";
 
@@ -68,13 +64,11 @@ public class SourcefireEnrichmentTestTopology {
 		String zkRoot = "?";
 
 		Config conf = new Config();
-		conf.setDebug(true);
-
-		long MAX_CACHE_SIZE = 10000;
-		long MAX_TIME_RETAIN = 10;
+		conf.setDebug(config.getBoolean("debug.mode"));
 
 		builder.setSpout("EnrichmentSpout", new SourcefireTestSpout(),
-				config.getInt("spout.test.parallelism.hint")).setNumTasks(config.getInt("spout.test.num.tasks"));
+				config.getInt("spout.test.parallelism.hint")).setNumTasks(
+				config.getInt("spout.test.num.tasks"));
 
 		// ------------Parser Bolt Configuration
 
@@ -82,32 +76,41 @@ public class SourcefireEnrichmentTestTopology {
 				.withMessageParser(new BasicSourcefireParser())
 				.withOutputFieldName(topology_name);
 
-		builder.setBolt("ParserBolt", parser_bolt, config.getInt("bolt.parser.parallelism.hint"))
-				.shuffleGrouping("EnrichmentSpout").setNumTasks(config.getInt("bolt.parser.num.tasks"));
+		builder.setBolt("ParserBolt", parser_bolt,
+				config.getInt("bolt.parser.parallelism.hint"))
+				.shuffleGrouping("EnrichmentSpout")
+				.setNumTasks(config.getInt("bolt.parser.num.tasks"));
 
 		// ------------Geo Enrichment Bolt Configuration
 
-
-
 		Map<String, Pattern> patterns = new HashMap<String, Pattern>();
-		patterns.put("originator_ip_regex", Pattern.compile(config.getString("bolt.enrichment.geo.originator_ip_regex")));
-		patterns.put("responder_ip_regex", Pattern.compile(config.getString("bolt.enrichment.geo.responder_ip_regex")));
+		patterns.put("originator_ip_regex", Pattern.compile(config
+				.getString("bolt.enrichment.geo.originator_ip_regex")));
+		patterns.put("responder_ip_regex", Pattern.compile(config
+				.getString("bolt.enrichment.geo.responder_ip_regex")));
 
 		GeoMysqlAdapter geo_adapter = new GeoMysqlAdapter(
-				config.getString("bolt.enrichment.geo.adapter.ip"), 
+				config.getString("bolt.enrichment.geo.adapter.ip"),
 				config.getInt("bolt.enrichment.geo.adapter.port"),
-				config.getString("bolt.enrichment.geo.adapter.username"), 
-				config.getString("bolt.enrichment.geo.adapter.password"), 
+				config.getString("bolt.enrichment.geo.adapter.username"),
+				config.getString("bolt.enrichment.geo.adapter.password"),
 				config.getString("bolt.enrichment.geo.adapter.table"));
 
 		GenericEnrichmentBolt geo_enrichment = new GenericEnrichmentBolt()
-				.withEnrichmentTag(config.getString("bolt.enrichment.geo.geo_enrichment_tag"))
-				.withOutputFieldName(topology_name).withAdapter(geo_adapter)
-				.withMaxTimeRetain(MAX_TIME_RETAIN)
-				.withMaxCacheSize(MAX_CACHE_SIZE).withPatterns(patterns);
+				.withEnrichmentTag(
+						config.getString("bolt.enrichment.geo.geo_enrichment_tag"))
+				.withOutputFieldName(topology_name)
+				.withAdapter(geo_adapter)
+				.withMaxTimeRetain(
+						config.getInt("bolt.enrichment.geo.MAX_TIME_RETAIN"))
+				.withMaxCacheSize(
+						config.getInt("bolt.enrichment.geo.MAX_CACHE_SIZE"))
+				.withPatterns(patterns);
 
-		builder.setBolt("GeoEnrichBolt", geo_enrichment, config.getInt("bolt.enrichment.geo.parallelism.hint"))
-				.shuffleGrouping("ParserBolt").setNumTasks(config.getInt("bolt.enrichment.geo.num.tasks"));
+		builder.setBolt("GeoEnrichBolt", geo_enrichment,
+				config.getInt("bolt.enrichment.geo.parallelism.hint"))
+				.shuffleGrouping("ParserBolt")
+				.setNumTasks(config.getInt("bolt.enrichment.geo.num.tasks"));
 
 		// builder.setBolt("WhoisEnrichmentBolt",
 		// new WhoisEnrichmentBolt(new WhoisHBaseAdapter()),

@@ -35,12 +35,14 @@ public class GeoMysqlAdapter extends AbstractGeoAdapter {
 	private String _ip;
 	private String _username;
 	private String _password;
+	private String _tablename;
 	
-	public GeoMysqlAdapter(String ip, int port, String username, String password)
+	public GeoMysqlAdapter(String ip, int port, String username, String password, String tablename)
 	{
 		_ip = ip;
 		_username = username;
 		_password = password;
+		_tablename=tablename;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -103,7 +105,7 @@ public class GeoMysqlAdapter extends AbstractGeoAdapter {
 		try {
 			Class.forName("com.mysql.jdbc.Driver");
 			connection = DriverManager.getConnection("jdbc:mysql://" + _ip
-					+ "/GEO?user=james&password=d3velop");
+					+ "/"+_tablename+"?user="+_username+"&password="+_password);
 			
 			_LOG.info("Set JDBC connection....");
 

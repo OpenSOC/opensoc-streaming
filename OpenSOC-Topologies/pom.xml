@@ -27,8 +27,8 @@
 		<geo.enrichment.version>0.0.1-SNAPSHOT</geo.enrichment.version>
 		<parsers.version>0.0.1-SNAPSHOT</parsers.version>
 		<indexing.version>0.0.1-SNAPSHOT</indexing.version>
-		<storm.version>0.9.1-incubating</storm.version>
-		<storm.hdfs.version>0.1.2</storm.hdfs.version>
+		<storm.version>0.9.2-incubating</storm.version>
+		<storm.hdfs.version>0.9.1.2.1.1.0-385</storm.hdfs.version>
 		<hadoop.version>2.2.0</hadoop.version>
 		<cli.version>20040117.000000</cli.version>
 		<kafka.storm.version>0.9.2-incubating</kafka.storm.version>
@@ -58,17 +58,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.apache.storm</groupId>
-			<artifactId>storm-core</artifactId>
-			<version>${storm.version}</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.github.ptgoetz</groupId>
-			<artifactId>storm-hdfs</artifactId>
-			<version>${storm.hdfs.version}</version>
-		</dependency>
-		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-client</artifactId>
 			<version>${hadoop.version}</version>
@@ -91,11 +80,6 @@
 			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.storm</groupId>
-			<artifactId>storm-kafka</artifactId>
-			<version>${kafka.storm.version}</version>
-		</dependency>
-		<dependency>
 			<groupId>org.apache.kafka</groupId>
 			<artifactId>kafka_2.10</artifactId>
 			<version>0.8.1.1</version>
@@ -111,7 +95,31 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+		
+			<dependency>
+			<groupId>org.apache.storm</groupId>
+			<artifactId>storm-core</artifactId>
+			<version>${storm.version}</version>
+			</dependency>
+			
+			<dependency>
+			<groupId>org.apache.storm</groupId>
+			<artifactId>storm-kafka</artifactId>
+			<version>${storm.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.apache.storm</groupId>
+			<artifactId>storm</artifactId>
+			<version>${storm.version}</version>
+			<type>pom</type>
+		</dependency>
 
+		<dependency>
+			<groupId>com.github.ptgoetz</groupId>
+			<artifactId>storm-hdfs</artifactId>
+			<version>0.1.2</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<resources>

@@ -17,18 +17,33 @@
 
 package com.opensoc.parsing.parsers;
 
+import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("serial")
 public class BasicBroParser extends AbstractParser
 {
 	
-	private Logger _LOG;
+	//private Logger _LOG ;
+	protected static final Logger _LOG = LoggerFactory
+			.getLogger(BasicBroParser.class);
+	JSONCleaner cleaner = new JSONCleaner();
 
 	public String parse(String raw_message) 
 	{
 		_LOG.debug("Received message: " + raw_message);
-		return raw_message;
+		
+		try {
+			String cleaned_message = cleaner.Clean(raw_message);
+			_LOG.debug("Cleaned message: " + cleaned_message);
+			return cleaned_message;
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			_LOG.error("Unable to Parse Message: " + raw_message);
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 }

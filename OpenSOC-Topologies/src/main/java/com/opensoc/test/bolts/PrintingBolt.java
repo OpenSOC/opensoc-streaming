@@ -42,8 +42,5 @@ public class PrintingBolt extends BaseRichBolt {
 		// TODO Auto-generated method stub
 		
 	}
-
-
-
-
+	
 }

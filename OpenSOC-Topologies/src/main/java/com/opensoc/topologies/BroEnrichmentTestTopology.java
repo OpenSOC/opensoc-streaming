@@ -50,8 +50,11 @@ import com.opensoc.enrichment.adapters.lancope.LancopeHbaseAdapter;
 import com.opensoc.enrichment.common.GenericEnrichmentBolt;
 import com.opensoc.indexing.TelemetryIndexingBolt;
 import com.opensoc.indexing.adapters.ESBaseBulkAdapter;
+import com.opensoc.parsing.AbstractParserBolt;
+import com.opensoc.parsing.BroParserBolt;
 import com.opensoc.parsing.TelemetryParserBolt;
 import com.opensoc.parsing.parsers.BasicBroParser;
+import com.opensoc.test.spouts.GenericInternalTestSpout;
 
 /**
  * This is a basic example of a Storm topology.
@@ -65,8 +68,8 @@ public class BroEnrichmentTestTopology {
 		String topology_name = "bro";
 		int parallelism_hint = 1;
 		int num_tasks = 1;
-		int localMode = 1;
-		String hdfs_path = "hdfs://172.30.9.110:8020";
+		int localMode = 0;
+		String hdfs_path = "hdfs://192.168.161.128:8020";
 
 		long MAX_CACHE_SIZE = 10000;
 		long MAX_TIME_RETAIN = 10;
@@ -75,21 +78,27 @@ public class BroEnrichmentTestTopology {
 		conf.setDebug(true);
 
 		// ------------KAFKA spout configuration
-
-		BrokerHosts zk = new ZkHosts("172.30.9.115:2181");
+/*
+		BrokerHosts zk = new ZkHosts("192.168.161.128:2181");
 
 		SpoutConfig kafkaConfig = new SpoutConfig(zk, "metadata", "/", "bro");
 
 		kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
 		kafkaConfig.forceFromStart = Boolean.valueOf("True");
 		kafkaConfig.startOffsetTime = -1;
+*/
+	//	builder.setSpout("kafka-spout", new KafkaSpout(kafkaConfig),
+		//		parallelism_hint).setNumTasks(1);
 
-		builder.setSpout("kafka-spout", new KafkaSpout(kafkaConfig),
-				parallelism_hint).setNumTasks(1);
+		//EnrichmentSpout
+		GenericInternalTestSpout testSpout = new GenericInternalTestSpout().withFilename("BroExampleOutput");
 
+		builder.setSpout("EnrichmentSpout", testSpout,
+					parallelism_hint).setNumTasks(1);
+		
 		// ------------ParserBolt configuration
 
-		TelemetryParserBolt parser_bolt = new TelemetryParserBolt()
+		AbstractParserBolt parser_bolt = new BroParserBolt()
 				.withMessageParser(new BasicBroParser()).withOutputFieldName(
 						topology_name);
 
@@ -133,7 +142,7 @@ public class BroEnrichmentTestTopology {
 
 		// ------------Kafka Bolt Configuration
 
-		Map<String, String> kafka_broker_properties = new HashMap<String, String>();
+	/*	Map<String, String> kafka_broker_properties = new HashMap<String, String>();
 		// add some properties?
 
 		conf.put("KAFKA_BROKER_PROPERTIES", kafka_broker_properties);
@@ -142,10 +151,10 @@ public class BroEnrichmentTestTopology {
 		builder.setBolt("KafkaBolt", new KafkaBolt<String, String>(),
 				parallelism_hint).shuffleGrouping("LancopeEnrichmentBolt")
 				.setNumTasks(num_tasks);
-
+*/
 		// ------------ES BOLT configuration
 
-		String ElasticSearchIP = "172.30.9.148";
+		String ElasticSearchIP = "192.168.161.128";
 		int elasticSearchPort = 9300;
 		String ElasticSearchClusterName = "devo_es";
 		String ElasticSearchIndexName = "bro_index";

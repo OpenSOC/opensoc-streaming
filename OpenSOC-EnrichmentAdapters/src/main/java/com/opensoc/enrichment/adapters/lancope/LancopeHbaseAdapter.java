@@ -1,8 +1,10 @@
 package com.opensoc.enrichment.adapters.lancope;
 
+import java.io.Serializable;
+
 import org.json.simple.JSONObject;
 
-public class LancopeHbaseAdapter extends AbstractLancopeAdapter {
+public class LancopeHbaseAdapter extends AbstractLancopeAdapter{
 
 	public JSONObject enrich(String metadata) {
 		// TODO Auto-generated method stub

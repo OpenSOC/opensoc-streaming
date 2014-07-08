@@ -1,4 +1,4 @@
-package com.opensoc.service.wrappers;
+package com.opensoc.services.wrappers;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;

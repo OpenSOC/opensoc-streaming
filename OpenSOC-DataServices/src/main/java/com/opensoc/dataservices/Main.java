@@ -7,9 +7,9 @@ import com.opensoc.dataservices.common.ClientErrorExceptionMapper;
 import com.opensoc.dataservices.common.GsonMessageBodyHandler;
 import com.opensoc.dataservices.common.OpenSOCService;
 import com.opensoc.dataservices.common.UserObject;
-import com.opensoc.service.wrappers.AlertsServiceWrapper;
 import com.opensoc.services.alerts.ElasticSearch_KafkaAlertsService;
 import com.opensoc.services.alerts.Solr_KafkaAlertsService;
+import com.opensoc.services.wrappers.AlertsServiceWrapper;
 
 import javax.inject.Singleton;
 

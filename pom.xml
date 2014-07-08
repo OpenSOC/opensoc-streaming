@@ -52,6 +52,5 @@
 		<module>OpenSOC-MessageParsers</module>
 		<module>OpenSOC-Indexing</module>
 		<module>OpenSOC-Topologies</module>
-		<module>OpenSOC-DataServices</module>
 	</modules>
 </project>

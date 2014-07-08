@@ -51,7 +51,6 @@ import com.opensoc.enrichment.common.GenericEnrichmentBolt;
 import com.opensoc.indexing.TelemetryIndexingBolt;
 import com.opensoc.indexing.adapters.ESBaseBulkAdapter;
 import com.opensoc.parsing.AbstractParserBolt;
-import com.opensoc.parsing.BroParserBolt;
 import com.opensoc.parsing.TelemetryParserBolt;
 import com.opensoc.parsing.parsers.BasicBroParser;
 import com.opensoc.test.spouts.GenericInternalTestSpout;
@@ -98,7 +97,7 @@ public class BroEnrichmentTestTopology {
 		
 		// ------------ParserBolt configuration
 
-		AbstractParserBolt parser_bolt = new BroParserBolt()
+		AbstractParserBolt parser_bolt = new TelemetryParserBolt()
 				.withMessageParser(new BasicBroParser()).withOutputFieldName(
 						topology_name);
 

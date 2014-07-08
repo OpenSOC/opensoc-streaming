@@ -16,10 +16,12 @@ public interface OpenSOCService {
     public boolean editRules();
     public boolean deleteRules();
     
-  //alert topic operations
+  //register for writing to kafka topic
     public boolean registerForAlertsTopic(String topicname);
+    
+  //client registers for alerts  
     public String receiveAlertAll();
-    public String receiveAlertReduced();
+    public String receiveAlertLast();
     public boolean disconnectFromAlertsTopic(String topicname);
     
 }

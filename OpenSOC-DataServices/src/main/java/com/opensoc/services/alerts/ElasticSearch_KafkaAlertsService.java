@@ -68,15 +68,15 @@ public class ElasticSearch_KafkaAlertsService implements OpenSOCService {
 	}
 
 	@Override
-	public String receiveAlertReduced() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public boolean disconnectFromAlertsTopic(String topicname) {
 		// TODO Auto-generated method stub
 		return false;
+	}
+
+	@Override
+	public String receiveAlertLast() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 

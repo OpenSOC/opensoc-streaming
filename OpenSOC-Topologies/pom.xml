@@ -96,20 +96,17 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-<<<<<<< HEAD
-		
-			<dependency>
+		<dependency>
 			<groupId>org.apache.storm</groupId>
 			<artifactId>storm-core</artifactId>
 			<version>${storm.version}</version>
-			</dependency>
-			
-			<dependency>
+		</dependency>
+		<dependency>
 			<groupId>org.apache.storm</groupId>
 			<artifactId>storm-kafka</artifactId>
 			<version>${storm.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.apache.storm</groupId>
 			<artifactId>storm</artifactId>
@@ -121,12 +118,11 @@
 			<groupId>com.github.ptgoetz</groupId>
 			<artifactId>storm-hdfs</artifactId>
 			<version>0.1.2</version>
-=======
+		</dependency>
 		<dependency>
 			<groupId>commons-configuration</groupId>
 			<artifactId>commons-configuration</artifactId>
 			<version>${commons.config.version}</version>
->>>>>>> 618388eea395ee0b38d7b47e3e4c944c75c51b60
 		</dependency>
 	</dependencies>
 	<build>

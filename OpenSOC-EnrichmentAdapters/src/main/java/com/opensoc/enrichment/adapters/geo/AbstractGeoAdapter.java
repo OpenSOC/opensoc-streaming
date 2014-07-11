@@ -34,5 +34,4 @@ public abstract class AbstractGeoAdapter implements EnrichmentAdapter, Serializa
 	abstract public JSONObject enrich(String metadata);
 	abstract public boolean initializeAdapter();
 	
-
 }

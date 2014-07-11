@@ -108,7 +108,6 @@
 			<version>${storm.version}</version>
 			<scope>provided</scope>
 		</dependency>
-
 		<dependency>
 			<groupId>org.apache.storm</groupId>
 			<artifactId>storm</artifactId>

@@ -101,15 +101,20 @@ public class GeoMysqlAdapter extends AbstractGeoAdapter {
 	public boolean initializeAdapter() {
 
 		_LOG.info("Initializing MysqlAdapter....");
+		
 
 		try {
 			Class.forName("com.mysql.jdbc.Driver");
 			connection = DriverManager.getConnection("jdbc:mysql://" + _ip
 					+ "/"+_tablename+"?user="+_username+"&password="+_password);
 			
+			
+			if (!connection.isValid(1))
+				throw new Exception("Invalid connection string....");
+			
 			_LOG.info("Set JDBC connection....");
 
-			return true;
+			//return true;
 		} catch (Exception e) {
 			e.printStackTrace();
 			_LOG.error("JDBC connection failed....");

@@ -95,10 +95,11 @@ public abstract class AbstractEnrichmentBolt extends BaseRichBolt {
 		boolean success = _adapter.initializeAdapter();
 
 		if (!success) {
-			LOG.error("GeoEnrichmentBolt could not initialize adapter");
+			LOG.error("EnrichmentBolt could not initialize adapter");
+			throw new IllegalStateException("Could not initialize adapter...");
 		}
 
-		LOG.info("GeoEnrichmentBolt Initialized...");
+		LOG.info("EnrichmentBolt Initialized...");
 		
 		System.out.println("---------------------------------------------------D");
 

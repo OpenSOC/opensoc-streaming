@@ -100,17 +100,19 @@
 			<groupId>org.apache.storm</groupId>
 			<artifactId>storm-core</artifactId>
 			<version>${storm.version}</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.storm</groupId>
 			<artifactId>storm-kafka</artifactId>
 			<version>${storm.version}</version>
+			<scope>provided</scope>
 		</dependency>
-
 		<dependency>
 			<groupId>org.apache.storm</groupId>
 			<artifactId>storm</artifactId>
 			<version>${storm.version}</version>
+			<scope>provided</scope>
 			<type>pom</type>
 		</dependency>
 

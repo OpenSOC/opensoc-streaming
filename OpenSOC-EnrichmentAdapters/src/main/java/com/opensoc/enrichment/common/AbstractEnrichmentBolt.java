@@ -62,8 +62,6 @@ public abstract class AbstractEnrichmentBolt extends BaseRichBolt {
 	public final void prepare(Map conf, TopologyContext topologyContext,
 			OutputCollector collector) {
 		_collector = collector;
-		
-		System.out.println("---------------------------------------------------A");
 
 		if (this._OutputFieldName == null)
 			throw new IllegalStateException("OutputFieldName must be specified");
@@ -78,8 +76,6 @@ public abstract class AbstractEnrichmentBolt extends BaseRichBolt {
 		if(this._patterns == null)
 			throw new IllegalStateException("Patterns must be specified");
 		
-		System.out.println("---------------------------------------------------B");
-		
 		loader = new CacheLoader<String, JSONObject>() {
 			public JSONObject load(String key) throws Exception {
 				return _adapter.enrich(key);
@@ -89,18 +85,15 @@ public abstract class AbstractEnrichmentBolt extends BaseRichBolt {
 		cache = CacheBuilder.newBuilder().maximumSize(_MAX_CACHE_SIZE)
 				.expireAfterWrite(_MAX_TIME_RETAIN, TimeUnit.MINUTES)
 				.build(loader);
-		
-		System.out.println("---------------------------------------------------C");
-		
+
 		boolean success = _adapter.initializeAdapter();
 
 		if (!success) {
-			LOG.error("GeoEnrichmentBolt could not initialize adapter");
+			LOG.error("EnrichmentBolt could not initialize adapter");
+			throw new IllegalStateException("Could not initialize adapter...");
 		}
 
-		LOG.info("GeoEnrichmentBolt Initialized...");
-		
-		System.out.println("---------------------------------------------------D");
+		LOG.info("EnrichmentBolt Initialized...");
 
 		try {
 			doPrepare(conf, topologyContext, collector);

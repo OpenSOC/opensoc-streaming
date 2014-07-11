@@ -85,8 +85,6 @@ public abstract class AbstractEnrichmentBolt extends BaseRichBolt {
 		cache = CacheBuilder.newBuilder().maximumSize(_MAX_CACHE_SIZE)
 				.expireAfterWrite(_MAX_TIME_RETAIN, TimeUnit.MINUTES)
 				.build(loader);
-		
-		System.out.println("------------------------------------I get here: ");
 
 		boolean success = _adapter.initializeAdapter();
 
@@ -94,8 +92,6 @@ public abstract class AbstractEnrichmentBolt extends BaseRichBolt {
 			LOG.error("EnrichmentBolt could not initialize adapter");
 			throw new IllegalStateException("Could not initialize adapter...");
 		}
-		
-		System.out.println("------------------------------------$$$$$$$$$$$$$$$$$$$$$$$$$$$SUCCESS VALUE: " + success);
 
 		LOG.info("EnrichmentBolt Initialized...");
 

@@ -1,5 +1,6 @@
-language: java
-before_script:
- -mvn clean
- -mvn emma:emma
- -mvn install
+ language: java
+ 
+ before_script:
+   - mvn clean
+   - mvn emma:emma
+ 

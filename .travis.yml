@@ -1,0 +1,14 @@
+ language: java
+ 
+ before_script:
+   - mvn clean
+   - mvn emma:emma
+
+notifications:
+  email:
+    recipients:
+      - spiddapa@cisco.com
+      - jsirota@cisco.com
+    on_success: change
+    on_failure: always
+ 

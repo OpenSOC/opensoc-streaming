@@ -40,4 +40,34 @@
 			<scope>provided</scope>
 		</dependency>
   </dependencies>
+  <dependencyManagement>
+  	<dependencies>
+  		<dependency>
+  			<groupId>junit</groupId>
+  			<artifactId>junit</artifactId>
+  			<version>3.8.2</version>
+  		</dependency>
+  	</dependencies>
+  </dependencyManagement>
+ <reporting>
+    <plugins>
+	<!-- Normally, dependency report takes time, skip it -->
+      <plugin>
+		<groupId>org.apache.maven.plugins</groupId>
+		<artifactId>maven-project-info-reports-plugin</artifactId>
+		<version>2.7</version>
+	 
+		<configuration>
+	          <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
+		</configuration>
+      </plugin>
+ 
+      <plugin>
+		<groupId>org.codehaus.mojo</groupId>
+		<artifactId>emma-maven-plugin</artifactId>
+		<version>1.0-alpha-3</version>
+		<inherited>true</inherited>
+      </plugin>
+    </plugins>
+  </reporting>  
 </project>

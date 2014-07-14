@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.opensoc.enrichment.adapters.geo;
+package com.opensoc.enrichment.adapters.whois;
 
 import java.io.Serializable;
 
@@ -24,14 +24,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.opensoc.enrichment.common.EnrichmentAdapter;
-import com.opensoc.enrichment.common.GenericEnrichmentBolt;
 
-@SuppressWarnings("serial")
-public abstract class AbstractGeoAdapter implements EnrichmentAdapter, Serializable{
+public abstract class AbstractWhoisAdapter implements EnrichmentAdapter,Serializable{
 
-	protected static final Logger _LOG = LoggerFactory.getLogger(GenericEnrichmentBolt.class);
+	protected static final Logger LOG = LoggerFactory
+			.getLogger(AbstractWhoisAdapter.class);
 	
-	abstract public JSONObject enrich(String metadata);
 	abstract public boolean initializeAdapter();
-	
+	abstract public JSONObject enrich(String metadata);
+
 }

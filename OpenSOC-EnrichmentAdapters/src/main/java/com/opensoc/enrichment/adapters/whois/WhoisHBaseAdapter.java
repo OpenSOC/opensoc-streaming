@@ -17,80 +17,45 @@
 
 package com.opensoc.enrichment.adapters.whois;
 
-import java.io.Serializable;
+import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.Get;
-import org.apache.hadoop.hbase.client.HTable;
-import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.hadoop.hbase.client.HConnection;
+import org.apache.hadoop.hbase.client.HConnectionManager;
+import org.apache.hadoop.hbase.client.HTableInterface;
 import org.json.simple.JSONObject;
-import org.slf4j.Logger;
 
-import com.opensoc.enrichment.common.EnrichmentAdapter;
-
-public class WhoisHBaseAdapter implements EnrichmentAdapter, Serializable {
+public class WhoisHBaseAdapter extends AbstractWhoisAdapter {
 
 	private static final long serialVersionUID = 2675621052400811942L;
+//	config.set("hbase.master", "172.30.9.108");
+//			config.set("hbase.zookeeper.quorum","172.30.9.116");
+//			config.set("hbase.zookeeper.property.clientPort", "2181");
+//		    config.set("hbase.client.retries.number", "1");
+//		    config.set("zookeeper.session.timeout", "60000");
+//		    config.set("zookeeper.recovery.retry", "0");
 	
-
-	public boolean initializeAdapter(String ip, Logger LOG) {
-		
-		
-		System.out.println("--------------- A");
-		
-		try {
-			Configuration config = HBaseConfiguration.create();
-			config.set("hbase.master", "172.30.9.108");
-			config.set("hbase.zookeeper.quorum","172.30.9.116");
-			config.set("hbase.zookeeper.property.clientPort", "2181");
-		    config.set("hbase.client.retries.number", "1");
-		    config.set("zookeeper.session.timeout", "60000");
-		    config.set("zookeeper.recovery.retry", "0");
+	String table_name = "whois";
 		    
-		    System.out.println("--------------- B");
-			
-			HTable table = new HTable(config, "whois");
-			
-			System.out.println("--------------- C");
-			
-			Get g = new Get(Bytes.toBytes("002391.com"));
-			
-			System.out.println("--------------- D");
-			
-			Result r = table.get(g);
-			
-			System.out.println("--------------- E");
-			
-			byte [] value = r.getValue(Bytes.toBytes("data:json"),Bytes.toBytes("values"));
-			
-			System.out.println("--------------- F");
-			
-			String valueStr = Bytes.toString(value);
-			
-		    System.out.println("---------------------------GET: " + valueStr);
-		    
-		    return true;
-			
-		} catch (Exception e) {
-			
-			System.out.println("--------------- FAILED TO INITIALIZE");
-			e.printStackTrace();
-			return false;
-		}
+	private HTableInterface table;
 
-		
-	}
-
-	public boolean initializeAdapter(String ip) {
-		// TODO Auto-generated method stub
-		return false;
-	}
 
 	public boolean initializeAdapter() {
-		// TODO Auto-generated method stub
+		Configuration conf = null;
+		conf = HBaseConfiguration.create();
+
+		try {
+			HConnection connection = HConnectionManager.createConnection(conf);
+			table = connection.getTable(table_name);
+			return true;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 		return false;
+
 	}
 
 	public JSONObject enrich(String metadata) {

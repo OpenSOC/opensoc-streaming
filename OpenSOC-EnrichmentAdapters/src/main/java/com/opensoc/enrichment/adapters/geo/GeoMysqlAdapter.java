@@ -22,6 +22,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.concurrent.Executors;
 
 import org.json.simple.JSONObject;
 
@@ -31,18 +32,18 @@ public class GeoMysqlAdapter extends AbstractGeoAdapter {
 	private Connection connection = null;
 	private Statement statement = null;
 	private ResultSet resultSet = null;
-	
+
 	private String _ip;
 	private String _username;
 	private String _password;
 	private String _tablename;
-	
-	public GeoMysqlAdapter(String ip, int port, String username, String password, String tablename)
-	{
+
+	public GeoMysqlAdapter(String ip, int port, String username,
+			String password, String tablename) {
 		_ip = ip;
 		_username = username;
 		_password = password;
-		_tablename=tablename;
+		_tablename = tablename;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -103,17 +104,30 @@ public class GeoMysqlAdapter extends AbstractGeoAdapter {
 		_LOG.info("Initializing MysqlAdapter....");
 
 		try {
+
+			boolean reachable = (java.lang.Runtime.getRuntime()
+					.exec("ping -n 1 " + _ip).waitFor() == 0);
+
+			if (!reachable)
+				throw new Exception("Unable to reach IP....");
+
 			Class.forName("com.mysql.jdbc.Driver");
 			connection = DriverManager.getConnection("jdbc:mysql://" + _ip
-					+ "/"+_tablename+"?user="+_username+"&password="+_password);
-			
+					+ "/" + _tablename + "?user=" + _username + "&password="
+					+ _password);
+
+			connection.setReadOnly(true);
+
+			if (!connection.isValid(0))
+				throw new Exception("Invalid connection string....");
+
 			_LOG.info("Set JDBC connection....");
 
 			return true;
 		} catch (Exception e) {
 			e.printStackTrace();
 			_LOG.error("JDBC connection failed....");
-			
+
 			return false;
 		}
 

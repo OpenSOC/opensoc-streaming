@@ -14,7 +14,7 @@ public class LancopeHbaseAdapter extends AbstractLancopeAdapter{
 	@Override
 	public boolean initializeAdapter() {
 		// TODO Auto-generated method stub
-		return false;
+		return true;
 	}
 
 }

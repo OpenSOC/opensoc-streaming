@@ -20,14 +20,8 @@ package com.opensoc.enrichment.adapters.cif;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import org.json.simple.JSONObject;
-
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Get;
@@ -36,44 +30,42 @@ import org.apache.hadoop.hbase.client.HConnectionManager;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.KeyValue;
+import org.apache.log4j.Logger;
 
+@SuppressWarnings("unchecked")
 public class CIFHbaseAdapter extends AbstractCIFAdapter {
 
 	private static final long serialVersionUID = 1L;
-	private final int MAX_CACHE_SIZE = 100000;
-	private final int MAX_TIME_RETAIN = 60;
 	private String tableName = "cif_table";
-
-	private LoadingCache<String, Map> cache;
-
 	private HTableInterface table;
+
+	/** The LOGGER. */
+	private static final Logger LOGGER = Logger
+			.getLogger(CIFHbaseAdapter.class);
 
 	public JSONObject enrich(String metadata) {
 		// TODO Auto-generated method stub
-		
+
 		JSONObject output = new JSONObject();
-		
-		System.out.println("=======Looking Up For:" + metadata);
-		
+		LOGGER.debug("=======Looking Up For:" + metadata);
 		output.putAll(getCIFObject(metadata));
-		
+
 		return output;
-		//return null;
 	}
 
 	protected Map getCIFObject(String key) {
 		// TODO Auto-generated method stub
-		
-		System.out.println("=======Pinging HBase For:" + key);
-		
+
+		LOGGER.debug("=======Pinging HBase For:" + key);
+
 		Get get = new Get(key.getBytes());
 		Result rs;
 		Map output = new HashMap();
 
 		try {
 			rs = table.get(get);
-			
-			for (KeyValue kv : rs.raw()) 
+
+			for (KeyValue kv : rs.raw())
 				output.put(new String(kv.getQualifier()), "Y");
 
 		} catch (IOException e) {
@@ -83,21 +75,18 @@ public class CIFHbaseAdapter extends AbstractCIFAdapter {
 		return output;
 	}
 
-	private Map getEnhancement(String IP) {
-		return cache.getUnchecked(IP);
-	}
-
 	@Override
 	public boolean initializeAdapter() {
 		// TODO Auto-generated method stub
-		
-		//Initialize HBase Table
+
+		// Initialize HBase Table
 		Configuration conf = null;
 		conf = HBaseConfiguration.create();
 
 		try {
-			System.out.println("=======Connecting to HBASE===========");
-			System.out.println("=======ZOOKEEPER= " + conf.get("hbase.zookeeper.quorum"));
+			LOGGER.debug("=======Connecting to HBASE===========");
+			LOGGER.debug("=======ZOOKEEPER = "
+					+ conf.get("hbase.zookeeper.quorum"));
 			HConnection connection = HConnectionManager.createConnection(conf);
 			table = connection.getTable(tableName);
 			return true;

@@ -61,15 +61,27 @@ import com.opensoc.test.spouts.GenericInternalTestSpout;
 
 public class BroEnrichmentTestTopology {
 
+	// IP Addresses' json key starts with 'id'
+	private static final String IPADDR_PATTERN = "(id\\..*?:\\\")(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})";
+
+	//Domain is groupID 1
+	//Domain name should end with a quote
+	private static final String DOMAIN_NAME_PATTERN = "(([A-Za-z0-9-]+)(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,}))\"";
+	
+	//Email is group 1
+	private static final String EMAIL_PATTERN = "\""
+			+ "(([_A-Za-z0-9-\\+]+)(\\.[_A-Za-z0-9-]+)*@(([A-Za-z0-9-]+)(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})))"
+			+ "\"";
+
 	public static void main(String[] args) throws Exception {
 		TopologyBuilder builder = new TopologyBuilder();
 
 		String topology_name = "bro";
 		int parallelism_hint = 1;
 		int num_tasks = 1;
-	//	int localMode = 0;
-		//String hdfs_path = "hdfs://192.168.161.128:8020";
-		
+		// int localMode = 0;
+		// String hdfs_path = "hdfs://192.168.161.128:8020";
+
 		int localMode = 0;
 		String hdfs_path = "hdfs://172.30.9.110:8020";
 
@@ -80,24 +92,26 @@ public class BroEnrichmentTestTopology {
 		conf.setDebug(true);
 
 		// ------------KAFKA spout configuration
-/*
-		BrokerHosts zk = new ZkHosts("192.168.161.128:2181");
+		/*
+		 * BrokerHosts zk = new ZkHosts("192.168.161.128:2181");
+		 * 
+		 * SpoutConfig kafkaConfig = new SpoutConfig(zk, "metadata", "/",
+		 * "bro");
+		 * 
+		 * kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
+		 * kafkaConfig.forceFromStart = Boolean.valueOf("True");
+		 * kafkaConfig.startOffsetTime = -1;
+		 */
+		// builder.setSpout("kafka-spout", new KafkaSpout(kafkaConfig),
+		// parallelism_hint).setNumTasks(1);
 
-		SpoutConfig kafkaConfig = new SpoutConfig(zk, "metadata", "/", "bro");
+		// EnrichmentSpout
+		GenericInternalTestSpout testSpout = new GenericInternalTestSpout()
+				.withFilename("BroExampleOutput").withRepeating(false);
 
-		kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
-		kafkaConfig.forceFromStart = Boolean.valueOf("True");
-		kafkaConfig.startOffsetTime = -1;
-*/
-	//	builder.setSpout("kafka-spout", new KafkaSpout(kafkaConfig),
-		//		parallelism_hint).setNumTasks(1);
+		builder.setSpout("EnrichmentSpout", testSpout, parallelism_hint)
+				.setNumTasks(1);
 
-		//EnrichmentSpout
-		GenericInternalTestSpout testSpout = new GenericInternalTestSpout().withFilename("BroExampleOutput").withRepeating(false);
-
-		builder.setSpout("EnrichmentSpout", testSpout,
-					parallelism_hint).setNumTasks(1);
-		
 		// ------------ParserBolt configuration
 
 		AbstractParserBolt parser_bolt = new TelemetryParserBolt()
@@ -111,16 +125,24 @@ public class BroEnrichmentTestTopology {
 
 		Map<String, Pattern> cif_patterns = new HashMap<String, Pattern>();
 		Map<String, Integer> cif_pattern_ids = new HashMap<String, Integer>();
-		cif_patterns.put("IP_Address", Pattern.compile("(id\\..*?:\\\")(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})"));
+
+		cif_patterns.put("IP_Address", Pattern.compile(IPADDR_PATTERN));
 		cif_pattern_ids.put("IP_Address", 2);
-		
+
+		cif_patterns.put("Email_Address", Pattern.compile(EMAIL_PATTERN));
+		cif_pattern_ids.put("Email_Address", 1);
+
+		cif_patterns.put("Domain_Name", Pattern.compile(DOMAIN_NAME_PATTERN));
+		cif_pattern_ids.put("Domain_Name", 1);
+
 		GenericEnrichmentBolt cif_enrichment = new GenericEnrichmentBolt()
 				.withAdapter(new CIFHbaseAdapter())
 				.withOutputFieldName(topology_name)
 				.withOutputFieldName(topology_name)
 				.withEnrichmentTag("CIF_Enrichment")
 				.withMaxTimeRetain(MAX_TIME_RETAIN)
-				.withMaxCacheSize(MAX_CACHE_SIZE).withPatterns(cif_patterns).withPatternIDs(cif_pattern_ids);
+				.withMaxCacheSize(MAX_CACHE_SIZE).withPatterns(cif_patterns)
+				.withPatternIDs(cif_pattern_ids);
 
 		builder.setBolt("CIFEnrichmentBolt", cif_enrichment, parallelism_hint)
 				.shuffleGrouping("ParserBolt").setNumTasks(num_tasks);
@@ -144,16 +166,17 @@ public class BroEnrichmentTestTopology {
 				.setNumTasks(num_tasks);
 		// ------------Kafka Bolt Configuration
 
-	/*	Map<String, String> kafka_broker_properties = new HashMap<String, String>();
-		// add some properties?
-
-		conf.put("KAFKA_BROKER_PROPERTIES", kafka_broker_properties);
-		conf.put("TOPIC", topology_name + "_cnt");
-
-		builder.setBolt("KafkaBolt", new KafkaBolt<String, String>(),
-				parallelism_hint).shuffleGrouping("LancopeEnrichmentBolt")
-				.setNumTasks(num_tasks);
-*/
+		/*
+		 * Map<String, String> kafka_broker_properties = new HashMap<String,
+		 * String>(); // add some properties?
+		 * 
+		 * conf.put("KAFKA_BROKER_PROPERTIES", kafka_broker_properties);
+		 * conf.put("TOPIC", topology_name + "_cnt");
+		 * 
+		 * builder.setBolt("KafkaBolt", new KafkaBolt<String, String>(),
+		 * parallelism_hint).shuffleGrouping("LancopeEnrichmentBolt")
+		 * .setNumTasks(num_tasks);
+		 */
 		// ------------ES BOLT configuration
 
 		String ElasticSearchIP = "192.168.161.128";

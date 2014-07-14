@@ -1,5 +1,6 @@
 package com.opensoc.parsing.parsers;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -12,7 +13,13 @@ import org.json.simple.parser.ParseException;
  * @author kiran
  *
  */
-public class JSONCleaner {
+public class JSONCleaner implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 
 	/**
 	 * @param jsonString

@@ -67,8 +67,11 @@ public class BroEnrichmentTestTopology {
 		String topology_name = "bro";
 		int parallelism_hint = 1;
 		int num_tasks = 1;
+	//	int localMode = 0;
+		//String hdfs_path = "hdfs://192.168.161.128:8020";
+		
 		int localMode = 0;
-		String hdfs_path = "hdfs://192.168.161.128:8020";
+		String hdfs_path = "hdfs://172.30.9.110:8020";
 
 		long MAX_CACHE_SIZE = 10000;
 		long MAX_TIME_RETAIN = 10;
@@ -90,7 +93,7 @@ public class BroEnrichmentTestTopology {
 		//		parallelism_hint).setNumTasks(1);
 
 		//EnrichmentSpout
-		GenericInternalTestSpout testSpout = new GenericInternalTestSpout().withFilename("BroExampleOutput");
+		GenericInternalTestSpout testSpout = new GenericInternalTestSpout().withFilename("BroExampleOutput").withRepeating(false);
 
 		builder.setSpout("EnrichmentSpout", testSpout,
 					parallelism_hint).setNumTasks(1);
@@ -107,16 +110,17 @@ public class BroEnrichmentTestTopology {
 		// ------------CIF bolt configuration
 
 		Map<String, Pattern> cif_patterns = new HashMap<String, Pattern>();
-		cif_patterns.put("somepattern", Pattern.compile("somevalue"));
-		cif_patterns.put("somepattern", Pattern.compile("somevalue"));
-
+		Map<String, Integer> cif_pattern_ids = new HashMap<String, Integer>();
+		cif_patterns.put("IP_Address", Pattern.compile("(id\\..*?:\\\")(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})"));
+		cif_pattern_ids.put("IP_Address", 2);
+		
 		GenericEnrichmentBolt cif_enrichment = new GenericEnrichmentBolt()
 				.withAdapter(new CIFHbaseAdapter())
 				.withOutputFieldName(topology_name)
 				.withOutputFieldName(topology_name)
-				.withEnrichmentTag("sometag")
+				.withEnrichmentTag("CIF_Enrichment")
 				.withMaxTimeRetain(MAX_TIME_RETAIN)
-				.withMaxCacheSize(MAX_CACHE_SIZE).withPatterns(cif_patterns);
+				.withMaxCacheSize(MAX_CACHE_SIZE).withPatterns(cif_patterns).withPatternIDs(cif_pattern_ids);
 
 		builder.setBolt("CIFEnrichmentBolt", cif_enrichment, parallelism_hint)
 				.shuffleGrouping("ParserBolt").setNumTasks(num_tasks);
@@ -138,7 +142,6 @@ public class BroEnrichmentTestTopology {
 		builder.setBolt("LancopeEnrichmentBolt", lancope_enrichment,
 				parallelism_hint).shuffleGrouping("CIFEnrichmentBolt")
 				.setNumTasks(num_tasks);
-
 		// ------------Kafka Bolt Configuration
 
 	/*	Map<String, String> kafka_broker_properties = new HashMap<String, String>();

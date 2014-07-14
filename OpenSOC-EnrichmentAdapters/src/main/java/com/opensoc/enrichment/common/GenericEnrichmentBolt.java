@@ -31,9 +31,11 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 
-
 @SuppressWarnings({ "rawtypes", "serial" })
 public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
+
+	private Map<String, Integer> _patternids;
+	private boolean _withPatternIDs = false;
 
 	public GenericEnrichmentBolt withAdapter(EnrichmentAdapter adapter) {
 		_adapter = adapter;
@@ -71,43 +73,65 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 		return this;
 	}
 
+	/**
+	 * @param patternids
+	 * @return
+	 * Setting groupID's within each pattern.
+	 * If this is not set, groupID will default to 1
+	 */
+	public GenericEnrichmentBolt withPatternIDs(Map<String, Integer> patternids) {
+		_patternids = patternids;
+		_withPatternIDs = true;
+		return this;
+	}
+
 	@SuppressWarnings("unchecked")
 	public void execute(Tuple tuple) {
 
 		String original_message = tuple.getString(0).trim();
 		LOG.debug("Received tuple: " + original_message);
-		
+
 		Map<String, JSONObject> tokens_found = new HashMap<String, JSONObject>();
-		
-		System.out.println("---------RECEIVED MESSAGE IN GEO BOLT: " + original_message);
+		JSONObject combined_enrichment = new JSONObject();
+
+		System.out.println("---------RECEIVED MESSAGE IN GEO BOLT: "
+				+ original_message);
 
 		for (String pattern_name : _patterns.keySet()) {
 			Pattern pattern = _patterns.get(pattern_name);
 			Matcher matcher = pattern.matcher(original_message);
 
-			if (matcher.find()) {
-				for (int i = 0; i < matcher.groupCount(); i++) {
-					String to_match = matcher.group(1);
-					System.out.println("---------Found Token: " + to_match);
-					JSONObject enrichment = cache.getUnchecked(to_match);
-					System.out.println("---------Enrichment for Token: " + enrichment);
-					
-					tokens_found.put(pattern_name, enrichment);
-				}
+			System.out.println("Processing:" + pattern_name);
+
+			while (matcher.find()) {
+
+				//groupID represents the specific group within regex which represents lookup key
+				int groupID = 1;
+				if (_withPatternIDs)
+					groupID = _patternids.get(pattern_name);
+
+				String to_match = matcher.group(groupID);
+				System.out.println("---------Found Token: " + to_match);
+				
+				JSONObject enrichment = cache.getUnchecked(to_match);
+				System.out.println("---------Enrichment for Token: "
+						+ enrichment);
+				System.out.println("---------Putting : " + pattern_name + "_"
+						+ to_match + ":" + enrichment);
+				tokens_found.put(pattern_name + "_" + to_match, enrichment);
 			}
 		}
-		
-		JSONObject combined_enrichment = new JSONObject();
 
-		for(String token: tokens_found.keySet())
-		{
-			combined_enrichment.put(token, tokens_found.get(token));
-		}
-		
-		 String enriched_message = original_message.substring(0,
-		  original_message.length() - 1) + ",\"" + _enrichment_tag + "\":" + combined_enrichment + "}";
-			 
-System.out.println("-----------------combined: " + enriched_message);
+		combined_enrichment.putAll(tokens_found);
+		System.out.println("-----------------Enrichment: "
+				+ combined_enrichment);
+		String enriched_message = original_message.substring(0,
+				original_message.length() - 1)
+				+ ",\""
+				+ _enrichment_tag
+				+ "\":" + combined_enrichment + "}";
+
+		System.out.println("-----------------combined: " + enriched_message);
 
 		// LOG.debug("Setting enriched_message: " + enriched_message);
 

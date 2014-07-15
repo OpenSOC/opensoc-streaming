@@ -27,27 +27,27 @@ import org.apache.hadoop.hbase.client.HTableInterface;
 import org.json.simple.JSONObject;
 
 public class WhoisHBaseAdapter extends AbstractWhoisAdapter {
-
-	private static final long serialVersionUID = 2675621052400811942L;
-//	config.set("hbase.master", "172.30.9.108");
-//			config.set("hbase.zookeeper.quorum","172.30.9.116");
-//			config.set("hbase.zookeeper.property.clientPort", "2181");
-//		    config.set("hbase.client.retries.number", "1");
-//		    config.set("zookeeper.session.timeout", "60000");
-//		    config.set("zookeeper.recovery.retry", "0");
 	
-	String table_name = "whois";
-		    
 	private HTableInterface table;
-
-
+	private String _table_name;
+	
+	public WhoisHBaseAdapter(String table_name)
+	{
+		_table_name=table_name;
+	}
+	
 	public boolean initializeAdapter() {
 		Configuration conf = null;
 		conf = HBaseConfiguration.create();
 
 		try {
+			
+			LOG.debug("=======Connecting to HBASE===========");
+			LOG.debug("=======ZOOKEEPER = "
+					+ conf.get("hbase.zookeeper.quorum"));
+			
 			HConnection connection = HConnectionManager.createConnection(conf);
-			table = connection.getTable(table_name);
+			table = connection.getTable(_table_name);
 			return true;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

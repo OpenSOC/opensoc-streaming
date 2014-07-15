@@ -41,6 +41,8 @@ import backtype.storm.StormSubmitter;
 import backtype.storm.topology.TopologyBuilder;
 
 import com.opensoc.enrichment.adapters.geo.GeoMysqlAdapter;
+import com.opensoc.enrichment.adapters.whois.WhoisHBaseAdapter;
+import com.opensoc.enrichment.common.EnrichmentAdapter;
 import com.opensoc.enrichment.common.GenericEnrichmentBolt;
 import com.opensoc.indexing.TelemetryIndexingBolt;
 import com.opensoc.indexing.adapters.ESBaseBulkAdapter;
@@ -54,9 +56,20 @@ import com.opensoc.test.spouts.SourcefireTestSpout;
 public class SourcefireEnrichmentTestTopology {
 
 	public static void main(String[] args) throws Exception {
+		
+		String config_path= "";
+		
+		try
+		{
+			config_path = args[0];
+		}
+		catch(Exception e)
+		{
+			System.out.println("Please enter the config file path...");
+			System.exit(1);
+		}
 
-		Configuration config = new PropertiesConfiguration(
-				"./OpenSOC-Topologies/src/main/resources/TopologyConfigs/sourcefire.conf");
+		Configuration config = new PropertiesConfiguration(config_path);
 
 		String topology_name = config.getString("topology.name");
 
@@ -86,10 +99,10 @@ public class SourcefireEnrichmentTestTopology {
 
 		// ------------Geo Enrichment Bolt Configuration
 
-		Map<String, Pattern> patterns = new HashMap<String, Pattern>();
-		patterns.put("originator_ip_regex", Pattern.compile(config
+/*		Map<String, Pattern> geo_patterns = new HashMap<String, Pattern>();
+		geo_patterns.put("originator_ip_regex", Pattern.compile(config
 				.getString("bolt.enrichment.geo.originator_ip_regex")));
-		patterns.put("responder_ip_regex", Pattern.compile(config
+		geo_patterns.put("responder_ip_regex", Pattern.compile(config
 				.getString("bolt.enrichment.geo.responder_ip_regex")));
 
 		GeoMysqlAdapter geo_adapter = new GeoMysqlAdapter(
@@ -108,12 +121,41 @@ public class SourcefireEnrichmentTestTopology {
 						config.getInt("bolt.enrichment.geo.MAX_TIME_RETAIN"))
 				.withMaxCacheSize(
 						config.getInt("bolt.enrichment.geo.MAX_CACHE_SIZE"))
-				.withPatterns(patterns);
+				.withPatterns(geo_patterns);
 
 		builder.setBolt("GeoEnrichBolt", geo_enrichment,
 				config.getInt("bolt.enrichment.geo.parallelism.hint"))
 				.shuffleGrouping("ParserBolt")
 				.setNumTasks(config.getInt("bolt.enrichment.geo.num.tasks"));
+				
+				*/
+		
+		// ------------Whois Enrichment Bolt Configuration
+		
+		Map<String, Pattern> whois_patterns = new HashMap<String, Pattern>();
+		whois_patterns.put("originator_ip_regex", Pattern.compile(config
+				.getString("bolt.enrichment.whois.source")));
+		
+		EnrichmentAdapter whois_adapter = new WhoisHBaseAdapter( 
+				config.getString("bolt.enrichment.whois.hbase.table.name"));
+		
+		GenericEnrichmentBolt geo_enrichment = new GenericEnrichmentBolt()
+		.withEnrichmentTag(
+				config.getString("bolt.enrichment.whois.whois_enrichment_tag"))
+		.withOutputFieldName(topology_name)
+		.withAdapter(whois_adapter)
+		.withMaxTimeRetain(
+				config.getInt("bolt.enrichment.whois.MAX_TIME_RETAIN"))
+		.withMaxCacheSize(
+				config.getInt("bolt.enrichment.whois.MAX_CACHE_SIZE"))
+		.withPatterns(whois_patterns);
+		
+		builder.setBolt("WhoisEnrichBolt", geo_enrichment,
+				config.getInt("bolt.enrichment.whois.parallelism.hint"))
+				.shuffleGrouping("ParserBolt")
+				.setNumTasks(config.getInt("bolt.enrichment.whois.num.tasks"));
+		
+
 
 		// ------------ES BOLT configuration
 
@@ -130,11 +172,11 @@ public class SourcefireEnrichmentTestTopology {
 
 		builder.setBolt("IndexingBolt", indexing_bolt,
 				config.getInt("bolt.indexing.parallelism.hint"))
-				.shuffleGrouping("GeoEnrichBolt")
+				.shuffleGrouping("ParserBolt")
 				.setNumTasks(config.getInt("bolt.indexing.num.tasks"));
 
 		// ------------HDFS BOLT configuration
-
+/*
 		FileNameFormat fileNameFormat = new DefaultFileNameFormat()
 				.withPath("/" + topology_name + "/");
 		RecordFormat format = new DelimitedRecordFormat()
@@ -148,11 +190,15 @@ public class SourcefireEnrichmentTestTopology {
 		HdfsBolt hdfsBolt = new HdfsBolt().withFsUrl(config.getString("bolt.hdfs.path"))
 				.withFileNameFormat(fileNameFormat).withRecordFormat(format)
 				.withRotationPolicy(rotationPolicy).withSyncPolicy(syncPolicy);
+				
+			
 
 		builder.setBolt("HDFSBolt", hdfsBolt,
 				config.getInt("bolt.hdfs.parallelism.hint"))
-				.shuffleGrouping("EnrichmentSpout")
+				.shuffleGrouping("ParserBolt")
 				.setNumTasks(config.getInt("bolt.hdfs.num.tasks"));
+				
+					*/
 
 		if (config.getBoolean("local.mode")) {
 			conf.setNumWorkers(config.getInt("num.workers"));

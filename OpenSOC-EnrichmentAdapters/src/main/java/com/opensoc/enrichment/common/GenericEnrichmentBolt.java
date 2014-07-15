@@ -94,7 +94,7 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 		Map<String, JSONObject> tokens_found = new HashMap<String, JSONObject>();
 		JSONObject combined_enrichment = new JSONObject();
 
-		System.out.println("---------RECEIVED MESSAGE IN GEO BOLT: "
+		System.out.println("---------RECEIVED MESSAGE IN ENRICHMENT BOLT: "
 				+ original_message);
 
 		for (String pattern_name : _patterns.keySet()) {

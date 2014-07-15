@@ -18,12 +18,17 @@
 package com.opensoc.enrichment.adapters.whois;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.KeyValue;
+import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.HConnection;
 import org.apache.hadoop.hbase.client.HConnectionManager;
 import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.hadoop.hbase.client.Result;
 import org.json.simple.JSONObject;
 
 public class WhoisHBaseAdapter extends AbstractWhoisAdapter {
@@ -59,8 +64,26 @@ public class WhoisHBaseAdapter extends AbstractWhoisAdapter {
 	}
 
 	public JSONObject enrich(String metadata) {
-		// TODO Auto-generated method stub
-		return null;
+		LOG.debug("=======Pinging HBase For:" + metadata);
+		
+		JSONObject jo = new JSONObject();
+
+		Get get = new Get(metadata.getBytes());
+		Result rs;
+
+		try {
+			rs = table.get(get);
+
+			for (KeyValue kv : rs.raw())
+				jo.put(metadata, new String(kv.getValue()));
+
+		} catch (IOException e) {
+			jo.put(metadata, "{}");
+			e.printStackTrace();
+		}
+		
+		return jo;
+
 	}
 
 }

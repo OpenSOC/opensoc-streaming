@@ -150,7 +150,7 @@ public class SourcefireEnrichmentTestTopology {
 		
 
 
-		// ------------ES BOLT configuration
+		// ------------Indexing BOLT configuration
 
 		TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
 				.withIndexIP(config.getString("bolt.indexing.indexIP"))

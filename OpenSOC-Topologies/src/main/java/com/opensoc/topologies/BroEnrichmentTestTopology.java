@@ -117,7 +117,7 @@ public class BroEnrichmentTestTopology {
 				Pattern.compile(config.getString("bolt.enrichment.cif.email")));
 
 		GenericEnrichmentBolt cif_enrichment = new GenericEnrichmentBolt()
-				.withAdapter(new CIFHbaseAdapter())
+				.withAdapter(new CIFHbaseAdapter(config.getString("kafka.zk.list"), config.getString("kafka.zk.port")))
 				.withOutputFieldName(topology_name)
 				.withEnrichmentTag("CIF_Enrichment")
 				.withPatterns(cif_patterns)

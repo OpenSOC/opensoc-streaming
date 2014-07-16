@@ -83,16 +83,6 @@
 		<name>hbase.hregion.majorcompaction</name>
 		<value>86400000</value>
 	</property>
-	 <property>
-      <name>hbase.zookeeper.property.clientPort</name>
-      <value>2181</value>
-    </property>
-
-    <property>
-      <name>hbase.zookeeper.quorum</name>
-      <value>zkpr1,zkpr2,zkpr3</value>
-    </property>
-
 	<property>
 		<name>hbase.client.write.buffer</name>
 		<value>500000000</value>

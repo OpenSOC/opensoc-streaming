@@ -30,6 +30,7 @@ import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
 import backtype.storm.topology.TopologyBuilder;
 
+import com.opensoc.enrichment.adapters.geo.GeoMysqlAdapter;
 import com.opensoc.enrichment.adapters.whois.WhoisHBaseAdapter;
 import com.opensoc.enrichment.common.EnrichmentAdapter;
 import com.opensoc.enrichment.common.GenericEnrichmentBolt;
@@ -55,8 +56,7 @@ public class SourcefireEnrichmentTestTopology {
 		}
 		catch(Exception e)
 		{
-			System.out.println("Please enter the config file path...");
-			System.exit(1);
+			config_path= "TopologyConfigs/sourcefire.conf";
 		}
 
 		Configuration config = new PropertiesConfiguration(config_path);
@@ -92,7 +92,7 @@ public class SourcefireEnrichmentTestTopology {
 
 		// ------------Geo Enrichment Bolt Configuration
 
-/*		Map<String, Pattern> geo_patterns = new HashMap<String, Pattern>();
+		Map<String, Pattern> geo_patterns = new HashMap<String, Pattern>();
 		geo_patterns.put("originator_ip_regex", Pattern.compile(config
 				.getString("bolt.enrichment.geo.originator_ip_regex")));
 		geo_patterns.put("responder_ip_regex", Pattern.compile(config
@@ -121,7 +121,7 @@ public class SourcefireEnrichmentTestTopology {
 				.shuffleGrouping("ParserBolt")
 				.setNumTasks(config.getInt("bolt.enrichment.geo.num.tasks"));
 				
-				*/
+				
 		
 		// ------------Whois Enrichment Bolt Configuration
 		
@@ -132,7 +132,7 @@ public class SourcefireEnrichmentTestTopology {
 		EnrichmentAdapter whois_adapter = new WhoisHBaseAdapter( 
 				config.getString("bolt.enrichment.whois.hbase.table.name"));
 		
-		GenericEnrichmentBolt geo_enrichment = new GenericEnrichmentBolt()
+		GenericEnrichmentBolt whois_enrichment = new GenericEnrichmentBolt()
 		.withEnrichmentTag(
 				config.getString("bolt.enrichment.whois.whois_enrichment_tag"))
 		.withOutputFieldName(topology_name)
@@ -143,9 +143,9 @@ public class SourcefireEnrichmentTestTopology {
 				config.getInt("bolt.enrichment.whois.MAX_CACHE_SIZE"))
 		.withPatterns(whois_patterns);
 		
-		builder.setBolt("WhoisEnrichBolt", geo_enrichment,
+		builder.setBolt("WhoisEnrichBolt", whois_enrichment,
 				config.getInt("bolt.enrichment.whois.parallelism.hint"))
-				.shuffleGrouping("ParserBolt")
+				.shuffleGrouping("GeoEnrichBolt")
 				.setNumTasks(config.getInt("bolt.enrichment.whois.num.tasks"));
 		
 
@@ -165,7 +165,7 @@ public class SourcefireEnrichmentTestTopology {
 
 		builder.setBolt("IndexingBolt", indexing_bolt,
 				config.getInt("bolt.indexing.parallelism.hint"))
-				.shuffleGrouping("ParserBolt")
+				.shuffleGrouping("WhoisEnrichBolt")
 				.setNumTasks(config.getInt("bolt.indexing.num.tasks"));
 
 		// ------------HDFS BOLT configuration

@@ -21,6 +21,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.storm.hdfs.bolt.HdfsBolt;
 import org.apache.storm.hdfs.bolt.format.DefaultFileNameFormat;
 import org.apache.storm.hdfs.bolt.format.DelimitedRecordFormat;
@@ -58,6 +60,195 @@ import com.opensoc.test.spouts.GenericInternalTestSpout;
 /**
  * This is a basic example of a Storm topology.
  */
+
+public class BroEnrichmentTestTopology {
+
+	public static void main(String[] args) throws Exception {
+
+		String config_path = "";
+
+		try {
+			config_path = args[0];
+		} catch (Exception e) {
+			config_path = "TopologyConfigs/bro.conf";
+		}
+
+		Configuration config = new PropertiesConfiguration(config_path);
+
+		String topology_name = config.getString("topology.name");
+
+		TopologyBuilder builder = new TopologyBuilder();
+
+		Config conf = new Config();
+		conf.setDebug(config.getBoolean("debug.mode"));
+
+		// ------------KAFKA spout configuration
+		
+	/*	 BrokerHosts zk = new ZkHosts("192.168.161.128:2181");
+		  
+		  SpoutConfig kafkaConfig = new SpoutConfig(zk, "metadata", "/","bro");
+		 
+		  kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
+		  kafkaConfig.forceFromStart = Boolean.valueOf("True");
+		  kafkaConfig.startOffsetTime = -1;
+		 
+		 builder.setSpout("kafka-spout", new KafkaSpout(kafkaConfig), 1).setNumTasks(1);
+*/
+		// EnrichmentSpout
+		GenericInternalTestSpout testSpout = new GenericInternalTestSpout()
+				.withFilename("SampleInput/BroExampleOutput").withRepeating(
+						false);
+
+		builder.setSpout("EnrichmentSpout", testSpout,
+				config.getInt("spout.test.parallelism.hint")).setNumTasks(
+				config.getInt("spout.test.num.tasks"));
+				
+				
+
+		// ------------ParserBolt configuration
+
+		AbstractParserBolt parser_bolt = new TelemetryParserBolt()
+				.withMessageParser(new BasicBroParser()).withOutputFieldName(
+						topology_name);
+
+		builder.setBolt("ParserBolt", parser_bolt,
+				config.getInt("bolt.parser.parallelism.hint"))
+				.shuffleGrouping("EnrichmentSpout")
+				.setNumTasks(config.getInt("bolt.parser.num.tasks"));
+
+		// ------------CIF bolt configuration
+
+		Map<String, Pattern> cif_patterns = new HashMap<String, Pattern>();
+		cif_patterns.put("source_ip", Pattern.compile(config
+				.getString("bolt.enrichment.cif.source_ip")));
+		cif_patterns.put("resp_ip", Pattern.compile(config
+				.getString("bolt.enrichment.cif.resp_ip")));
+		cif_patterns.put("host",
+				Pattern.compile(config.getString("bolt.enrichment.cif.host")));
+		cif_patterns.put("email",
+				Pattern.compile(config.getString("bolt.enrichment.cif.email")));
+
+		GenericEnrichmentBolt cif_enrichment = new GenericEnrichmentBolt()
+				.withAdapter(new CIFHbaseAdapter())
+				.withOutputFieldName(topology_name)
+				.withEnrichmentTag("CIF_Enrichment")
+				.withPatterns(cif_patterns)
+				.withMaxTimeRetain(
+						config.getInt("bolt.enrichment.cif.MAX_TIME_RETAIN"))
+				.withMaxCacheSize(
+						config.getInt("bolt.enrichment.cif.MAX_CACHE_SIZE"));
+
+		builder.setBolt("CIFEnrichmentBolt", cif_enrichment,
+				config.getInt("bolt.enrichment.cif.parallelism.hint"))
+				.shuffleGrouping("ParserBolt")
+				.setNumTasks(config.getInt("bolt.enrichment.cif.num.tasks"));
+
+		// ------------Kafka Bolt Configuration
+
+		/*
+		 * Map<String, String> kafka_broker_properties = new HashMap<String,
+		 * String>(); // add some properties?
+		 * 
+		 * conf.put("KAFKA_BROKER_PROPERTIES", kafka_broker_properties);
+		 * conf.put("TOPIC", topology_name + "_cnt");
+		 * 
+		 * builder.setBolt("KafkaBolt", new KafkaBolt<String, String>(),
+		 * parallelism_hint).shuffleGrouping("LancopeEnrichmentBolt")
+		 * .setNumTasks(num_tasks);
+		 */
+		// ------------Indexing BOLT configuration
+
+		TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
+				.withIndexIP(config.getString("bolt.indexing.indexIP"))
+				.withIndexPort(config.getInt("bolt.indexing.port"))
+				.withClusterName(config.getString("bolt.indexing.clustername"))
+				.withIndexName(config.getString("bolt.indexing.indexname"))
+				.withDocumentName(
+						config.getString("bolt.indexing.documentname"))
+				.withBulk(config.getInt("bolt.indexing.bulk"))
+				.withOutputFieldName(topology_name)
+				.withIndexAdapter(new ESBaseBulkAdapter());
+
+		builder.setBolt("IndexingBolt", indexing_bolt,
+				config.getInt("bolt.indexing.parallelism.hint"))
+				.shuffleGrouping("CIFEnrichmentBolt")
+				.setNumTasks(config.getInt("bolt.indexing.num.tasks"));
+
+		// ------------HDFS BOLT configuration
+
+/*		FileNameFormat fileNameFormat = new DefaultFileNameFormat()
+				.withPath("/" + topology_name + "/");
+		RecordFormat format = new DelimitedRecordFormat()
+				.withFieldDelimiter("|");
+
+		SyncPolicy syncPolicy = new CountSyncPolicy(5);
+		FileRotationPolicy rotationPolicy = new FileSizeRotationPolicy(5.0f,
+				Units.KB);
+
+		HdfsBolt hdfsBolt = new HdfsBolt().withFsUrl(hdfs_path)
+				.withFileNameFormat(fileNameFormat).withRecordFormat(format)
+				.withRotationPolicy(rotationPolicy).withSyncPolicy(syncPolicy);
+
+		builder.setBolt("HDFSBolt", hdfsBolt, parallelism_hint)
+				.shuffleGrouping("EnrichmentSpout").setNumTasks(num_tasks);*/
+
+		if (config.getBoolean("local.mode")) {
+			conf.setNumWorkers(config.getInt("num.workers"));
+			conf.setMaxTaskParallelism(1);
+			LocalCluster cluster = new LocalCluster();
+			cluster.submitTopology(topology_name, conf,
+					builder.createTopology());
+		} else {
+
+			conf.setNumWorkers(config.getInt("num.workers"));
+			StormSubmitter.submitTopology(topology_name, conf,
+					builder.createTopology());
+		}
+	}
+}
+
+/*
+ * package com.opensoc.topologies;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Pattern;
+
+import org.apache.storm.hdfs.bolt.HdfsBolt;
+import org.apache.storm.hdfs.bolt.format.DefaultFileNameFormat;
+import org.apache.storm.hdfs.bolt.format.DelimitedRecordFormat;
+import org.apache.storm.hdfs.bolt.format.FileNameFormat;
+import org.apache.storm.hdfs.bolt.format.RecordFormat;
+import org.apache.storm.hdfs.bolt.rotation.FileRotationPolicy;
+import org.apache.storm.hdfs.bolt.rotation.FileSizeRotationPolicy;
+import org.apache.storm.hdfs.bolt.rotation.FileSizeRotationPolicy.Units;
+import org.apache.storm.hdfs.bolt.sync.CountSyncPolicy;
+import org.apache.storm.hdfs.bolt.sync.SyncPolicy;
+
+import storm.kafka.BrokerHosts;
+import storm.kafka.KafkaSpout;
+import storm.kafka.SpoutConfig;
+import storm.kafka.StringScheme;
+import storm.kafka.ZkHosts;
+import storm.kafka.bolt.KafkaBolt;
+import backtype.storm.Config;
+import backtype.storm.LocalCluster;
+import backtype.storm.StormSubmitter;
+import backtype.storm.spout.SchemeAsMultiScheme;
+import backtype.storm.topology.TopologyBuilder;
+import backtype.storm.utils.Utils;
+
+import com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter;
+import com.opensoc.enrichment.adapters.lancope.LancopeHbaseAdapter;
+import com.opensoc.enrichment.common.GenericEnrichmentBolt;
+import com.opensoc.indexing.TelemetryIndexingBolt;
+import com.opensoc.indexing.adapters.ESBaseBulkAdapter;
+import com.opensoc.parsing.AbstractParserBolt;
+import com.opensoc.parsing.TelemetryParserBolt;
+import com.opensoc.parsing.parsers.BasicBroParser;
+import com.opensoc.test.spouts.GenericInternalTestSpout;
+
+
 
 public class BroEnrichmentTestTopology {
 
@@ -101,7 +292,7 @@ public class BroEnrichmentTestTopology {
 		 * kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
 		 * kafkaConfig.forceFromStart = Boolean.valueOf("True");
 		 * kafkaConfig.startOffsetTime = -1;
-		 */
+		 
 		// builder.setSpout("kafka-spout", new KafkaSpout(kafkaConfig),
 		// parallelism_hint).setNumTasks(1);
 
@@ -176,7 +367,7 @@ public class BroEnrichmentTestTopology {
 		 * builder.setBolt("KafkaBolt", new KafkaBolt<String, String>(),
 		 * parallelism_hint).shuffleGrouping("LancopeEnrichmentBolt")
 		 * .setNumTasks(num_tasks);
-		 */
+		 
 		// ------------ES BOLT configuration
 
 		String ElasticSearchIP = "192.168.161.128";
@@ -231,3 +422,4 @@ public class BroEnrichmentTestTopology {
 
 	}
 }
+*/

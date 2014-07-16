@@ -23,16 +23,6 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.storm.hdfs.bolt.HdfsBolt;
-import org.apache.storm.hdfs.bolt.format.DefaultFileNameFormat;
-import org.apache.storm.hdfs.bolt.format.DelimitedRecordFormat;
-import org.apache.storm.hdfs.bolt.format.FileNameFormat;
-import org.apache.storm.hdfs.bolt.format.RecordFormat;
-import org.apache.storm.hdfs.bolt.rotation.FileRotationPolicy;
-import org.apache.storm.hdfs.bolt.rotation.FileSizeRotationPolicy;
-import org.apache.storm.hdfs.bolt.rotation.FileSizeRotationPolicy.Units;
-import org.apache.storm.hdfs.bolt.sync.CountSyncPolicy;
-import org.apache.storm.hdfs.bolt.sync.SyncPolicy;
 
 import storm.kafka.BrokerHosts;
 import backtype.storm.Config;
@@ -40,7 +30,6 @@ import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
 import backtype.storm.topology.TopologyBuilder;
 
-import com.opensoc.enrichment.adapters.geo.GeoMysqlAdapter;
 import com.opensoc.enrichment.adapters.whois.WhoisHBaseAdapter;
 import com.opensoc.enrichment.common.EnrichmentAdapter;
 import com.opensoc.enrichment.common.GenericEnrichmentBolt;
@@ -48,7 +37,8 @@ import com.opensoc.indexing.TelemetryIndexingBolt;
 import com.opensoc.indexing.adapters.ESBaseBulkAdapter;
 import com.opensoc.parsing.TelemetryParserBolt;
 import com.opensoc.parsing.parsers.BasicSourcefireParser;
-import com.opensoc.test.spouts.SourcefireTestSpout;
+import com.opensoc.test.spouts.GenericInternalTestSpout;
+
 
 /**
  * This is a basic example of a Storm topology.
@@ -81,8 +71,11 @@ public class SourcefireEnrichmentTestTopology {
 
 		Config conf = new Config();
 		conf.setDebug(config.getBoolean("debug.mode"));
+		
+		GenericInternalTestSpout testSpout = new GenericInternalTestSpout()
+		.withFilename("SampleInput/SourcefireExampleOutput").withRepeating(false);
 
-		builder.setSpout("EnrichmentSpout", new SourcefireTestSpout(),
+		builder.setSpout("EnrichmentSpout", testSpout,
 				config.getInt("spout.test.parallelism.hint")).setNumTasks(
 				config.getInt("spout.test.num.tasks"));
 
@@ -187,7 +180,7 @@ public class SourcefireEnrichmentTestTopology {
 		FileRotationPolicy rotationPolicy = new FileSizeRotationPolicy(
 				config.getLong("bolt.hdfs.size.rotation.policy"), Units.KB);
 
-		HdfsBolt hdfsBolt = new HdfsBolt().withFsUrl(config.getString("bolt.hdfs.path"))
+		HdfsBolt hdfsBolt = new HdfsBolt().withFsUrl("hdfs://" + config.getString("bolt.hdfs.IP"))
 				.withFileNameFormat(fileNameFormat).withRecordFormat(format)
 				.withRotationPolicy(rotationPolicy).withSyncPolicy(syncPolicy);
 				

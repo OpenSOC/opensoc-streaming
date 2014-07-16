@@ -107,7 +107,7 @@ public class BroEnrichmentTestTopology {
 
 		// EnrichmentSpout
 		GenericInternalTestSpout testSpout = new GenericInternalTestSpout()
-				.withFilename("BroExampleOutput").withRepeating(false);
+				.withFilename("SampleInput/BroExampleOutput").withRepeating(false);
 
 		builder.setSpout("EnrichmentSpout", testSpout, parallelism_hint)
 				.setNumTasks(1);

@@ -35,15 +35,21 @@ public class WhoisHBaseAdapter extends AbstractWhoisAdapter {
 	
 	private HTableInterface table;
 	private String _table_name;
+	private String _quorum;
+	private String _port;
 	
-	public WhoisHBaseAdapter(String table_name)
+	public WhoisHBaseAdapter(String table_name, String quorum, String port)
 	{
 		_table_name=table_name;
+		_quorum=quorum;
+		_port=port;
 	}
 	
 	public boolean initializeAdapter() {
 		Configuration conf = null;
 		conf = HBaseConfiguration.create();
+		conf.set("hbase.zookeeper.quorum", _quorum);
+		conf.set("hbase.zookeeper.property.clientPort", _port);
 
 		try {
 			

@@ -40,23 +40,19 @@ import com.opensoc.parsing.TelemetryParserBolt;
 import com.opensoc.parsing.parsers.BasicSourcefireParser;
 import com.opensoc.test.spouts.GenericInternalTestSpout;
 
-
 /**
  * This is a basic example of a Storm topology.
  */
 public class SourcefireEnrichmentTestTopology {
 
 	public static void main(String[] args) throws Exception {
-		
-		String config_path= "";
-		
-		try
-		{
+
+		String config_path = "";
+
+		try {
 			config_path = args[0];
-		}
-		catch(Exception e)
-		{
-			config_path= "TopologyConfigs/sourcefire.conf";
+		} catch (Exception e) {
+			config_path = "TopologyConfigs/sourcefire.conf";
 		}
 
 		Configuration config = new PropertiesConfiguration(config_path);
@@ -71,9 +67,10 @@ public class SourcefireEnrichmentTestTopology {
 
 		Config conf = new Config();
 		conf.setDebug(config.getBoolean("debug.mode"));
-		
+
 		GenericInternalTestSpout testSpout = new GenericInternalTestSpout()
-		.withFilename("SampleInput/SourcefireExampleOutput").withRepeating(false);
+				.withFilename("SampleInput/SourcefireExampleOutput")
+				.withRepeating(false);
 
 		builder.setSpout("EnrichmentSpout", testSpout,
 				config.getInt("spout.test.parallelism.hint")).setNumTasks(
@@ -120,35 +117,33 @@ public class SourcefireEnrichmentTestTopology {
 				config.getInt("bolt.enrichment.geo.parallelism.hint"))
 				.shuffleGrouping("ParserBolt")
 				.setNumTasks(config.getInt("bolt.enrichment.geo.num.tasks"));
-				
-				
-		
+
 		// ------------Whois Enrichment Bolt Configuration
-		
+
 		Map<String, Pattern> whois_patterns = new HashMap<String, Pattern>();
 		whois_patterns.put("originator_ip_regex", Pattern.compile(config
 				.getString("bolt.enrichment.whois.source")));
-		
-		EnrichmentAdapter whois_adapter = new WhoisHBaseAdapter( 
-				config.getString("bolt.enrichment.whois.hbase.table.name"));
-		
+
+		EnrichmentAdapter whois_adapter = new WhoisHBaseAdapter(
+				config.getString("bolt.enrichment.whois.hbase.table.name"),
+				config.getString("kafka.zk.list"),
+				config.getString("kafka.zk.port"));
+
 		GenericEnrichmentBolt whois_enrichment = new GenericEnrichmentBolt()
-		.withEnrichmentTag(
-				config.getString("bolt.enrichment.whois.whois_enrichment_tag"))
-		.withOutputFieldName(topology_name)
-		.withAdapter(whois_adapter)
-		.withMaxTimeRetain(
-				config.getInt("bolt.enrichment.whois.MAX_TIME_RETAIN"))
-		.withMaxCacheSize(
-				config.getInt("bolt.enrichment.whois.MAX_CACHE_SIZE"))
-		.withPatterns(whois_patterns);
-		
+				.withEnrichmentTag(
+						config.getString("bolt.enrichment.whois.whois_enrichment_tag"))
+				.withOutputFieldName(topology_name)
+				.withAdapter(whois_adapter)
+				.withMaxTimeRetain(
+						config.getInt("bolt.enrichment.whois.MAX_TIME_RETAIN"))
+				.withMaxCacheSize(
+						config.getInt("bolt.enrichment.whois.MAX_CACHE_SIZE"))
+				.withPatterns(whois_patterns);
+
 		builder.setBolt("WhoisEnrichBolt", whois_enrichment,
 				config.getInt("bolt.enrichment.whois.parallelism.hint"))
 				.shuffleGrouping("GeoEnrichBolt")
 				.setNumTasks(config.getInt("bolt.enrichment.whois.num.tasks"));
-		
-
 
 		// ------------Indexing BOLT configuration
 
@@ -169,29 +164,28 @@ public class SourcefireEnrichmentTestTopology {
 				.setNumTasks(config.getInt("bolt.indexing.num.tasks"));
 
 		// ------------HDFS BOLT configuration
-/*
-		FileNameFormat fileNameFormat = new DefaultFileNameFormat()
-				.withPath("/" + topology_name + "/");
-		RecordFormat format = new DelimitedRecordFormat()
-				.withFieldDelimiter("|");
-
-		SyncPolicy syncPolicy = new CountSyncPolicy(
-				config.getInt("bolt.hdfs.size.sink.policy"));
-		FileRotationPolicy rotationPolicy = new FileSizeRotationPolicy(
-				config.getLong("bolt.hdfs.size.rotation.policy"), Units.KB);
-
-		HdfsBolt hdfsBolt = new HdfsBolt().withFsUrl("hdfs://" + config.getString("bolt.hdfs.IP"))
-				.withFileNameFormat(fileNameFormat).withRecordFormat(format)
-				.withRotationPolicy(rotationPolicy).withSyncPolicy(syncPolicy);
-				
-			
-
-		builder.setBolt("HDFSBolt", hdfsBolt,
-				config.getInt("bolt.hdfs.parallelism.hint"))
-				.shuffleGrouping("ParserBolt")
-				.setNumTasks(config.getInt("bolt.hdfs.num.tasks"));
-				
-					*/
+		/*
+		 * FileNameFormat fileNameFormat = new DefaultFileNameFormat()
+		 * .withPath("/" + topology_name + "/"); RecordFormat format = new
+		 * DelimitedRecordFormat() .withFieldDelimiter("|");
+		 * 
+		 * SyncPolicy syncPolicy = new CountSyncPolicy(
+		 * config.getInt("bolt.hdfs.size.sink.policy")); FileRotationPolicy
+		 * rotationPolicy = new FileSizeRotationPolicy(
+		 * config.getLong("bolt.hdfs.size.rotation.policy"), Units.KB);
+		 * 
+		 * HdfsBolt hdfsBolt = new HdfsBolt().withFsUrl("hdfs://" +
+		 * config.getString("bolt.hdfs.IP"))
+		 * .withFileNameFormat(fileNameFormat).withRecordFormat(format)
+		 * .withRotationPolicy(rotationPolicy).withSyncPolicy(syncPolicy);
+		 * 
+		 * 
+		 * 
+		 * builder.setBolt("HDFSBolt", hdfsBolt,
+		 * config.getInt("bolt.hdfs.parallelism.hint"))
+		 * .shuffleGrouping("ParserBolt")
+		 * .setNumTasks(config.getInt("bolt.hdfs.num.tasks"));
+		 */
 
 		if (config.getBoolean("local.mode")) {
 			conf.setNumWorkers(config.getInt("num.workers"));

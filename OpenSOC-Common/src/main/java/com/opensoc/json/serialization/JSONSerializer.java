@@ -48,5 +48,6 @@ public class JSONSerializer extends
 		}
 
 		return json;
+		
 	}
 }

@@ -18,36 +18,47 @@
 package com.opensoc.enrichment.adapters.whois;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.KeyValue;
+import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.HConnection;
 import org.apache.hadoop.hbase.client.HConnectionManager;
 import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.hadoop.hbase.client.Result;
 import org.json.simple.JSONObject;
 
 public class WhoisHBaseAdapter extends AbstractWhoisAdapter {
-
-	private static final long serialVersionUID = 2675621052400811942L;
-//	config.set("hbase.master", "172.30.9.108");
-//			config.set("hbase.zookeeper.quorum","172.30.9.116");
-//			config.set("hbase.zookeeper.property.clientPort", "2181");
-//		    config.set("hbase.client.retries.number", "1");
-//		    config.set("zookeeper.session.timeout", "60000");
-//		    config.set("zookeeper.recovery.retry", "0");
 	
-	String table_name = "whois";
-		    
 	private HTableInterface table;
-
-
+	private String _table_name;
+	private String _quorum;
+	private String _port;
+	
+	public WhoisHBaseAdapter(String table_name, String quorum, String port)
+	{
+		_table_name=table_name;
+		_quorum=quorum;
+		_port=port;
+	}
+	
 	public boolean initializeAdapter() {
 		Configuration conf = null;
 		conf = HBaseConfiguration.create();
+		conf.set("hbase.zookeeper.quorum", _quorum);
+		conf.set("hbase.zookeeper.property.clientPort", _port);
 
 		try {
+			
+			LOG.debug("=======Connecting to HBASE===========");
+			LOG.debug("=======ZOOKEEPER = "
+					+ conf.get("hbase.zookeeper.quorum"));
+			
 			HConnection connection = HConnectionManager.createConnection(conf);
-			table = connection.getTable(table_name);
+			table = connection.getTable(_table_name);
 			return true;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -59,8 +70,26 @@ public class WhoisHBaseAdapter extends AbstractWhoisAdapter {
 	}
 
 	public JSONObject enrich(String metadata) {
-		// TODO Auto-generated method stub
-		return null;
+		LOG.debug("=======Pinging HBase For:" + metadata);
+		
+		JSONObject jo = new JSONObject();
+
+		Get get = new Get(metadata.getBytes());
+		Result rs;
+
+		try {
+			rs = table.get(get);
+
+			for (KeyValue kv : rs.raw())
+				jo.put(metadata, new String(kv.getValue()));
+
+		} catch (IOException e) {
+			jo.put(metadata, "{}");
+			e.printStackTrace();
+		}
+		
+		return jo;
+
 	}
 
 }

@@ -38,6 +38,14 @@ public class CIFHbaseAdapter extends AbstractCIFAdapter {
 	private static final long serialVersionUID = 1L;
 	private String tableName = "cif_table";
 	private HTableInterface table;
+	private String _quorum;
+	private String _port;
+	
+	public CIFHbaseAdapter(String quorum, String port)
+	{
+		_quorum=quorum;
+		_port = port;
+	}
 
 	/** The LOGGER. */
 	private static final Logger LOGGER = Logger
@@ -82,7 +90,9 @@ public class CIFHbaseAdapter extends AbstractCIFAdapter {
 		// Initialize HBase Table
 		Configuration conf = null;
 		conf = HBaseConfiguration.create();
-
+		conf.set("hbase.zookeeper.quorum", _quorum);
+		conf.set("hbase.zookeeper.property.clientPort", _port);
+		
 		try {
 			LOGGER.debug("=======Connecting to HBASE===========");
 			LOGGER.debug("=======ZOOKEEPER = "

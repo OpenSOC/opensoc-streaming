@@ -18,6 +18,7 @@
 package com.opensoc.enrichment.adapters.geo;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -40,7 +41,18 @@ public class GeoMysqlAdapter extends AbstractGeoAdapter {
 
 	public GeoMysqlAdapter(String ip, int port, String username,
 			String password, String tablename) {
-		_ip = ip;
+		try {
+			_ip = InetAddress.getByName(ip).getHostAddress();
+			
+			boolean reachable = InetAddress.getByName(ip).isReachable(100);
+
+			if (!reachable)
+				throw new Exception("Unable to reach IP " + _ip);
+			
+		} catch (Exception e) {
+			_LOG.error("Environment misconfigured, cannot reach MYSQL server....");
+			e.printStackTrace();
+		}
 		_username = username;
 		_password = password;
 		_tablename = tablename;
@@ -105,11 +117,7 @@ public class GeoMysqlAdapter extends AbstractGeoAdapter {
 
 		try {
 
-			boolean reachable = (java.lang.Runtime.getRuntime()
-					.exec("ping -n 1 " + _ip).waitFor() == 0);
-
-			if (!reachable)
-				throw new Exception("Unable to reach IP....");
+			
 
 			Class.forName("com.mysql.jdbc.Driver");
 			connection = DriverManager.getConnection("jdbc:mysql://" + _ip

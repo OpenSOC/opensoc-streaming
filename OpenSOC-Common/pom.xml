@@ -22,7 +22,8 @@
 	<description>Components common to all enrichments</description>
 	<properties>
 		<json.simple.version>1.1.1</json.simple.version>
-	
+
+		<storm.version>0.9.2-incubating</storm.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -31,5 +32,10 @@
 			<version>${json.simple.version}</version>
 		</dependency>
 
+		<dependency>
+			<groupId>org.apache.storm</groupId>
+			<artifactId>storm-core</artifactId>
+			<version>${storm.version}</version>
+		</dependency>
 	</dependencies>
 </project>

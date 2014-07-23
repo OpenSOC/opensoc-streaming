@@ -15,35 +15,26 @@ import org.json.simple.JSONObject;
 public class JSONKryoSerializer extends
 		com.esotericsoftware.kryo.Serializer<JSONObject> {
 
+	private JSONKafkaSerializer jsonSerde = new JSONKafkaSerializer();
+
 	@Override
 	public void write(Kryo kryo, Output output, JSONObject json) {
 
-		HashMap<String, String> jsonMap = (HashMap) json;
-
-		// put number of entries
-		output.writeInt(jsonMap.size());
-
-		for (Map.Entry<String, String> entry : jsonMap.entrySet()) {
-			output.writeString(entry.getKey());
-			output.writeString(entry.getValue());
-		}
+		byte[] bytes = jsonSerde.toBytes(json);
+		output.writeInt(bytes.length);
+		output.write(bytes);
 	}
 
 	@Override
 	public JSONObject read(Kryo kryo, Input input, Class<JSONObject> type) {
 
-		JSONObject json = new JSONObject();
-
 		// Get number of Entries
 		int size = input.readInt();
+		byte[] bytes = input.readBytes(size);
 
-		for (int i = 0; i < size; i++) {
-			String key = input.readString();
-			String val = input.readString();
-			json.put(key, val);
-		}
+		JSONObject json = jsonSerde.fromBytes(bytes);
 
 		return json;
-		
+
 	}
 }

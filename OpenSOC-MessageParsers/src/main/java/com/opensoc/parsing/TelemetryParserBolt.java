@@ -21,6 +21,8 @@ package com.opensoc.parsing;
 import java.io.IOException;
 import java.util.Map;
 
+import org.json.simple.JSONObject;
+
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
@@ -64,7 +66,7 @@ public class TelemetryParserBolt extends AbstractParserBolt {
 
 			LOG.debug("Original Telemetry message: " + original_mesasge);
 
-			String transformed_message = _parser.parse(original_mesasge);
+			JSONObject transformed_message = _parser.parse(original_mesasge);
 			LOG.debug("Transformed Telemetry message: " + transformed_message);
 
 			_collector.ack(tuple);

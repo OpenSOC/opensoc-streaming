@@ -2,6 +2,7 @@ package com.opensoc.indexing.adapters;
 
 import java.io.Serializable;
 
+import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,8 +16,9 @@ public abstract class AbstractIndexAdapter implements IndexAdapter, Serializable
 			.getLogger(AbstractIndexingBolt.class);
 
 
+	public abstract boolean bulkIndex(JSONObject raw_message);
 	public abstract boolean bulkIndex(String raw_message);
-
+	
 
 	abstract public boolean initializeConnection(String ip, int port,
 			String cluster_name, String index_name, String document_name,

@@ -102,6 +102,7 @@ public class CIFHbaseAdapter extends AbstractCIFAdapter {
 			return true;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
+			LOGGER.debug("=======Unable to Connect to HBASE===========");
 			e.printStackTrace();
 		}
 

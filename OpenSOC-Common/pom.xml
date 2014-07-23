@@ -24,6 +24,7 @@
 		<json.simple.version>1.1.1</json.simple.version>
 
 		<storm.version>0.9.2-incubating</storm.version>
+		<kafka.version>0.8.0</kafka.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -36,6 +37,12 @@
 			<groupId>org.apache.storm</groupId>
 			<artifactId>storm-core</artifactId>
 			<version>${storm.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.kafka</groupId>
+			<artifactId>kafka_2.9.2</artifactId>
+			<version>0.8.0</version>
+			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 </project>

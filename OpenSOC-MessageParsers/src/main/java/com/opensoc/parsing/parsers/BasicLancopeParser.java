@@ -17,13 +17,15 @@
 
 package com.opensoc.parsing.parsers;
 
+import org.json.simple.JSONObject;
+
 
 @SuppressWarnings("serial")
 public class BasicLancopeParser extends AbstractParser
 {
 
 	@Override
-	public String parse(String raw_message) {
+	public JSONObject parse(String raw_message) {
 		// TODO Auto-generated method stub
 		return null;
 	}

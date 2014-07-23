@@ -17,6 +17,7 @@ import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 
 import backtype.storm.tuple.Tuple;
@@ -73,12 +74,27 @@ public class ESBulkRotatingAdapter extends AbstractIndexAdapter {
 		}
 	}
 
+	public boolean bulkIndex(JSONObject raw_message) {
+
+		index_postfix = dateFormat.format(new Date());
+
+		bulkRequest.add(client.prepareIndex(_index_name + "-" + index_postfix,
+				_document_name).setSource(raw_message));
+
+		return doIndex();
+	}
+
 	public boolean bulkIndex(String raw_message) {
 
 		index_postfix = dateFormat.format(new Date());
 
 		bulkRequest.add(client.prepareIndex(_index_name + "-" + index_postfix,
 				_document_name).setSource(raw_message));
+
+		return doIndex();
+	}
+
+	public boolean doIndex() {
 
 		element_count++;
 

@@ -29,6 +29,7 @@
 		<storm.version>0.9.1-incubating</storm.version>
 		<elastic.search.version>1.2.1</elastic.search.version>
 		<http.client.version>4.3.4</http.client.version>
+		<jsonsimple.version>1.1.1</jsonsimple.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -51,6 +52,11 @@
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
 			<version>${http.client.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.googlecode.json-simple</groupId>
+			<artifactId>json-simple</artifactId>
+			<version>${jsonsimple.version}</version>
 		</dependency>
 	</dependencies>
 </project>

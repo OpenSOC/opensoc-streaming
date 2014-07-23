@@ -17,15 +17,18 @@
 
 package com.opensoc.parsing.parsers;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.json.simple.JSONObject;
 
 @SuppressWarnings("serial")
 public class BasicSourcefireParser extends AbstractParser{
 
 	@SuppressWarnings({ "unchecked", "unused" })
-	public String parse(String toParse) {
+	public JSONObject parse(String toParse) {
 
-		JSONObject jo = new JSONObject();
+		Map jo = new HashMap();
 		_LOG.debug("Received message: " + toParse);
 
 		try {
@@ -67,15 +70,21 @@ public class BasicSourcefireParser extends AbstractParser{
 
 			jo.put("timestamp", System.currentTimeMillis());
 			jo.put("message", toParse.substring(0, toParse.indexOf("{")));
+			
+			JSONObject output = new JSONObject();
+			
+			output.put("sourcefire", jo);
+			
+			//String parsed = "{\"sourcefire\":" + jo.toString() + "}";
+			_LOG.debug("Parsed message: " + output);
 
-			String parsed = "{\"sourcefire\":" + jo.toString() + "}";
-			_LOG.debug("Parsed message: " + parsed);
-
-			return parsed;
+			//return parsed;
+			return output;
 		} catch (Exception e) {
 			e.printStackTrace();
 			_LOG.error("Failed to parse: " + toParse);
-			return "{}";
+			return new JSONObject();
+			//return null;
 		}
 	}
 

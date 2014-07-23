@@ -17,12 +17,15 @@
 
 package com.opensoc.topologies;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.PropertiesConfiguration;
+import org.json.simple.JSONObject;
 
 import storm.kafka.BrokerHosts;
 import storm.kafka.KafkaSpout;
@@ -33,6 +36,7 @@ import storm.kafka.bolt.KafkaBolt;
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
+import backtype.storm.multilang.JsonSerializer;
 import backtype.storm.spout.SchemeAsMultiScheme;
 import backtype.storm.topology.TopologyBuilder;
 
@@ -40,9 +44,11 @@ import com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter;
 import com.opensoc.enrichment.common.GenericEnrichmentBolt;
 import com.opensoc.indexing.TelemetryIndexingBolt;
 import com.opensoc.indexing.adapters.ESBaseBulkAdapter;
+import com.opensoc.json.serialization.JSONKryoSerializer;
 import com.opensoc.parsing.AbstractParserBolt;
 import com.opensoc.parsing.TelemetryParserBolt;
 import com.opensoc.parsing.parsers.BasicBroParser;
+import com.opensoc.test.spouts.GenericInternalTestSpout;
 
 /**
  * This is a basic example of a Storm topology.
@@ -67,6 +73,7 @@ public class BroEnrichmentTestTopology {
 		TopologyBuilder builder = new TopologyBuilder();
 
 		Config conf = new Config();
+		conf.registerSerialization(JSONObject.class, JSONKryoSerializer.class);
 		conf.setDebug(config.getBoolean("debug.mode"));
 
 		// ------------KAFKA spout configuration
@@ -85,12 +92,12 @@ public class BroEnrichmentTestTopology {
 
 		// Testing Spout
 		/*
-		 * GenericInternalTestSpout testSpout = new GenericInternalTestSpout()
-		 * .withFilename("SampleInput/BroExampleOutput").withRepeating( false);
-		 * 
-		 * builder.setSpout("EnrichmentSpout", testSpout,
-		 * config.getInt("spout.test.parallelism.hint")).setNumTasks(
-		 * config.getInt("spout.test.num.tasks"));
+		  GenericInternalTestSpout testSpout = new GenericInternalTestSpout()
+		  .withFilename("SampleInput/BroExampleOutput").withRepeating( false);
+		  
+		  builder.setSpout("EnrichmentSpout", testSpout,
+		  config.getInt("spout.test.parallelism.hint")).setNumTasks(
+		  config.getInt("spout.test.num.tasks"));
 		 */
 
 		// ------------ParserBolt configuration
@@ -106,21 +113,33 @@ public class BroEnrichmentTestTopology {
 
 		// ------------CIF bolt configuration
 
-		Map<String, Pattern> cif_patterns = new HashMap<String, Pattern>();
-		cif_patterns.put("source_ip", Pattern.compile(config
-				.getString("bolt.enrichment.cif.source_ip")));
-		cif_patterns.put("resp_ip", Pattern.compile(config
-				.getString("bolt.enrichment.cif.resp_ip")));
-		cif_patterns.put("host",
-				Pattern.compile(config.getString("bolt.enrichment.cif.host")));
-		cif_patterns.put("email",
-				Pattern.compile(config.getString("bolt.enrichment.cif.email")));
+		/*
+		 * Map<String, Pattern> cif_patterns = new HashMap<String, Pattern>();
+		 * cif_patterns.put("source_ip", Pattern.compile(config
+		 * .getString("bolt.enrichment.cif.source_ip")));
+		 * cif_patterns.put("resp_ip", Pattern.compile(config
+		 * .getString("bolt.enrichment.cif.resp_ip"))); cif_patterns.put("host",
+		 * Pattern.compile(config.getString("bolt.enrichment.cif.host")));
+		 * cif_patterns.put("email",
+		 * Pattern.compile(config.getString("bolt.enrichment.cif.email")));
+		 */
+
+		// Add all CIF json keys that need are used for CIF enhancement.
+
+		List<String> cif_keys = new ArrayList<String>();
+
+		cif_keys.add(config.getString("bolt.enrichment.cif.source_ip"));
+		cif_keys.add(config.getString("bolt.enrichment.cif.resp_ip"));
+		cif_keys.add(config.getString("bolt.enrichment.cif.host"));
+		cif_keys.add(config.getString("bolt.enrichment.cif.email"));
 
 		GenericEnrichmentBolt cif_enrichment = new GenericEnrichmentBolt()
-				.withAdapter(new CIFHbaseAdapter(config.getString("kafka.zk.list"), config.getString("kafka.zk.port")))
+				.withAdapter(
+						new CIFHbaseAdapter(config.getString("kafka.zk.list"),
+								config.getString("kafka.zk.port")))
 				.withOutputFieldName(topology_name)
 				.withEnrichmentTag("CIF_Enrichment")
-				.withPatterns(cif_patterns)
+				.withKeys(cif_keys)
 				.withMaxTimeRetain(
 						config.getInt("bolt.enrichment.cif.MAX_TIME_RETAIN"))
 				.withMaxCacheSize(

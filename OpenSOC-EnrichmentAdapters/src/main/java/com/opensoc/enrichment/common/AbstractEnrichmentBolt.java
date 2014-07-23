@@ -18,6 +18,7 @@
 package com.opensoc.enrichment.common;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
@@ -52,7 +53,8 @@ public abstract class AbstractEnrichmentBolt extends BaseRichBolt {
 	protected Long _MAX_TIME_RETAIN;
 	protected String _enrichment_source_ip;
 	
-	protected Map<String, Pattern> _patterns;
+	//JSON Keys to be enriched
+	protected List<String> _jsonKeys; 
 	protected EnrichmentAdapter _adapter;
 	
 	protected transient CacheLoader<String, JSONObject> loader;
@@ -73,8 +75,8 @@ public abstract class AbstractEnrichmentBolt extends BaseRichBolt {
 			throw new IllegalStateException("MAX_TIME_RETAIN must be specified");
 		if (this._adapter == null)
 			throw new IllegalStateException("Adapter must be specified");
-		if(this._patterns == null)
-			throw new IllegalStateException("Patterns must be specified");
+		if(this._jsonKeys == null)
+			throw new IllegalStateException("JSON Keys to be enriched, must be specified");
 		
 		loader = new CacheLoader<String, JSONObject>() {
 			public JSONObject load(String key) throws Exception {

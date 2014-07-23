@@ -19,6 +19,7 @@ package com.opensoc.parsing.parsers;
 
 import java.io.Serializable;
 
+import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,9 +34,9 @@ public abstract class AbstractParser implements MessageParser, Serializable {
 
 	public void initializeParser() {
 		_LOG.debug("Initializing adapter...");
-		
+
 	}
-	
-	abstract public String parse(String raw_message);
+
+	abstract public JSONObject parse(String raw_message) ;
 
 }

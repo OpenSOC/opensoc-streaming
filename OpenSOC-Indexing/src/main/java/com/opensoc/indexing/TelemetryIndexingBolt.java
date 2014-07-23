@@ -20,6 +20,8 @@ package com.opensoc.indexing;
 import java.io.IOException;
 import java.util.Map;
 
+import org.json.simple.JSONObject;
+
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
@@ -89,7 +91,7 @@ public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 
 	public void execute(Tuple tuple) {
 
-		String message = tuple.getString(0);
+		JSONObject message = (JSONObject) tuple.getValue(0);
 
 		LOG.debug("Received message: " + message);
 

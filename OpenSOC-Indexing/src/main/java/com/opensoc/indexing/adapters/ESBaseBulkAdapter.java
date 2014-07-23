@@ -7,6 +7,7 @@ import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 
 @SuppressWarnings("serial")
@@ -42,8 +43,23 @@ public class ESBaseBulkAdapter extends AbstractIndexAdapter {
 							port));
 
 			bulkRequest = client.prepareBulk();
-			
+
 			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	@Override
+	public boolean bulkIndex(JSONObject raw_message) {
+
+		try {
+
+			bulkRequest.add(client.prepareIndex(_index_name, _document_name)
+					.setSource(raw_message));
+
+			return doIndex();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
@@ -54,10 +70,19 @@ public class ESBaseBulkAdapter extends AbstractIndexAdapter {
 	public boolean bulkIndex(String raw_message) {
 
 		try {
-			
+
 			bulkRequest.add(client.prepareIndex(_index_name, _document_name)
 					.setSource(raw_message));
 
+			return doIndex();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	public boolean doIndex() {
+		try {
 			_LOG.debug("Adding to bulk load: element " + element_count
 					+ " of bulk size " + _bulk_size);
 
@@ -81,5 +106,4 @@ public class ESBaseBulkAdapter extends AbstractIndexAdapter {
 			return false;
 		}
 	}
-
 }

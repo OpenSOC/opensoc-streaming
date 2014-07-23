@@ -10,9 +10,9 @@ import java.util.Map;
 
 import junit.framework.TestCase;
 
+import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-
 
 import com.opensoc.parsing.parsers.BasicSourcefireParser;
 
@@ -68,15 +68,15 @@ public class BasicSourcefireParserTest extends TestCase
 	 * Test method for {@link com.opensoc.parsing.parsers.BasicSourcefireParser#parse(java.lang.String)}.
 	 */
 	public void testParse() {
-		String parsedString = sourceFireParser.parse(getSourceFireString());
-		assertNotNull(parsedString);
+		JSONObject parsed = sourceFireParser.parse(getSourceFireString());
+		assertNotNull(parsed);
 		
-		System.out.println(parsedString);
+		System.out.println(parsed);
 		JSONParser parser = new JSONParser();
 
 		Map json=null;
 		try {
-			json = (Map) parser.parse(parsedString);
+			json = (Map) parser.parse(parsed.toJSONString());
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}

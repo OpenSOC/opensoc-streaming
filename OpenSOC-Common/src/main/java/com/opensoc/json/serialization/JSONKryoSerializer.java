@@ -2,21 +2,17 @@ package com.opensoc.json.serialization;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeMap;
-
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
 import org.json.simple.JSONObject;
 
-import com.esotericsoftware.kryo.serializers.MapSerializer;
-
 /**
  * @author kiran Custom Serializer to help Storm encode and decode JSONObjects
  */
 
-public class JSONSerializer extends
+public class JSONKryoSerializer extends
 		com.esotericsoftware.kryo.Serializer<JSONObject> {
 
 	@Override

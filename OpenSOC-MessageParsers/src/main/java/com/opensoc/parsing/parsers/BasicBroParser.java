@@ -17,6 +17,7 @@
 
 package com.opensoc.parsing.parsers;
 
+import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,12 +31,12 @@ public class BasicBroParser extends AbstractParser
 			.getLogger(BasicBroParser.class);
 	JSONCleaner cleaner = new JSONCleaner();
 
-	public String parse(String raw_message) 
+	public JSONObject parse(String raw_message) 
 	{
 		_LOG.debug("Received message: " + raw_message);
 		
 		try {
-			String cleaned_message = cleaner.Clean(raw_message);
+			JSONObject cleaned_message = cleaner.Clean(raw_message);
 			_LOG.debug("Cleaned message: " + cleaned_message);
 			return cleaned_message;
 		} catch (ParseException e) {

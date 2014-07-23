@@ -110,8 +110,8 @@ public class SourcefireEnrichmentTestTopology {
 				.withMaxTimeRetain(
 						config.getInt("bolt.enrichment.geo.MAX_TIME_RETAIN"))
 				.withMaxCacheSize(
-						config.getInt("bolt.enrichment.geo.MAX_CACHE_SIZE"))
-				.withPatterns(geo_patterns);
+						config.getInt("bolt.enrichment.geo.MAX_CACHE_SIZE"));
+				//.withPatterns(geo_patterns);
 
 		builder.setBolt("GeoEnrichBolt", geo_enrichment,
 				config.getInt("bolt.enrichment.geo.parallelism.hint"))
@@ -137,8 +137,8 @@ public class SourcefireEnrichmentTestTopology {
 				.withMaxTimeRetain(
 						config.getInt("bolt.enrichment.whois.MAX_TIME_RETAIN"))
 				.withMaxCacheSize(
-						config.getInt("bolt.enrichment.whois.MAX_CACHE_SIZE"))
-				.withPatterns(whois_patterns);
+						config.getInt("bolt.enrichment.whois.MAX_CACHE_SIZE"));
+				//.withPatterns(whois_patterns);
 
 		builder.setBolt("WhoisEnrichBolt", whois_enrichment,
 				config.getInt("bolt.enrichment.whois.parallelism.hint"))

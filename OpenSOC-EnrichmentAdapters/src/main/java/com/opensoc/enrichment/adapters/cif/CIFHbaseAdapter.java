@@ -40,10 +40,9 @@ public class CIFHbaseAdapter extends AbstractCIFAdapter {
 	private HTableInterface table;
 	private String _quorum;
 	private String _port;
-	
-	public CIFHbaseAdapter(String quorum, String port)
-	{
-		_quorum=quorum;
+
+	public CIFHbaseAdapter(String quorum, String port) {
+		_quorum = quorum;
 		_port = port;
 	}
 
@@ -52,7 +51,6 @@ public class CIFHbaseAdapter extends AbstractCIFAdapter {
 			.getLogger(CIFHbaseAdapter.class);
 
 	public JSONObject enrich(String metadata) {
-		// TODO Auto-generated method stub
 
 		JSONObject output = new JSONObject();
 		LOGGER.debug("=======Looking Up For:" + metadata);
@@ -62,7 +60,6 @@ public class CIFHbaseAdapter extends AbstractCIFAdapter {
 	}
 
 	protected Map getCIFObject(String key) {
-		// TODO Auto-generated method stub
 
 		LOGGER.debug("=======Pinging HBase For:" + key);
 
@@ -85,14 +82,13 @@ public class CIFHbaseAdapter extends AbstractCIFAdapter {
 
 	@Override
 	public boolean initializeAdapter() {
-		// TODO Auto-generated method stub
 
 		// Initialize HBase Table
 		Configuration conf = null;
 		conf = HBaseConfiguration.create();
 		conf.set("hbase.zookeeper.quorum", _quorum);
 		conf.set("hbase.zookeeper.property.clientPort", _port);
-		
+
 		try {
 			LOGGER.debug("=======Connecting to HBASE===========");
 			LOGGER.debug("=======ZOOKEEPER = "
@@ -111,19 +107,16 @@ public class CIFHbaseAdapter extends AbstractCIFAdapter {
 
 	@Override
 	public String enrichByIP(String metadata) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public String enrichByDomain(String metadata) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public String enrichByEmail(String metadata) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 

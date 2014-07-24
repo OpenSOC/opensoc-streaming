@@ -18,8 +18,12 @@ public class JSONDecoderHelper {
 	}
 
 	public static Number getNumber(DataInputStream data) throws IOException {
-		// only Long for now. No Floats.
-		// Treating all ints,shorts, doubles as long.
+		// Treating all ints,shorts, long as long.
+		// Everything else as Double
+		int flag = data.readByte();
+		if (flag == 0)
+			return data.readDouble();
+		
 		return data.readLong();
 	}
 

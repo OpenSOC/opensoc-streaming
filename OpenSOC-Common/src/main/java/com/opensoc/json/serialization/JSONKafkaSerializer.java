@@ -47,9 +47,17 @@ import static com.opensoc.json.serialization.JSONDecoderHelper.*;
 
 public class JSONKafkaSerializer implements Encoder<JSONObject>,
 		Decoder<JSONObject> {
+	
+	public JSONKafkaSerializer() {
+
+	}
+
+	public JSONKafkaSerializer(VerifiableProperties props) {
+
+	}
 
 	public static void main(String args[]) {
-		String jsonString = "{\"dns\":{\"ts\":[14,\"kiran\"],\"uid\":\"abullis@mail.csuchico.edu\",\"id.orig_h\":\"10.122.196.204\", \"endval\":null}}";
+		String jsonString = "{\"dns\":{\"ts\":[14.0,12,\"kiran\"],\"uid\":\"abullis@mail.csuchico.edu\",\"id.orig_h\":\"10.122.196.204\", \"endval\":null}}";
 
 		JSONParser p = new JSONParser();
 		JSONObject json = null;
@@ -72,13 +80,7 @@ public class JSONKafkaSerializer implements Encoder<JSONObject>,
 
 	}
 
-	public JSONKafkaSerializer() {
-
-	}
-
-	public JSONKafkaSerializer(VerifiableProperties props) {
-
-	}
+	
 
 	public JSONObject fromBytes(byte[] input) {
 		// TODO Auto-generated method stub
@@ -133,6 +135,8 @@ public class JSONKafkaSerializer implements Encoder<JSONObject>,
 
 		return outputBuffer.toByteArray();
 	}
+	
+	
 
 	private void putObject(DataOutputStream data, Object value)
 			throws IOException {

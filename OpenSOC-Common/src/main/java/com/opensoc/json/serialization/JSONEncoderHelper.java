@@ -3,8 +3,6 @@ package com.opensoc.json.serialization;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import org.json.simple.JSONArray;
-
 public class JSONEncoderHelper {
 
 	public static void putNull(DataOutputStream data, Object value)

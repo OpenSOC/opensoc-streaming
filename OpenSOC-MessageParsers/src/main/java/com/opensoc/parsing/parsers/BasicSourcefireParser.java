@@ -25,7 +25,7 @@ import org.json.simple.JSONObject;
 @SuppressWarnings("serial")
 public class BasicSourcefireParser extends AbstractParser{
 
-	@SuppressWarnings({ "unchecked", "unused" })
+	@SuppressWarnings({ "unchecked", "unused", "rawtypes" })
 	public JSONObject parse(String toParse) {
 
 		Map jo = new HashMap();

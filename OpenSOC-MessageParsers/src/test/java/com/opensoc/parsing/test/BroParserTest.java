@@ -64,6 +64,7 @@ public class BroParserTest extends TestCase {
 	 * Tests for Parse Method
 	 * Parses Static json Stirng and checks if any spl chars are present in parsed string.
 	 */
+	@SuppressWarnings({ "unused", "rawtypes" })
 	public void testParse() throws ParseException {
 
 		String jsonString = "{ \"first_Column\":\"SomeValue\", \"second+Column\":\"someValue\" }";

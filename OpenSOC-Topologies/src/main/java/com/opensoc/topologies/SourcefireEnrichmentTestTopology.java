@@ -24,7 +24,6 @@ import java.util.regex.Pattern;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.PropertiesConfiguration;
 
-import storm.kafka.BrokerHosts;
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
@@ -61,9 +60,6 @@ public class SourcefireEnrichmentTestTopology {
 
 		TopologyBuilder builder = new TopologyBuilder();
 
-		// /--------TODO: what should this be set to?
-		BrokerHosts zk_broker_hosts = null;
-		String zkRoot = "?";
 
 		Config conf = new Config();
 		conf.setDebug(config.getBoolean("debug.mode"));

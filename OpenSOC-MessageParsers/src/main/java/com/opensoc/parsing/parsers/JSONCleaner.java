@@ -48,6 +48,7 @@ public class JSONCleaner implements Serializable {
 	}
 	
 	
+	@SuppressWarnings({ "unchecked", "rawtypes", "unused" })
 	public static void main(String args[])
 	{
 		String jsonText = "{\"first_1\": 123, \"second\": [4, 5, 6], \"third\": 789}";

@@ -59,6 +59,7 @@ public class CIFHbaseAdapter extends AbstractCIFAdapter {
 		return output;
 	}
 
+	@SuppressWarnings({ "rawtypes", "deprecation" })
 	protected Map getCIFObject(String key) {
 
 		LOGGER.debug("=======Pinging HBase For:" + key);

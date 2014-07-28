@@ -26,6 +26,10 @@ import com.opensoc.enrichment.common.EnrichmentAdapter;
 
 public abstract class AbstractCIFAdapter implements EnrichmentAdapter,Serializable{
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -5040559164824221816L;
 	protected static final Logger LOG = LoggerFactory
 			.getLogger(AbstractCIFAdapter.class);
 	

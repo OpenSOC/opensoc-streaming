@@ -18,12 +18,10 @@
 package com.opensoc.enrichment.adapters.geo;
 
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.util.concurrent.Executors;
 
 import org.json.simple.JSONObject;
 

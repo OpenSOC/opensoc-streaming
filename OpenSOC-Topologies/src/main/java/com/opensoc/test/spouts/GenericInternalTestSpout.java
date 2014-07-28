@@ -35,6 +35,11 @@ import backtype.storm.utils.Utils;
 public class GenericInternalTestSpout extends BaseRichSpout {
 
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -2379344923143372543L;
+
 	List<String> jsons;
 	
 	private String _filename;

@@ -18,9 +18,6 @@ import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-
-import backtype.storm.tuple.Tuple;
 
 @SuppressWarnings({ "deprecation", "serial" })
 public class ESBulkRotatingAdapter extends AbstractIndexAdapter {
@@ -74,6 +71,7 @@ public class ESBulkRotatingAdapter extends AbstractIndexAdapter {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	public boolean bulkIndex(JSONObject raw_message) {
 
 		index_postfix = dateFormat.format(new Date());

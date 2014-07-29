@@ -75,7 +75,8 @@ public class WhoisHBaseAdapter extends AbstractWhoisAdapter {
 	public JSONObject enrich(String metadata) {
 		LOG.debug("=======Pinging HBase For:" + metadata);
 		
-		JSONObject jo = new JSONObject();
+		JSONObject output = new JSONObject();
+		JSONObject payload = new JSONObject();
 
 		Get get = new Get(metadata.getBytes());
 		Result rs;
@@ -84,14 +85,16 @@ public class WhoisHBaseAdapter extends AbstractWhoisAdapter {
 			rs = table.get(get);
 
 			for (KeyValue kv : rs.raw())
-				jo.put(metadata, new String(kv.getValue()));
+				payload.put(metadata, new String(kv.getValue()));
+			
+			output.put("whois", payload);
 
 		} catch (IOException e) {
-			jo.put(metadata, "{}");
+			output.put(metadata, "{}");
 			e.printStackTrace();
 		}
 		
-		return jo;
+		return output;
 
 	}
 

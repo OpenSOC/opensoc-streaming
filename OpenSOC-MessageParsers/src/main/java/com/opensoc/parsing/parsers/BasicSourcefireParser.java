@@ -28,12 +28,12 @@ public class BasicSourcefireParser extends AbstractParser{
 	@SuppressWarnings({ "unchecked", "unused", "rawtypes" })
 	public JSONObject parse(String toParse) {
 
-		Map jo = new HashMap();
+		JSONObject payload = new JSONObject();
 		_LOG.debug("Received message: " + toParse);
 
 		try {
 			String tmp = toParse.substring(toParse.lastIndexOf("{"));
-			jo.put("key", tmp);
+			payload.put("key", tmp);
 
 			String protocol = tmp.substring(tmp.indexOf("{") + 1,
 					tmp.indexOf("}")).toLowerCase();
@@ -42,38 +42,38 @@ public class BasicSourcefireParser extends AbstractParser{
 			String dest = tmp.substring(tmp.indexOf("->") + 2, tmp.length())
 					.trim();
 
-			jo.put("protocol", protocol);
+			payload.put("protocol", protocol);
 
 			String source_ip = "";
 			String dest_ip = "";
 
 			if (source.contains(":")) {
 				String parts[] = source.split(":");
-				jo.put("ip_src_addr", parts[0]);
-				jo.put("ip_src_port", parts[1]);
+				payload.put("ip_src_addr", parts[0]);
+				payload.put("ip_src_port", parts[1]);
 				source_ip = parts[0];
 			} else {
-				jo.put("ip_src_addr", source);
+				payload.put("ip_src_addr", source);
 				source_ip = source;
 
 			}
 
 			if (dest.contains(":")) {
 				String parts[] = dest.split(":");
-				jo.put("ip_dst_addr", parts[0]);
-				jo.put("ip_dst_port", parts[1]);
+				payload.put("ip_dst_addr", parts[0]);
+				payload.put("ip_dst_port", parts[1]);
 				dest_ip = parts[0];
 			} else {
-				jo.put("ip_dst_addr", dest);
+				payload.put("ip_dst_addr", dest);
 				dest_ip = dest;
 			}
 
-			jo.put("timestamp", System.currentTimeMillis());
-			jo.put("message", toParse.substring(0, toParse.indexOf("{")));
+			payload.put("timestamp", System.currentTimeMillis());
+			payload.put("message", toParse.substring(0, toParse.indexOf("{")));
 			
 			JSONObject output = new JSONObject();
+			output.put("sourcefire", payload);
 			
-			output.put("sourcefire", jo);
 			
 			//String parsed = "{\"sourcefire\":" + jo.toString() + "}";
 			_LOG.debug("Parsed message: " + output);

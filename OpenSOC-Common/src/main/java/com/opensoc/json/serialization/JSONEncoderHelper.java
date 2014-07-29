@@ -10,14 +10,14 @@ public class JSONEncoderHelper {
 	public static void putNull(DataOutputStream data, Object value)
 			throws IOException {
 		// TODO Auto-generated method stub
-		data.writeInt(5);
+		data.writeByte(JSONKafkaSerializer.NULLID);
 
 	}
 
 	public static void putBoolean(DataOutputStream data, Boolean value)
 			throws IOException {
 		// TODO Auto-generated method stub
-		data.writeInt(4);
+		data.writeByte(JSONKafkaSerializer.BooleanID);
 		data.writeBoolean(value);
 
 	}
@@ -25,9 +25,8 @@ public class JSONEncoderHelper {
 	public static void putNumber(DataOutputStream data, Number value)
 			throws IOException {
 		// TODO Auto-generated method stub
-		data.writeInt(3);
-		if (value instanceof Double)
-		{
+		data.writeByte(JSONKafkaSerializer.NumberID);
+		if (value instanceof Double) {
 			data.writeByte(0);
 			data.writeDouble((Double) value);
 			return;
@@ -40,7 +39,7 @@ public class JSONEncoderHelper {
 	public static void putString(DataOutputStream data, String str)
 			throws IOException {
 		// String ID is 1
-		data.writeInt(1);
+		data.writeByte(JSONKafkaSerializer.StringID);
 		data.writeInt(str.length());
 		data.write(str.getBytes());
 

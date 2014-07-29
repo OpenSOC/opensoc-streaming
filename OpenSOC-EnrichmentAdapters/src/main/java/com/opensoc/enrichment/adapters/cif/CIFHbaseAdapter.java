@@ -36,14 +36,15 @@ import org.apache.log4j.Logger;
 public class CIFHbaseAdapter extends AbstractCIFAdapter {
 
 	private static final long serialVersionUID = 1L;
-	private String tableName = "cif_table";
+	private String _tableName;
 	private HTableInterface table;
 	private String _quorum;
 	private String _port;
 
-	public CIFHbaseAdapter(String quorum, String port) {
+	public CIFHbaseAdapter(String quorum, String port, String tableName) {
 		_quorum = quorum;
 		_port = port;
+		_tableName = tableName;
 	}
 
 	/** The LOGGER. */
@@ -94,7 +95,7 @@ public class CIFHbaseAdapter extends AbstractCIFAdapter {
 			LOGGER.debug("=======ZOOKEEPER = "
 					+ conf.get("hbase.zookeeper.quorum"));
 			HConnection connection = HConnectionManager.createConnection(conf);
-			table = connection.getTable(tableName);
+			table = connection.getTable(_tableName);
 			return true;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

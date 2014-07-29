@@ -117,8 +117,6 @@ public class GeoMysqlAdapter extends AbstractGeoAdapter {
 
 		try {
 
-			
-
 			Class.forName("com.mysql.jdbc.Driver");
 			connection = DriverManager.getConnection("jdbc:mysql://" + _ip
 					+ "/" + _tablename + "?user=" + _username + "&password="

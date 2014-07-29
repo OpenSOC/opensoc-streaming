@@ -102,17 +102,18 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 				LOG.debug("Processing:" + jsonkey + " within:" + payload);
 
 				String jsonvalue = (String) payload.get(jsonkey);
-				if (null == jsonvalue)
-					break;
 
 				LOG.debug("---------Processing: " + jsonkey + " -> "
 						+ jsonvalue);
+
+				if (null == jsonvalue)
+					continue;
 
 				JSONObject enrichment = cache.getUnchecked(jsonvalue);
 
 				LOG.debug("---------Enriched: " + jsonkey + " -> " + enrichment);
 
-				tokens_found.put(jsonkey+"_enriched", enrichment);
+				tokens_found.put(jsonkey + "_enriched", enrichment);
 			}
 			payload.putAll(tokens_found);
 
@@ -129,8 +130,8 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 		LOG.debug("-----------------combined: " + original_message);
 
 		// LOG.debug("Setting enriched_message: " + enriched_message);
-
 		_collector.emit(new Values(original_message));
+		_collector.ack(tuple);
 
 	}
 

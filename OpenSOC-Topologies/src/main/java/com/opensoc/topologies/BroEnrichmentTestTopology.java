@@ -25,6 +25,16 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.storm.hdfs.bolt.HdfsBolt;
+import org.apache.storm.hdfs.bolt.format.DefaultFileNameFormat;
+import org.apache.storm.hdfs.bolt.format.DelimitedRecordFormat;
+import org.apache.storm.hdfs.bolt.format.FileNameFormat;
+import org.apache.storm.hdfs.bolt.format.RecordFormat;
+import org.apache.storm.hdfs.bolt.rotation.FileRotationPolicy;
+import org.apache.storm.hdfs.bolt.rotation.FileSizeRotationPolicy;
+import org.apache.storm.hdfs.bolt.rotation.FileSizeRotationPolicy.Units;
+import org.apache.storm.hdfs.bolt.sync.CountSyncPolicy;
+import org.apache.storm.hdfs.bolt.sync.SyncPolicy;
 import org.json.simple.JSONObject;
 
 import storm.kafka.BrokerHosts;
@@ -136,7 +146,7 @@ public class BroEnrichmentTestTopology {
 		GenericEnrichmentBolt cif_enrichment = new GenericEnrichmentBolt()
 				.withAdapter(
 						new CIFHbaseAdapter(config.getString("kafka.zk.list"),
-								config.getString("kafka.zk.port")))
+								config.getString("kafka.zk.port"),config.getString("bolt.enrichment.cif.tablename")))
 				.withOutputFieldName(topology_name)
 				.withEnrichmentTag("CIF_Enrichment")
 				.withKeys(cif_keys)
@@ -156,7 +166,10 @@ public class BroEnrichmentTestTopology {
 		kafka_broker_properties.put("zk.connect", config.getString("kafka.zk"));
 		kafka_broker_properties.put("metadata.broker.list",
 				config.getString("kafka.br"));
-
+		
+		kafka_broker_properties.put("serializer.class",
+				"com.opensoc.json.serialization.JSONKafkaSerializer");
+		
 		String output_topic = config.getString("bolt.kafka.topic");
 
 		conf.put("kafka.broker.properties", kafka_broker_properties);
@@ -185,23 +198,45 @@ public class BroEnrichmentTestTopology {
 				.shuffleGrouping("CIFEnrichmentBolt")
 				.setNumTasks(config.getInt("bolt.indexing.num.tasks"));
 
-		// ------------HDFS BOLT configuration
 
-		/*
-		 * FileNameFormat fileNameFormat = new DefaultFileNameFormat()
-		 * .withPath("/" + topology_name + "/"); RecordFormat format = new
-		 * DelimitedRecordFormat() .withFieldDelimiter("|");
-		 * 
-		 * SyncPolicy syncPolicy = new CountSyncPolicy(5); FileRotationPolicy
-		 * rotationPolicy = new FileSizeRotationPolicy(5.0f, Units.KB);
-		 * 
-		 * HdfsBolt hdfsBolt = new HdfsBolt().withFsUrl(hdfs_path)
-		 * .withFileNameFormat(fileNameFormat).withRecordFormat(format)
-		 * .withRotationPolicy(rotationPolicy).withSyncPolicy(syncPolicy);
-		 * 
-		 * builder.setBolt("HDFSBolt", hdfsBolt, parallelism_hint)
-		 * .shuffleGrouping("EnrichmentSpout").setNumTasks(num_tasks);
-		 */
+		// * ------------HDFS BOLT configuration
+
+		FileNameFormat fileNameFormat = new DefaultFileNameFormat()
+				.withPath("/" + topology_name + "/");
+		RecordFormat format = new DelimitedRecordFormat()
+				.withFieldDelimiter("|");
+
+		SyncPolicy syncPolicy = new CountSyncPolicy(5);
+		FileRotationPolicy rotationPolicy = new FileSizeRotationPolicy(config.getFloat("bolt.hdfs.size.rotation.policy"),
+				Units.KB);
+
+		HdfsBolt hdfsBolt = new HdfsBolt().withFsUrl(config.getString("bolt.hdfs.fs.url"))
+				.withFileNameFormat(fileNameFormat).withRecordFormat(format)
+				.withRotationPolicy(rotationPolicy).withSyncPolicy(syncPolicy);
+
+		builder.setBolt("HDFSBolt", hdfsBolt, config.getInt("bolt.hdfs.parallelism.hint"))
+				.shuffleGrouping("kafka-spout").setNumTasks(config.getInt("bolt.hdfs.num.tasks"));
+		
+		
+		// * ------------HDFS BOLT For Enriched Data configuration
+
+				FileNameFormat fileNameFormat_enriched = new DefaultFileNameFormat()
+						.withPath("/" + topology_name + "_enriched/");
+				RecordFormat format_enriched = new DelimitedRecordFormat()
+						.withFieldDelimiter("|");
+
+				SyncPolicy syncPolicy_enriched = new CountSyncPolicy(5);
+				FileRotationPolicy rotationPolicy_enriched = new FileSizeRotationPolicy(config.getFloat("bolt.hdfs.size.rotation.policy"),
+						Units.KB);
+
+				HdfsBolt hdfsBolt_enriched = new HdfsBolt().withFsUrl(config.getString("bolt.hdfs.fs.url"))
+						.withFileNameFormat(fileNameFormat_enriched).withRecordFormat(format_enriched)
+						.withRotationPolicy(rotationPolicy_enriched).withSyncPolicy(syncPolicy_enriched);
+
+				builder.setBolt("HDFSBolt_enriched", hdfsBolt_enriched, config.getInt("bolt.hdfs.parallelism.hint"))
+						.shuffleGrouping("CIFEnrichmentBolt").setNumTasks(config.getInt("bolt.hdfs.num.tasks"));
+
+		 
 
 		if (config.getBoolean("local.mode")) {
 			conf.setNumWorkers(config.getInt("num.workers"));

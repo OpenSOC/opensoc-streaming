@@ -23,7 +23,7 @@ public class JSONDecoderHelper {
 		int flag = data.readByte();
 		if (flag == 0)
 			return data.readDouble();
-		
+
 		return data.readLong();
 	}
 
@@ -61,24 +61,24 @@ public class JSONDecoderHelper {
 
 	public static Object getObject(DataInputStream data) throws IOException {
 		// TODO Auto-generated method stub
-		int objID = data.readInt();
+		byte objID = data.readByte();
 
-		if (objID == 1)
+		if (objID == JSONKafkaSerializer.StringID)
 			return getString(data);
 
-		if (objID == 2)
+		if (objID == JSONKafkaSerializer.JSONObjectID)
 			return getJSON(data);
 
-		if (objID == 3)
+		if (objID == JSONKafkaSerializer.NumberID)
 			return getNumber(data);
 
-		if (objID == 4)
+		if (objID == JSONKafkaSerializer.BooleanID)
 			return getBoolean(data);
 
-		if (objID == 5)
+		if (objID == JSONKafkaSerializer.NULLID)
 			return null;
 
-		if (objID == 6)
+		if (objID == JSONKafkaSerializer.JSONArrayID)
 			return getArray(data);
 
 		return null;

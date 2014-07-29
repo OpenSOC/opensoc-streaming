@@ -47,13 +47,22 @@ import static com.opensoc.json.serialization.JSONDecoderHelper.*;
 
 public class JSONKafkaSerializer implements Encoder<JSONObject>,
 		Decoder<JSONObject> {
-	
+
+	// Object ID's for different types
+	public static final byte StringID = 1;
+	public static final byte JSONObjectID = 2;
+	public static final byte NumberID = 3;
+	public static final byte BooleanID = 4;
+	public static final byte NULLID = 5;
+	public static final byte JSONArrayID = 6;
+
 	public JSONKafkaSerializer() {
+		// Blank constructor needed by Storm
 
 	}
 
 	public JSONKafkaSerializer(VerifiableProperties props) {
-
+		// Do Nothing. constructor needed by Storm
 	}
 
 	public static void main(String args[]) {
@@ -61,6 +70,11 @@ public class JSONKafkaSerializer implements Encoder<JSONObject>,
 
 		JSONParser p = new JSONParser();
 		JSONObject json = null;
+		int count = 1;
+
+		if (args.length > 0)
+			count = Integer.parseInt(args[0]);
+
 		try {
 			json = (JSONObject) p.parse(jsonString);
 			System.out.println(json);
@@ -69,18 +83,19 @@ public class JSONKafkaSerializer implements Encoder<JSONObject>,
 			e.printStackTrace();
 		}
 
+		String jsonString2 = null;
+
 		JSONKafkaSerializer ser = new JSONKafkaSerializer();
 
-		byte[] bytes = ser.toBytes(json);
+		for (int i = 0; i < count; i++) {
+			byte[] bytes = ser.toBytes(json);
 
-		String jsonString2 = ser.fromBytes(bytes).toJSONString();
-		
+			jsonString2 = ser.fromBytes(bytes).toJSONString();
+		}
 		System.out.println((jsonString2));
 		System.out.println(jsonString2.equalsIgnoreCase(json.toJSONString()));
 
 	}
-
-	
 
 	public JSONObject fromBytes(byte[] input) {
 		// TODO Auto-generated method stub
@@ -135,8 +150,6 @@ public class JSONKafkaSerializer implements Encoder<JSONObject>,
 
 		return outputBuffer.toByteArray();
 	}
-	
-	
 
 	private void putObject(DataOutputStream data, Object value)
 			throws IOException {
@@ -179,7 +192,7 @@ public class JSONKafkaSerializer implements Encoder<JSONObject>,
 			throws IOException {
 		// TODO Auto-generated method stub
 		// JSON ID is 2
-		data.writeInt(2);
+		data.writeByte(JSONKafkaSerializer.JSONObjectID);
 		data.write(toBytes(value));
 
 	}
@@ -187,7 +200,7 @@ public class JSONKafkaSerializer implements Encoder<JSONObject>,
 	public void putArray(DataOutputStream data, JSONArray array)
 			throws IOException {
 		// TODO Auto-generated method stub
-		data.writeInt(6);
+		data.writeByte(JSONKafkaSerializer.JSONArrayID);
 
 		data.writeInt(array.size());
 

@@ -113,31 +113,6 @@ public class SourcefireEnrichmentTestTopology {
 				.shuffleGrouping("ParserBolt")
 				.setNumTasks(config.getInt("bolt.enrichment.geo.num.tasks"));
 
-		// ------------Whois Enrichment Bolt Configuration
-
-		List<String> whois_keys = new ArrayList<String>();
-		whois_keys.add(config.getString("bolt.enrichment.whois.source"));
-
-		EnrichmentAdapter whois_adapter = new WhoisHBaseAdapter(
-				config.getString("bolt.enrichment.whois.hbase.table.name"),
-				config.getString("kafka.zk.list"),
-				config.getString("kafka.zk.port"));
-
-		GenericEnrichmentBolt whois_enrichment = new GenericEnrichmentBolt()
-				.withEnrichmentTag(
-						config.getString("bolt.enrichment.whois.whois_enrichment_tag"))
-				.withOutputFieldName(topology_name)
-				.withAdapter(whois_adapter)
-				.withMaxTimeRetain(
-						config.getInt("bolt.enrichment.whois.MAX_TIME_RETAIN"))
-				.withMaxCacheSize(
-						config.getInt("bolt.enrichment.whois.MAX_CACHE_SIZE")).withKeys(whois_keys);
-
-		builder.setBolt("WhoisEnrichBolt", whois_enrichment,
-				config.getInt("bolt.enrichment.whois.parallelism.hint"))
-				.shuffleGrouping("GeoEnrichBolt")
-				.setNumTasks(config.getInt("bolt.enrichment.whois.num.tasks"));
-
 		// ------------Indexing BOLT configuration
 
 		TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()

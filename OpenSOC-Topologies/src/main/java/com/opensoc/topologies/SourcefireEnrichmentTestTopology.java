@@ -17,14 +17,15 @@
 
 package com.opensoc.topologies;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.PropertiesConfiguration;
 
-import storm.kafka.BrokerHosts;
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
@@ -61,9 +62,6 @@ public class SourcefireEnrichmentTestTopology {
 
 		TopologyBuilder builder = new TopologyBuilder();
 
-		// /--------TODO: what should this be set to?
-		BrokerHosts zk_broker_hosts = null;
-		String zkRoot = "?";
 
 		Config conf = new Config();
 		conf.setDebug(config.getBoolean("debug.mode"));
@@ -88,12 +86,10 @@ public class SourcefireEnrichmentTestTopology {
 				.setNumTasks(config.getInt("bolt.parser.num.tasks"));
 
 		// ------------Geo Enrichment Bolt Configuration
-
-		Map<String, Pattern> geo_patterns = new HashMap<String, Pattern>();
-		geo_patterns.put("originator_ip_regex", Pattern.compile(config
-				.getString("bolt.enrichment.geo.originator_ip_regex")));
-		geo_patterns.put("responder_ip_regex", Pattern.compile(config
-				.getString("bolt.enrichment.geo.responder_ip_regex")));
+		
+		List<String> geo_keys = new ArrayList<String>();
+		geo_keys.add(config.getString("bolt.enrichment.geo.source_ip"));
+		geo_keys.add(config.getString("bolt.enrichment.geo.resp_ip"));
 
 		GeoMysqlAdapter geo_adapter = new GeoMysqlAdapter(
 				config.getString("bolt.enrichment.geo.adapter.ip"),
@@ -110,8 +106,7 @@ public class SourcefireEnrichmentTestTopology {
 				.withMaxTimeRetain(
 						config.getInt("bolt.enrichment.geo.MAX_TIME_RETAIN"))
 				.withMaxCacheSize(
-						config.getInt("bolt.enrichment.geo.MAX_CACHE_SIZE"));
-				//.withPatterns(geo_patterns);
+						config.getInt("bolt.enrichment.geo.MAX_CACHE_SIZE")).withKeys(geo_keys);
 
 		builder.setBolt("GeoEnrichBolt", geo_enrichment,
 				config.getInt("bolt.enrichment.geo.parallelism.hint"))
@@ -120,9 +115,8 @@ public class SourcefireEnrichmentTestTopology {
 
 		// ------------Whois Enrichment Bolt Configuration
 
-		Map<String, Pattern> whois_patterns = new HashMap<String, Pattern>();
-		whois_patterns.put("originator_ip_regex", Pattern.compile(config
-				.getString("bolt.enrichment.whois.source")));
+		List<String> whois_keys = new ArrayList<String>();
+		whois_keys.add(config.getString("bolt.enrichment.whois.source"));
 
 		EnrichmentAdapter whois_adapter = new WhoisHBaseAdapter(
 				config.getString("bolt.enrichment.whois.hbase.table.name"),
@@ -137,8 +131,7 @@ public class SourcefireEnrichmentTestTopology {
 				.withMaxTimeRetain(
 						config.getInt("bolt.enrichment.whois.MAX_TIME_RETAIN"))
 				.withMaxCacheSize(
-						config.getInt("bolt.enrichment.whois.MAX_CACHE_SIZE"));
-				//.withPatterns(whois_patterns);
+						config.getInt("bolt.enrichment.whois.MAX_CACHE_SIZE")).withKeys(whois_keys);
 
 		builder.setBolt("WhoisEnrichBolt", whois_enrichment,
 				config.getInt("bolt.enrichment.whois.parallelism.hint"))

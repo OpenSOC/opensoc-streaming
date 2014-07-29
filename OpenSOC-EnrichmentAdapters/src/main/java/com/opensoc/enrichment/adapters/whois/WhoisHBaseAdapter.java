@@ -18,8 +18,6 @@
 package com.opensoc.enrichment.adapters.whois;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
@@ -33,6 +31,10 @@ import org.json.simple.JSONObject;
 
 public class WhoisHBaseAdapter extends AbstractWhoisAdapter {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 3371873619030870389L;
 	private HTableInterface table;
 	private String _table_name;
 	private String _quorum;
@@ -69,6 +71,7 @@ public class WhoisHBaseAdapter extends AbstractWhoisAdapter {
 
 	}
 
+	@SuppressWarnings({ "unchecked", "deprecation" })
 	public JSONObject enrich(String metadata) {
 		LOG.debug("=======Pinging HBase For:" + metadata);
 		

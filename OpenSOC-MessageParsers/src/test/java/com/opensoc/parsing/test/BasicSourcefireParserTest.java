@@ -67,6 +67,7 @@ public class BasicSourcefireParserTest extends TestCase
 	/**
 	 * Test method for {@link com.opensoc.parsing.parsers.BasicSourcefireParser#parse(java.lang.String)}.
 	 */
+	@SuppressWarnings({ "rawtypes", "unused" })
 	public void testParse() {
 		JSONObject parsed = sourceFireParser.parse(getSourceFireString());
 		assertNotNull(parsed);

@@ -30,7 +30,6 @@ import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Fields;
 
 import com.opensoc.index.interfaces.IndexAdapter;
-import com.opensoc.parser.interfaces.MessageParser;
 
 @SuppressWarnings("rawtypes")
 public abstract class AbstractIndexingBolt extends BaseRichBolt {

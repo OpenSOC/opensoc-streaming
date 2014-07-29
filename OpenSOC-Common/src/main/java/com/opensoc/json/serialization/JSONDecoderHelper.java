@@ -32,6 +32,7 @@ public class JSONDecoderHelper {
 		return data.readBoolean();
 	}
 
+	@SuppressWarnings("unchecked")
 	public static JSONArray getArray(DataInputStream data) throws IOException {
 		// TODO Auto-generated method stub
 		JSONArray output = new JSONArray();
@@ -45,6 +46,7 @@ public class JSONDecoderHelper {
 		return output;
 	}
 
+	@SuppressWarnings("unchecked")
 	public static JSONObject getJSON(DataInputStream data) throws IOException {
 		// TODO Auto-generated method stub
 		JSONObject output = new JSONObject();

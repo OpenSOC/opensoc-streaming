@@ -3,7 +3,6 @@ package com.opensoc.services.wrappers;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.DefaultValue;
@@ -13,12 +12,10 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.opensoc.dataservices.common.OpenSOCService;
-import com.opensoc.dataservices.common.UserObject;
 
 @Path("/")
 @Singleton

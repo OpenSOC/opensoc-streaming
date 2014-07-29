@@ -25,8 +25,10 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Tuple;
 
+@SuppressWarnings("serial")
 public class PrintingBolt extends BaseRichBolt {
 
+	@SuppressWarnings("rawtypes")
 	public void prepare(Map stormConf, TopologyContext context,
 			OutputCollector collector) {
 		// TODO Auto-generated method stub

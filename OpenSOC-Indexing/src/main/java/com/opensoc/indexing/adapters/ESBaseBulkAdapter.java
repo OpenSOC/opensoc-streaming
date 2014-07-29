@@ -8,7 +8,6 @@ import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.json.simple.JSONObject;
-import org.slf4j.Logger;
 
 @SuppressWarnings("serial")
 public class ESBaseBulkAdapter extends AbstractIndexAdapter {
@@ -51,6 +50,7 @@ public class ESBaseBulkAdapter extends AbstractIndexAdapter {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public boolean bulkIndex(JSONObject raw_message) {
 

@@ -27,6 +27,10 @@ import com.opensoc.enrichment.common.EnrichmentAdapter;
 
 public abstract class AbstractWhoisAdapter implements EnrichmentAdapter,Serializable{
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 8280523289446309728L;
 	protected static final Logger LOG = LoggerFactory
 			.getLogger(AbstractWhoisAdapter.class);
 	

@@ -97,6 +97,10 @@ public class JSONKafkaSerializer implements Encoder<JSONObject>,
 
 	}
 
+
+	
+
+	@SuppressWarnings("unchecked")
 	public JSONObject fromBytes(byte[] input) {
 		// TODO Auto-generated method stub
 
@@ -124,6 +128,7 @@ public class JSONKafkaSerializer implements Encoder<JSONObject>,
 		return output;
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public byte[] toBytes(JSONObject input) {
 		// TODO Auto-generated method stub
 

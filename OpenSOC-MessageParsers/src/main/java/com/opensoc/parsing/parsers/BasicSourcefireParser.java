@@ -17,13 +17,17 @@
 
 package com.opensoc.parsing.parsers;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.json.simple.JSONObject;
 
 @SuppressWarnings("serial")
-public class BasicSourcefireParser extends AbstractParser{
+public class BasicSourcefireParser extends AbstractParser {
+
+	public static final String hostkey = "host";
+	String domain_name_regex = "([^\\.]+)\\.([a-z]{2}|[a-z]{3}|([a-z]{2}\\.[a-z]{2}))$";
+	Pattern pattern = Pattern.compile(domain_name_regex);
 
 	@SuppressWarnings({ "unchecked", "unused", "rawtypes" })
 	public JSONObject parse(String toParse) {
@@ -70,22 +74,35 @@ public class BasicSourcefireParser extends AbstractParser{
 
 			payload.put("timestamp", System.currentTimeMillis());
 			payload.put("message", toParse.substring(0, toParse.indexOf("{")));
-			
+
+			String fqdn = (String) payload.get(hostkey);
+			String domain_name = getDomain(fqdn);
+			payload.put("domain_name", domain_name);
+
 			JSONObject output = new JSONObject();
 			output.put("sourcefire", payload);
-			
-			
-			//String parsed = "{\"sourcefire\":" + jo.toString() + "}";
+
+			// String parsed = "{\"sourcefire\":" + jo.toString() + "}";
 			_LOG.debug("Parsed message: " + output);
 
-			//return parsed;
+			// return parsed;
 			return output;
 		} catch (Exception e) {
 			e.printStackTrace();
 			_LOG.error("Failed to parse: " + toParse);
 			return new JSONObject();
-			//return null;
+			// return null;
 		}
+	}
+
+	private String getDomain(String fqdn) {
+
+		Matcher matcher = pattern.matcher(fqdn);
+
+		if (matcher.find())
+			return matcher.group();
+
+		return null;
 	}
 
 }

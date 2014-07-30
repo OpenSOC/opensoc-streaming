@@ -49,6 +49,8 @@ import backtype.storm.spout.SchemeAsMultiScheme;
 import backtype.storm.topology.TopologyBuilder;
 
 import com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter;
+import com.opensoc.enrichment.adapters.whois.WhoisHBaseAdapter;
+import com.opensoc.enrichment.common.EnrichmentAdapter;
 import com.opensoc.enrichment.common.GenericEnrichmentBolt;
 import com.opensoc.indexing.TelemetryIndexingBolt;
 import com.opensoc.indexing.adapters.ESBaseBulkAdapter;
@@ -117,6 +119,36 @@ public class BroEnrichmentTestTopology {
 				config.getInt("bolt.parser.parallelism.hint"))
 				.shuffleGrouping("kafka-spout")
 				.setNumTasks(config.getInt("bolt.parser.num.tasks"));
+		
+		
+		// ------------Whois Enrichment Bolt Configuration
+
+		List<String> whois_keys = new ArrayList<String>();
+		String[] keys_from_settings = config.getString("bolt.enrichment.whois.source").split(",");
+		
+		for(String key : keys_from_settings)
+			whois_keys.add(key);
+
+		EnrichmentAdapter whois_adapter = new WhoisHBaseAdapter(
+				config.getString("bolt.enrichment.whois.hbase.table.name"),
+				config.getString("kafka.zk.list"),
+				config.getString("kafka.zk.port"));
+
+		GenericEnrichmentBolt whois_enrichment = new GenericEnrichmentBolt()
+				.withEnrichmentTag(
+						config.getString("bolt.enrichment.whois.whois_enrichment_tag"))
+				.withOutputFieldName(topology_name)
+				.withAdapter(whois_adapter)
+				.withMaxTimeRetain(
+						config.getInt("bolt.enrichment.whois.MAX_TIME_RETAIN"))
+				.withMaxCacheSize(
+						config.getInt("bolt.enrichment.whois.MAX_CACHE_SIZE")).withKeys(whois_keys);
+
+		builder.setBolt("WhoisEnrichBolt", whois_enrichment,
+				config.getInt("bolt.enrichment.whois.parallelism.hint"))
+				.shuffleGrouping("ParserBolt")
+				.setNumTasks(config.getInt("bolt.enrichment.whois.num.tasks"));
+		
 
 		// ------------CIF bolt configuration
 

@@ -1,4 +1,4 @@
-package com.opensoc.topologies.copy;
+package com.opensoc.topologies;
 
 import java.util.ArrayList;
 import java.util.List;

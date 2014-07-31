@@ -88,8 +88,6 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 			JSONObject payload = (JSONObject) original_message.get(key);
 			Map<String, JSONObject> tokens_found = new HashMap<String, JSONObject>();
 
-			System.out.println("------------Top-level keys: " + key);
-
 			for (String jsonkey : _jsonKeys) {
 
 				LOG.debug("Processing:" + jsonkey + " within:" + payload);

@@ -20,6 +20,8 @@ import org.apache.storm.hdfs.bolt.sync.SyncPolicy;
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
+import backtype.storm.generated.AlreadyAliveException;
+import backtype.storm.generated.InvalidTopologyException;
 import backtype.storm.topology.TopologyBuilder;
 
 import com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter;
@@ -33,7 +35,7 @@ import com.opensoc.test.spouts.GenericInternalTestSpout;
 
 public class LancopeTestTopology {
 
-	public static void main(String args[]) throws ConfigurationException {
+	public static void main(String args[]) throws Exception {
 		String config_path = "";
 
 		try {

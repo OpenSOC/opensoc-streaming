@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-
 package com.opensoc.parsing;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Properties;
 
 import org.json.simple.JSONObject;
 
@@ -30,8 +30,8 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
+import com.opensoc.metrics.MetricReporter;
 import com.opensoc.parser.interfaces.MessageParser;
-
 
 @SuppressWarnings("rawtypes")
 public class TelemetryParserBolt extends AbstractParserBolt {
@@ -40,7 +40,7 @@ public class TelemetryParserBolt extends AbstractParserBolt {
 	 * OpenSOC telemetry parsing bolt with JSON output
 	 */
 	private static final long serialVersionUID = -2647123143398352020L;
-
+	private Properties metricProperties;
 
 	public TelemetryParserBolt withMessageParser(MessageParser parser) {
 		_parser = parser;
@@ -51,12 +51,19 @@ public class TelemetryParserBolt extends AbstractParserBolt {
 		this.OutputFieldName = OutputFieldName;
 		return this;
 	}
-	
+
+	public TelemetryParserBolt withMetricProperties(Properties metricProperties) {
+		this.metricProperties = metricProperties;
+		return this;
+	}
+
 	@Override
 	void doPrepare(Map conf, TopologyContext topologyContext,
 			OutputCollector collector) throws IOException {
 
 		LOG.info("Preparing TelemetryParser Bolt...");
+		_reporter = new MetricReporter();
+		_reporter.initialize(metricProperties, TelemetryParserBolt.class);
 	}
 
 	public void execute(Tuple tuple) {
@@ -70,15 +77,18 @@ public class TelemetryParserBolt extends AbstractParserBolt {
 			LOG.debug("Transformed Telemetry message: " + transformed_message);
 
 			_collector.ack(tuple);
+			_reporter.incCounter("TelemetryParserBolt.acks");
 			_collector.emit(new Values(transformed_message));
+			_reporter.incCounter("TelemetryParserBolt.emits");
 
 		} catch (Exception e) {
 			e.printStackTrace();
 			LOG.error("Failed to parse telemetry message :" + original_mesasge);
 			_collector.fail(tuple);
+			_reporter.incCounter("TelemetryParserBolt.fails");
 		}
 	}
-	
+
 	public void declareOutputFields(OutputFieldsDeclarer declearer) {
 		declearer.declare(new Fields(this.OutputFieldName));
 

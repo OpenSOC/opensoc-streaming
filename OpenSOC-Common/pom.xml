@@ -25,6 +25,8 @@
 
 		<storm.version>0.9.2-incubating</storm.version>
 		<kafka.version>0.8.0</kafka.version>
+		<metrics.version>3.0.2</metrics.version>
+		<commons.config.version>1.10</commons.config.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -59,11 +61,26 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+		<dependency>
+			<groupId>com.codahale.metrics</groupId>
+			<artifactId>metrics-core</artifactId>
+			<version>${metrics.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.codahale.metrics</groupId>
+			<artifactId>metrics-graphite</artifactId>
+			<version>${metrics.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-configuration</groupId>
+			<artifactId>commons-configuration</artifactId>
+			<version>${commons.config.version}</version>
+		</dependency>
   		<dependency>
   			<groupId>junit</groupId>
   			<artifactId>junit</artifactId>
   			<version>3.8.2</version>
-  		</dependency>			
+  		</dependency>		
 	</dependencies>
 <reporting>
     <plugins>
@@ -85,5 +102,5 @@
 		<inherited>true</inherited>
       </plugin>
     </plugins>
-  </reporting> 		
+  </reporting> 	
 </project>

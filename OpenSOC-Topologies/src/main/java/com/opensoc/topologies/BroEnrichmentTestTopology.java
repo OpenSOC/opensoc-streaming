@@ -268,7 +268,6 @@ public class BroEnrichmentTestTopology {
 				builder.setBolt("HDFSBolt_enriched", hdfsBolt_enriched, config.getInt("bolt.hdfs.parallelism.hint"))
 						.shuffleGrouping("CIFEnrichmentBolt").setNumTasks(config.getInt("bolt.hdfs.num.tasks"));
 
-		 
 
 		if (config.getBoolean("local.mode")) {
 			conf.setNumWorkers(config.getInt("num.workers"));

@@ -45,6 +45,7 @@
 		<module>OpenSOC-EnrichmentAdapters</module>
 		<module>OpenSOC-MessageParsers</module>
 		<module>OpenSOC-Indexing</module>
+		<module>OpenSOC-Alerts</module>
 		<module>OpenSOC-Topologies</module>
 	</modules>
 	<build>

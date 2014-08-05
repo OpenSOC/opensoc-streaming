@@ -30,6 +30,7 @@ import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Fields;
 
 import com.opensoc.index.interfaces.IndexAdapter;
+import com.opensoc.metrics.MetricReporter;
 
 @SuppressWarnings("rawtypes")
 public abstract class AbstractIndexingBolt extends BaseRichBolt {
@@ -43,6 +44,7 @@ public abstract class AbstractIndexingBolt extends BaseRichBolt {
 
 	protected OutputCollector _collector;
 	protected IndexAdapter _adapter;
+	protected MetricReporter _reporter;
 
 	protected String _IndexIP;
 	protected int _IndexPort = 0;

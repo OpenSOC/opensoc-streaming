@@ -21,10 +21,13 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.opensoc.metrics.MetricReporter;
 
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
@@ -38,6 +41,7 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 
 	private static final Logger LOG = LoggerFactory
 			.getLogger(GenericEnrichmentBolt.class);
+	private Properties metricProperties;
 
 	public GenericEnrichmentBolt withAdapter(EnrichmentAdapter adapter) {
 		_adapter = adapter;
@@ -72,6 +76,12 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 
 	public GenericEnrichmentBolt withKeys(List<String> jsonKeys) {
 		_jsonKeys = jsonKeys;
+		return this;
+	}
+
+	public GenericEnrichmentBolt withMetricProperties(
+			Properties metricProperties) {
+		this.metricProperties = metricProperties;
 		return this;
 	}
 
@@ -115,7 +125,10 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 		LOG.debug("-----------------combined: " + original_message);
 
 		_collector.emit(new Values(original_message));
+		_reporter.incCounter("com.opensoc.metrics.GenericEnrichmentBolt.emits");
 		_collector.ack(tuple);
+
+		_reporter.incCounter("com.opensoc.metrics.GenericEnrichmentBolt.acks");
 
 	}
 
@@ -129,6 +142,8 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 		LOG.info("Preparing Enrichment Bolt...");
 
 		_collector = collector;
+		_reporter = new MetricReporter();
+		_reporter.initialize(metricProperties, GenericEnrichmentBolt.class);
 
 		LOG.info("Enrichment bolt initialized...");
 	}

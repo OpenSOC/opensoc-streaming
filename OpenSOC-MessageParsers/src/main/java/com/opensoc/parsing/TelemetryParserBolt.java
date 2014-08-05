@@ -77,15 +77,15 @@ public class TelemetryParserBolt extends AbstractParserBolt {
 			LOG.debug("Transformed Telemetry message: " + transformed_message);
 
 			_collector.ack(tuple);
-			_reporter.incCounter("TelemetryParserBolt.acks");
+			_reporter.incCounter("com.opensoc.metrics.TelemetryParserBolt.acks");
 			_collector.emit(new Values(transformed_message));
-			_reporter.incCounter("TelemetryParserBolt.emits");
+			_reporter.incCounter("com.opensoc.metrics.TelemetryParserBolt.emits");
 
 		} catch (Exception e) {
 			e.printStackTrace();
 			LOG.error("Failed to parse telemetry message :" + original_mesasge);
 			_collector.fail(tuple);
-			_reporter.incCounter("TelemetryParserBolt.fails");
+			_reporter.incCounter("com.opensoc.metrics.TelemetryParserBolt.fails");
 		}
 	}
 

@@ -33,6 +33,7 @@ import backtype.storm.topology.base.BaseRichBolt;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.opensoc.metrics.MetricReporter;
 
 @SuppressWarnings("rawtypes")
 public abstract class AbstractEnrichmentBolt extends BaseRichBolt {
@@ -55,6 +56,7 @@ public abstract class AbstractEnrichmentBolt extends BaseRichBolt {
 	//JSON Keys to be enriched
 	protected List<String> _jsonKeys; 
 	protected EnrichmentAdapter _adapter;
+	protected MetricReporter _reporter;
 	
 	protected transient CacheLoader<String, JSONObject> loader;
 	protected transient LoadingCache<String, JSONObject> cache;

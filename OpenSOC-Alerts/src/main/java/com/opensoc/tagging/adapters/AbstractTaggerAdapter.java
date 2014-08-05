@@ -14,13 +14,4 @@ public abstract class AbstractTaggerAdapter implements TaggerAdapter, Serializab
 	protected static final Logger _LOG = LoggerFactory
 			.getLogger(AbstractTaggerAdapter.class);
 
-
-	public abstract boolean bulkIndex(JSONObject raw_message);
-	public abstract boolean bulkIndex(String raw_message);
-	
-
-	abstract public boolean initializeConnection(String ip, int port,
-			String cluster_name, String index_name, String document_name,
-			int bulk);
-
 }

@@ -4,5 +4,5 @@ import org.json.simple.JSONObject;
 
 public interface TaggerAdapter {
 
-	String tag(JSONObject raw_message);
+	JSONObject tag(JSONObject raw_message);
 }

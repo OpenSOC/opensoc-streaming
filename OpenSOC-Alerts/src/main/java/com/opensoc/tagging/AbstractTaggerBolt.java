@@ -29,19 +29,17 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Fields;
 
-import com.opensoc.index.interfaces.IndexAdapter;
-import com.opensoc.metrics.MetricReporter;
 import com.opensoc.tagger.interfaces.TaggerAdapter;
 
 @SuppressWarnings("rawtypes")
-public abstract class AbstractTaggingBolt extends BaseRichBolt {
+public abstract class AbstractTaggerBolt extends BaseRichBolt {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -6710596708304282838L;
 
 	protected static final Logger LOG = LoggerFactory
-			.getLogger(AbstractTaggingBolt.class);
+			.getLogger(AbstractTaggerBolt.class);
 
 	protected OutputCollector _collector;
 	protected TaggerAdapter _adapter;

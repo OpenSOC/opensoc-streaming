@@ -27,6 +27,7 @@ import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.base.BaseRichBolt;
 
+import com.opensoc.metrics.MetricReporter;
 import com.opensoc.parser.interfaces.MessageParser;
 
 @SuppressWarnings("rawtypes")
@@ -43,6 +44,8 @@ public abstract class AbstractParserBolt extends BaseRichBolt {
 	protected MessageParser _parser;
 
 	protected String OutputFieldName;
+	protected MetricReporter _reporter;
+	
 
 	public final void prepare(Map conf, TopologyContext topologyContext,
 			OutputCollector collector) {

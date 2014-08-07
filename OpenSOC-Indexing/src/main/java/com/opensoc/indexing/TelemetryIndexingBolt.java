@@ -19,6 +19,7 @@ package com.opensoc.indexing;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Properties;
 
 import org.json.simple.JSONObject;
 
@@ -29,9 +30,12 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 
 import com.opensoc.index.interfaces.IndexAdapter;
+import com.opensoc.metrics.MetricReporter;
 
 @SuppressWarnings("serial")
 public class TelemetryIndexingBolt extends AbstractIndexingBolt {
+
+	private Properties metricProperties;
 
 	public TelemetryIndexingBolt withIndexIP(String IndexIP) {
 		_IndexIP = IndexIP;
@@ -42,7 +46,7 @@ public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 		_IndexPort = IndexPort;
 		return this;
 	}
-	
+
 	public TelemetryIndexingBolt withIndexName(String IndexName) {
 		_IndexName = IndexName;
 		return this;
@@ -74,15 +78,22 @@ public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 		return this;
 	}
 
+	public TelemetryIndexingBolt withMetricProperties(
+			Properties metricProperties) {
+		this.metricProperties = metricProperties;
+		return this;
+	}
+
 	@SuppressWarnings("rawtypes")
 	@Override
 	void doPrepare(Map conf, TopologyContext topologyContext,
 			OutputCollector collector) throws IOException {
 
-		
-		boolean success = _adapter.initializeConnection(_IndexIP,
-				_IndexPort, _ClusterName, _IndexName, _DocumentName,
-				_BulkIndexNumber);
+		boolean success = _adapter.initializeConnection(_IndexIP, _IndexPort,
+				_ClusterName, _IndexName, _DocumentName, _BulkIndexNumber);
+
+		_reporter = new MetricReporter();
+		_reporter.initialize(metricProperties, TelemetryIndexingBolt.class);
 
 		if (!success)
 			throw new IllegalStateException(
@@ -97,10 +108,15 @@ public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 
 		boolean success = _adapter.bulkIndex(message);
 
-		if (success)
+		if (success) {
 			_collector.ack(tuple);
-		else
+			_reporter
+					.incCounter("com.opensoc.metrics.TelemetryIndexingBolt.acks");
+		} else {
 			_collector.fail(tuple);
+			_reporter
+					.incCounter("com.opensoc.metrics.TelemetryIndexingBolt.fails");
+		}
 
 	}
 

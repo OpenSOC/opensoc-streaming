@@ -128,7 +128,7 @@ public class SourcefireEnrichmentTestTopology {
 
 		builder.setBolt("IndexingBolt", indexing_bolt,
 				config.getInt("bolt.indexing.parallelism.hint"))
-				.shuffleGrouping("WhoisEnrichBolt")
+				.shuffleGrouping("GeoEnrichBolt")
 				.setNumTasks(config.getInt("bolt.indexing.num.tasks"));
 
 		// ------------HDFS BOLT configuration

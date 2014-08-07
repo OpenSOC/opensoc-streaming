@@ -99,6 +99,7 @@ public class BroEnrichmentTestTopology {
 				config.getInt("spout.kafka.parallelism.hint")).setNumTasks(
 				config.getInt("spout.kafka.num.tasks"));
 
+
 		// Testing Spout
 		/*
 		  GenericInternalTestSpout testSpout = new GenericInternalTestSpout()
@@ -113,7 +114,9 @@ public class BroEnrichmentTestTopology {
 
 		AbstractParserBolt parser_bolt = new TelemetryParserBolt()
 				.withMessageParser(new BasicBroParser()).withOutputFieldName(
-						topology_name);
+						topology_name)
+				.withMetricProperties(config.getProperties("com.opensoc.metrics.TelemetryParserBolt"));
+						
 
 		builder.setBolt("ParserBolt", parser_bolt,
 				config.getInt("bolt.parser.parallelism.hint"))
@@ -265,7 +268,6 @@ public class BroEnrichmentTestTopology {
 				builder.setBolt("HDFSBolt_enriched", hdfsBolt_enriched, config.getInt("bolt.hdfs.parallelism.hint"))
 						.shuffleGrouping("CIFEnrichmentBolt").setNumTasks(config.getInt("bolt.hdfs.num.tasks"));
 
-		 
 
 		if (config.getBoolean("local.mode")) {
 			conf.setNumWorkers(config.getInt("num.workers"));

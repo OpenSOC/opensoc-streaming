@@ -47,6 +47,13 @@
 		<module>OpenSOC-Indexing</module>
 		<module>OpenSOC-Topologies</module>
 	</modules>
+	<dependencies>	
+  		<dependency>
+  			<groupId>junit</groupId>
+  			<artifactId>junit</artifactId>
+  			<version>3.8.2</version>
+  		</dependency>		
+	</dependencies>	
 	<build>
 		<pluginManagement>
 			<plugins>

@@ -108,29 +108,7 @@ public class SourcefireEnrichmentTestTopology {
 		builder.setBolt("AlertsBolt", alerts_bolt,
 				config.getInt("bolt.alerts.parallelism.hint"))
 				.shuffleGrouping("ParserBolt")
-<<<<<<< HEAD
-				.setNumTasks(config.getInt("bolt.enrichment.geo.num.tasks"));
-
-		// ------------Indexing BOLT configuration
-
-		TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
-				.withIndexIP(config.getString("bolt.indexing.indexIP"))
-				.withIndexPort(config.getInt("bolt.indexing.port"))
-				.withClusterName(config.getString("bolt.indexing.clustername"))
-				.withIndexName(config.getString("bolt.indexing.indexname"))
-				.withDocumentName(
-						config.getString("bolt.indexing.documentname"))
-				.withBulk(config.getInt("bolt.indexing.bulk"))
-				.withOutputFieldName(topology_name)
-				.withIndexAdapter(new ESBaseBulkAdapter());
-
-		builder.setBolt("IndexingBolt", indexing_bolt,
-				config.getInt("bolt.indexing.parallelism.hint"))
-				.shuffleGrouping("GeoEnrichBolt")
-				.setNumTasks(config.getInt("bolt.indexing.num.tasks"));
-=======
 				.setNumTasks(config.getInt("bolt.alerts.num.tasks"));
->>>>>>> FETCH_HEAD
 
 		
 		 // ------------Geo Enrichment Bolt Configuration

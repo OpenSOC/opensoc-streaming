@@ -22,6 +22,7 @@
 
 	<properties>
 		<opensoc.common.version>0.0.1-SNAPSHOT</opensoc.common.version>
+		<opensoc.alerts.version>0.0.1-SNAPSHOT</opensoc.alerts.version>
 		<enrichment.geo.version>0.0.1-SNAPSHOT</enrichment.geo.version>
 		<enrichment.whois.version>0.0.1-SNAPSHOT</enrichment.whois.version>
 		<geo.enrichment.version>0.0.1-SNAPSHOT</geo.enrichment.version>
@@ -41,6 +42,11 @@
 			<groupId>com.opensoc</groupId>
 			<artifactId>OpenSOC-Common</artifactId>
 			<version>${opensoc.common.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.opensoc</groupId>
+			<artifactId>OpenSOC-Alerts</artifactId>
+			<version>${opensoc.alerts.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.opensoc</groupId>
@@ -85,10 +91,8 @@
 			<artifactId>kafka_2.8.2</artifactId>
 			<version>0.8.1</version>
 			<exclusions>
-				<!--exclusion>
-					<groupId>org.apache.zookeeper</groupId>
-					<artifactId>zookeeper</artifactId>
-				</exclusion-->
+				<!--exclusion> <groupId>org.apache.zookeeper</groupId> <artifactId>zookeeper</artifactId> 
+					</exclusion -->
 				<exclusion>
 					<groupId>log4j</groupId>
 					<artifactId>log4j</artifactId>

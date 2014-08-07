@@ -68,6 +68,7 @@ public class TelemetryTaggerBolt extends AbstractTaggerBolt {
 	}
 
 	public void execute(Tuple tuple) {
+		System.out.println("------------- I GET MESSAGE: " + tuple.getValue(0));
 		JSONObject original_message = (JSONObject) tuple.getValue(0);
 		LOG.debug("Received tuple: " + original_message);
 
@@ -75,6 +76,8 @@ public class TelemetryTaggerBolt extends AbstractTaggerBolt {
 
 			JSONObject tagged_message = _adapter.tag(original_message);
 			LOG.debug("Tagged message: " + tagged_message);
+			
+			System.out.println("------------- TAGGED: " + tagged_message);
 
 			_collector.ack(tuple);
 		//	_reporter.incCounter("com.opensoc.metrics.TelemetryParserBolt.acks");

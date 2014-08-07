@@ -87,12 +87,16 @@ public class ESBaseBulkAdapter extends AbstractIndexAdapter {
 					+ " of bulk size " + _bulk_size);
 
 			element_count++;
+			
+			System.out.println("-----COUNT + BULK SIZE: " + element_count + " " + _bulk_size);
 
 			if (element_count == _bulk_size) {
 				_LOG.debug("Starting bulk load of size: " + _bulk_size);
 				BulkResponse resp = bulkRequest.execute().actionGet();
 				element_count = 0;
 				_LOG.debug("Received bulk response: " + resp.toString());
+				
+				System.out.println("-----SENDING BULK INGEST: " + element_count);
 
 				if (resp.hasFailures()) {
 					_LOG.error("Bulk update failed");

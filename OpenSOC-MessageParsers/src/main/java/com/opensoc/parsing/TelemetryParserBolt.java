@@ -19,8 +19,9 @@ package com.opensoc.parsing;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.Properties;
 
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationMap;
 import org.json.simple.JSONObject;
 
 import backtype.storm.task.OutputCollector;
@@ -30,6 +31,7 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
+import com.opensoc.json.serialization.JSONEncoderHelper;
 import com.opensoc.metrics.MetricReporter;
 import com.opensoc.parser.interfaces.MessageParser;
 
@@ -40,7 +42,7 @@ public class TelemetryParserBolt extends AbstractParserBolt {
 	 * OpenSOC telemetry parsing bolt with JSON output
 	 */
 	private static final long serialVersionUID = -2647123143398352020L;
-	private Properties metricProperties;
+	private JSONObject metricConfiguration;
 
 	public TelemetryParserBolt withMessageParser(MessageParser parser) {
 		_parser = parser;
@@ -52,8 +54,9 @@ public class TelemetryParserBolt extends AbstractParserBolt {
 		return this;
 	}
 
-	public TelemetryParserBolt withMetricProperties(Properties metricProperties) {
-		this.metricProperties = metricProperties;
+	public TelemetryParserBolt withMetricConfig(Configuration config) {
+		this.metricConfiguration = JSONEncoderHelper.getJSON(config
+				.subset("com.opensoc.metrics"));
 		return this;
 	}
 
@@ -63,7 +66,8 @@ public class TelemetryParserBolt extends AbstractParserBolt {
 
 		LOG.info("Preparing TelemetryParser Bolt...");
 		_reporter = new MetricReporter();
-		_reporter.initialize(metricProperties, TelemetryParserBolt.class);
+		_reporter.initialize(metricConfiguration, TelemetryParserBolt.class);
+		this.registerCounters();
 	}
 
 	public void execute(Tuple tuple) {
@@ -77,15 +81,15 @@ public class TelemetryParserBolt extends AbstractParserBolt {
 			LOG.debug("Transformed Telemetry message: " + transformed_message);
 
 			_collector.ack(tuple);
-			_reporter.incCounter("com.opensoc.metrics.TelemetryParserBolt.acks");
+			ackCounter.inc();
 			_collector.emit(new Values(transformed_message));
-			_reporter.incCounter("com.opensoc.metrics.TelemetryParserBolt.emits");
+			emitCounter.inc();
 
 		} catch (Exception e) {
 			e.printStackTrace();
 			LOG.error("Failed to parse telemetry message :" + original_mesasge);
 			_collector.fail(tuple);
-			_reporter.incCounter("com.opensoc.metrics.TelemetryParserBolt.fails");
+			failCounter.inc();
 		}
 	}
 

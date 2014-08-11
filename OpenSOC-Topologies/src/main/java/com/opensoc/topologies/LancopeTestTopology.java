@@ -138,7 +138,8 @@ public class LancopeTestTopology {
 				config.getInt("bolt.indexing.parallelism.hint"))
 				.shuffleGrouping("CIFEnrichmentBolt")
 				.setNumTasks(config.getInt("bolt.indexing.num.tasks"));
-
+		
+		
 		if (config.getBoolean("local.mode")) {
 			conf.setNumWorkers(config.getInt("num.workers"));
 			conf.setMaxTaskParallelism(1);

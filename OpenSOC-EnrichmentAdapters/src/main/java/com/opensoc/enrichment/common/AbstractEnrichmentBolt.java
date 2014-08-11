@@ -30,6 +30,7 @@ import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.base.BaseRichBolt;
 
+import com.codahale.metrics.Counter;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -47,20 +48,35 @@ public abstract class AbstractEnrichmentBolt extends BaseRichBolt {
 
 	protected OutputCollector _collector;
 	protected String _OutputFieldName;
-	
+
 	protected String _enrichment_tag;
 	protected Long _MAX_CACHE_SIZE;
 	protected Long _MAX_TIME_RETAIN;
 	protected String _enrichment_source_ip;
-	
-	//JSON Keys to be enriched
-	protected List<String> _jsonKeys; 
+
+	// JSON Keys to be enriched
+	protected List<String> _jsonKeys;
 	protected EnrichmentAdapter _adapter;
 	protected MetricReporter _reporter;
-	
+
 	protected transient CacheLoader<String, JSONObject> loader;
 	protected transient LoadingCache<String, JSONObject> cache;
 
+	protected Counter ackCounter, emitCounter, failCounter;
+
+	protected void registerCounters() {
+
+		String ackString = _adapter.getClass().getSimpleName() + ".ack";
+
+		String emitString = _adapter.getClass().getSimpleName() + ".emit";
+
+		String failString = _adapter.getClass().getSimpleName() + ".fail";
+
+		ackCounter = _reporter.registerCounter(ackString);
+		emitCounter = _reporter.registerCounter(emitString);
+		failCounter = _reporter.registerCounter(failString);
+
+	}
 
 	public final void prepare(Map conf, TopologyContext topologyContext,
 			OutputCollector collector) {
@@ -76,9 +92,10 @@ public abstract class AbstractEnrichmentBolt extends BaseRichBolt {
 			throw new IllegalStateException("MAX_TIME_RETAIN must be specified");
 		if (this._adapter == null)
 			throw new IllegalStateException("Adapter must be specified");
-		if(this._jsonKeys == null)
-			throw new IllegalStateException("JSON Keys to be enriched, must be specified");
-		
+		if (this._jsonKeys == null)
+			throw new IllegalStateException(
+					"JSON Keys to be enriched, must be specified");
+
 		loader = new CacheLoader<String, JSONObject>() {
 			public JSONObject load(String key) throws Exception {
 				return _adapter.enrich(key);
@@ -104,7 +121,7 @@ public abstract class AbstractEnrichmentBolt extends BaseRichBolt {
 			LOG.error("Counld not initialize...");
 			e.printStackTrace();
 		}
-		
+
 	}
 
 	abstract void doPrepare(Map conf, TopologyContext topologyContext,

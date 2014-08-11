@@ -2,6 +2,12 @@ package com.opensoc.json.serialization;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import org.apache.commons.configuration.Configuration;
+import org.json.simple.JSONObject;
 
 public class JSONEncoderHelper {
 
@@ -41,6 +47,22 @@ public class JSONEncoderHelper {
 		data.writeInt(str.length());
 		data.write(str.getBytes());
 
+	}
+
+	public static JSONObject getJSON(Configuration config) {
+
+		JSONObject output = new JSONObject();
+
+		if (!config.isEmpty()) {
+			Iterator it = config.getKeys();
+			while (it.hasNext()) {
+				String k = (String) it.next();
+				// noinspection unchecked
+				String v = (String) config.getProperty(k);
+				output.put(k, v);
+			}
+		}
+		return output;
 	}
 
 }

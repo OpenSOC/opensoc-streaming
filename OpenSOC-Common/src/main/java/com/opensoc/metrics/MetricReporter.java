@@ -4,13 +4,11 @@ import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.graphite.Graphite;
 import com.codahale.metrics.graphite.GraphiteReporter;
 
-import java.util.HashMap;
-import java.util.HashSet;
+import java.net.InetSocketAddress;
 import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public class MetricReporter {
@@ -20,53 +18,56 @@ public class MetricReporter {
 	private JmxReporter jmxReporter = null;
 	private GraphiteReporter graphiteReporter = null;
 
-	private Set<String> known_counters = new HashSet<String>();
-	private Map<String, Counter> counterMap = new HashMap<String, Counter>();
+	private Class _klas;
 
-	public void initialize(Properties props, Class klas) {
+	public void initialize(Map config, Class klas) {
 
-		for (Object key : props.keySet()) {
+		System.out.println("===========Initializing Reporter");
+		this._klas = klas;
+		this.start(config);
 
-			if (props.getProperty((String) key) == "true")
-				known_counters.add((String) key);
+	}
 
-			counterMap.put((String) key,
-					metrics.counter(MetricRegistry.name(klas, (String) key)));
+	public Counter registerCounter(String countername) {
+		return metrics.counter(MetricRegistry.name(_klas, countername));
+	}
 
-			this.start(props);
+	public void start(Map config) {
+		try {
+			if (config.get("reporter.jmx").equals("true")) {
+				jmxReporter = JmxReporter.forRegistry(metrics).build();
+				jmxReporter.start();
+			}
 
+			if (config.get("reporter.console").equals("true")) {
+				consoleReporter = ConsoleReporter.forRegistry(metrics).build();
+				consoleReporter.start(1, TimeUnit.SECONDS);
+			}
+
+			if (config.get("reporter.graphite").equals("true")) {
+				String address = (String) config.get("graphite.address");
+				int port = Integer.parseInt((String) config
+						.get("graphite.port"));
+
+				System.out.println("===========Graphite ADDRESS: " + address
+						+ ":" + port);
+
+				Graphite graphite = new Graphite(new InetSocketAddress(address,
+						port));
+				graphiteReporter = GraphiteReporter.forRegistry(metrics).build(
+						graphite);
+				System.out
+						.println("---------******STARTING GRAPHITE*********---------");
+				graphiteReporter.start(1, TimeUnit.SECONDS);
+			} else
+				System.out
+						.println("---------******GRAPHITE DISABLED*********---------");
+		} catch (Exception e) {
+			e.printStackTrace();
+
+			for (Object key : config.values())
+				System.out.println(key + "---" + config.get(key));
 		}
-	}
-
-	public void incCounter(String counterName) {
-
-		if (known_counters.contains(counterName))
-			counterMap.get(counterName).inc();
-
-	}
-
-	public void decCounter(String counterName) {
-
-		if (known_counters.contains(counterName))
-			counterMap.get(counterName).dec();
-
-	}
-
-	public void start(Properties props) {
-		if (props.getProperty(
-				"com.opensoc.metrics.TelemetryParserBolt.reporter.jmx").equals(
-				"true"))
-			jmxReporter.start();
-
-		if (props.getProperty(
-				"com.opensoc.metrics.TelemetryParserBolt.reporter.console")
-				.equals("true"))
-			consoleReporter.start(1, TimeUnit.SECONDS);
-
-		if (props.getProperty(
-				"com.opensoc.metrics.TelemetryParserBolt.reporter.graphite")
-				.equals("true"))
-			graphiteReporter.start(1, TimeUnit.SECONDS);
 
 	}
 

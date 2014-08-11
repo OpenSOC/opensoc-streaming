@@ -29,6 +29,7 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Fields;
 
+import com.codahale.metrics.Counter;
 import com.opensoc.index.interfaces.IndexAdapter;
 import com.opensoc.metrics.MetricReporter;
 
@@ -54,30 +55,42 @@ public abstract class AbstractIndexingBolt extends BaseRichBolt {
 	protected int _BulkIndexNumber = 10;
 
 	protected String OutputFieldName;
+	protected Counter ackCounter, emitCounter, failCounter;
+
+	protected void registerCounters() {
+		String prefix = "com.opensoc.metrics.";
+
+		String ackString = _adapter.getClass().getSimpleName() + ".ack";
+
+		String emitString = _adapter.getClass().getSimpleName() + ".emit";
+
+		String failString = _adapter.getClass().getSimpleName() + ".fail";
+
+		ackCounter = _reporter.registerCounter(ackString);
+		emitCounter = _reporter.registerCounter(emitString);
+		failCounter = _reporter.registerCounter(failString);
+
+	}
 
 	public final void prepare(Map conf, TopologyContext topologyContext,
 			OutputCollector collector) {
 		_collector = collector;
-		
+
 		if (this._IndexIP == null)
 			throw new IllegalStateException("_IndexIP must be specified");
 		if (this._IndexPort == 0)
-			throw new IllegalStateException(
-					"_IndexPort must be specified");
+			throw new IllegalStateException("_IndexPort must be specified");
 		if (this._ClusterName == null)
-			throw new IllegalStateException(
-					"_ClusterName must be specified");
+			throw new IllegalStateException("_ClusterName must be specified");
 		if (this._IndexName == null)
-			throw new IllegalStateException(
-					"_IndexName must be specified");
+			throw new IllegalStateException("_IndexName must be specified");
 		if (this._DocumentName == null)
-			throw new IllegalStateException(
-					"_DocumentName must be specified");
+			throw new IllegalStateException("_DocumentName must be specified");
 		if (this.OutputFieldName == null)
 			throw new IllegalStateException("OutputFieldName must be specified");
 		if (this._adapter == null)
 			throw new IllegalStateException("IndexAdapter must be specified");
-		
+
 		try {
 			doPrepare(conf, topologyContext, collector);
 		} catch (IOException e) {

@@ -114,8 +114,7 @@ public class BroEnrichmentTestTopology {
 
 		AbstractParserBolt parser_bolt = new TelemetryParserBolt()
 				.withMessageParser(new BasicBroParser()).withOutputFieldName(
-						topology_name)
-				.withMetricProperties(config.getProperties("com.opensoc.metrics.TelemetryParserBolt"));
+						topology_name).withMetricConfig(config);
 						
 
 		builder.setBolt("ParserBolt", parser_bolt,
@@ -145,7 +144,8 @@ public class BroEnrichmentTestTopology {
 				.withMaxTimeRetain(
 						config.getInt("bolt.enrichment.whois.MAX_TIME_RETAIN"))
 				.withMaxCacheSize(
-						config.getInt("bolt.enrichment.whois.MAX_CACHE_SIZE")).withKeys(whois_keys);
+						config.getInt("bolt.enrichment.whois.MAX_CACHE_SIZE")).withKeys(whois_keys)
+						.withMetricConfiguration(config);
 
 		builder.setBolt("WhoisEnrichBolt", whois_enrichment,
 				config.getInt("bolt.enrichment.whois.parallelism.hint"))
@@ -185,7 +185,8 @@ public class BroEnrichmentTestTopology {
 				.withMaxTimeRetain(
 						config.getInt("bolt.enrichment.cif.MAX_TIME_RETAIN"))
 				.withMaxCacheSize(
-						config.getInt("bolt.enrichment.cif.MAX_CACHE_SIZE"));
+						config.getInt("bolt.enrichment.cif.MAX_CACHE_SIZE"))
+						.withMetricConfiguration(config);
 
 		builder.setBolt("CIFEnrichmentBolt", cif_enrichment,
 				config.getInt("bolt.enrichment.cif.parallelism.hint"))
@@ -223,7 +224,8 @@ public class BroEnrichmentTestTopology {
 						config.getString("bolt.indexing.documentname"))
 				.withBulk(config.getInt("bolt.indexing.bulk"))
 				.withOutputFieldName(topology_name)
-				.withIndexAdapter(new ESBaseBulkAdapter());
+				.withIndexAdapter(new ESBaseBulkAdapter())
+				;
 
 		builder.setBolt("IndexingBolt", indexing_bolt,
 				config.getInt("bolt.indexing.parallelism.hint"))

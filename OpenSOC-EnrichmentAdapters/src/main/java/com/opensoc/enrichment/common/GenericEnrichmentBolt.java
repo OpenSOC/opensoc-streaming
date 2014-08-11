@@ -21,12 +21,12 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
-
+import org.apache.commons.configuration.Configuration;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.opensoc.json.serialization.JSONEncoderHelper;
 import com.opensoc.metrics.MetricReporter;
 
 import backtype.storm.task.OutputCollector;
@@ -41,7 +41,7 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 
 	private static final Logger LOG = LoggerFactory
 			.getLogger(GenericEnrichmentBolt.class);
-	private Properties metricProperties;
+	private JSONObject metricConfiguration;
 
 	public GenericEnrichmentBolt withAdapter(EnrichmentAdapter adapter) {
 		_adapter = adapter;
@@ -79,9 +79,9 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 		return this;
 	}
 
-	public GenericEnrichmentBolt withMetricProperties(
-			Properties metricProperties) {
-		this.metricProperties = metricProperties;
+	public GenericEnrichmentBolt withMetricConfiguration(Configuration config) {
+		this.metricConfiguration = JSONEncoderHelper.getJSON(config
+				.subset("com.opensoc.metrics"));
 		return this;
 	}
 
@@ -125,10 +125,10 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 		LOG.debug("-----------------combined: " + original_message);
 
 		_collector.emit(new Values(original_message));
-		_reporter.incCounter("com.opensoc.metrics.GenericEnrichmentBolt.emits");
+		emitCounter.inc();
 		_collector.ack(tuple);
 
-		_reporter.incCounter("com.opensoc.metrics.GenericEnrichmentBolt.acks");
+		ackCounter.inc();
 
 	}
 
@@ -143,7 +143,8 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 
 		_collector = collector;
 		_reporter = new MetricReporter();
-		_reporter.initialize(metricProperties, GenericEnrichmentBolt.class);
+		_reporter.initialize(metricConfiguration, GenericEnrichmentBolt.class);
+		this.registerCounters();
 
 		LOG.info("Enrichment bolt initialized...");
 	}

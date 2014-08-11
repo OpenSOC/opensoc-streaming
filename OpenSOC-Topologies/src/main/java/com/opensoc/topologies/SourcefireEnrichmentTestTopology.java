@@ -39,7 +39,7 @@ import com.opensoc.indexing.TelemetryIndexingBolt;
 import com.opensoc.indexing.adapters.ESBaseBulkAdapter;
 import com.opensoc.parsing.TelemetryParserBolt;
 import com.opensoc.parsing.parsers.BasicSourcefireParser;
-import com.opensoc.test.spouts.GenericInternalTestSpout;
+import com.opensoc.test.spouts.*;
 
 /**
  * This is a basic example of a Storm topology.

@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationMap;
 import org.json.simple.JSONObject;
 
 import backtype.storm.task.OutputCollector;
@@ -30,12 +32,13 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 
 import com.opensoc.index.interfaces.IndexAdapter;
+import com.opensoc.json.serialization.JSONEncoderHelper;
 import com.opensoc.metrics.MetricReporter;
 
 @SuppressWarnings("serial")
 public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 
-	private Properties metricProperties;
+	private JSONObject metricConfiguration;
 
 	public TelemetryIndexingBolt withIndexIP(String IndexIP) {
 		_IndexIP = IndexIP;
@@ -78,9 +81,9 @@ public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 		return this;
 	}
 
-	public TelemetryIndexingBolt withMetricProperties(
-			Properties metricProperties) {
-		this.metricProperties = metricProperties;
+	public TelemetryIndexingBolt withMetricConfiguration(Configuration config) {
+		this.metricConfiguration = JSONEncoderHelper.getJSON(config
+				.subset("com.opensoc.metrics"));
 		return this;
 	}
 
@@ -93,7 +96,8 @@ public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 				_ClusterName, _IndexName, _DocumentName, _BulkIndexNumber);
 
 		_reporter = new MetricReporter();
-		_reporter.initialize(metricProperties, TelemetryIndexingBolt.class);
+		_reporter.initialize(metricConfiguration, TelemetryIndexingBolt.class);
+		this.registerCounters();
 
 		if (!success)
 			throw new IllegalStateException(
@@ -110,16 +114,15 @@ public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 
 		if (success) {
 			_collector.ack(tuple);
-			_reporter
-					.incCounter("com.opensoc.metrics.TelemetryIndexingBolt.acks");
+			ackCounter.inc();
 		} else {
 			_collector.fail(tuple);
-			_reporter
-					.incCounter("com.opensoc.metrics.TelemetryIndexingBolt.fails");
+			failCounter.inc();
 		}
 
 	}
 
+	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declearer) {
 		declearer.declare(new Fields(this.OutputFieldName));
 	}

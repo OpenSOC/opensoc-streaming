@@ -27,6 +27,7 @@ import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.base.BaseRichBolt;
 
+import com.codahale.metrics.Counter;
 import com.opensoc.metrics.MetricReporter;
 import com.opensoc.parser.interfaces.MessageParser;
 
@@ -45,7 +46,22 @@ public abstract class AbstractParserBolt extends BaseRichBolt {
 
 	protected String OutputFieldName;
 	protected MetricReporter _reporter;
-	
+
+	protected Counter ackCounter, emitCounter, failCounter;
+
+	protected void registerCounters() {
+
+		String ackString = _parser.getClass().getSimpleName() + ".ack";
+
+		String emitString = _parser.getClass().getSimpleName() + ".emit";
+
+		String failString = _parser.getClass().getSimpleName() + ".fail";
+
+		ackCounter = _reporter.registerCounter(ackString);
+		emitCounter = _reporter.registerCounter(emitString);
+		failCounter = _reporter.registerCounter(failString);
+
+	}
 
 	public final void prepare(Map conf, TopologyContext topologyContext,
 			OutputCollector collector) {

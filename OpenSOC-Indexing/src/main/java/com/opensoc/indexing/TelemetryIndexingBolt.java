@@ -107,6 +107,8 @@ public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 	public void execute(Tuple tuple) {
 
 		JSONObject message = (JSONObject) tuple.getValue(0);
+		
+		System.out.println("------INDEXING BOLT GETS:  " + message);
 
 		LOG.debug("Received message: " + message);
 

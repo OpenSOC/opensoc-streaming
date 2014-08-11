@@ -25,6 +25,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.PropertiesConfiguration;
+import org.json.simple.JSONObject;
 
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
@@ -40,12 +41,17 @@ import com.opensoc.indexing.adapters.ESBaseBulkAdapter;
 import com.opensoc.parsing.TelemetryParserBolt;
 import com.opensoc.parsing.parsers.BasicSourcefireParser;
 import com.opensoc.test.spouts.*;
+import com.opensoc.tagger.interfaces.TaggerAdapter;
+import com.opensoc.tagging.TelemetryTaggerBolt;
+import com.opensoc.tagging.adapters.StaticAllTagger;
+import com.opensoc.test.spouts.GenericInternalTestSpout;
 
 /**
  * This is a basic example of a Storm topology.
  */
 public class SourcefireEnrichmentTestTopology {
 
+	@SuppressWarnings("unchecked")
 	public static void main(String[] args) throws Exception {
 
 		String config_path = "";
@@ -62,7 +68,6 @@ public class SourcefireEnrichmentTestTopology {
 
 		TopologyBuilder builder = new TopologyBuilder();
 
-
 		Config conf = new Config();
 		conf.setDebug(config.getBoolean("debug.mode"));
 
@@ -77,6 +82,7 @@ public class SourcefireEnrichmentTestTopology {
 		// ------------Parser Bolt Configuration
 
 		TelemetryParserBolt parser_bolt = new TelemetryParserBolt()
+				.withMetricConfig(config)
 				.withMessageParser(new BasicSourcefireParser())
 				.withOutputFieldName(topology_name);
 
@@ -85,8 +91,27 @@ public class SourcefireEnrichmentTestTopology {
 				.shuffleGrouping("EnrichmentSpout")
 				.setNumTasks(config.getInt("bolt.parser.num.tasks"));
 
+		// -------------Alerts Bolt
+
+		JSONObject static_alerts_message = new JSONObject();
+		static_alerts_message.put("source",
+				config.getString("bolt.alerts.staticsource"));
+		static_alerts_message.put("priority",
+				config.getString("bolt.alerts.staticpriority"));
+		static_alerts_message.put("designated_host", "NOT CONFIGURED");
+
+		TaggerAdapter tagger = new StaticAllTagger(static_alerts_message);
+
+		TelemetryTaggerBolt alerts_bolt = new TelemetryTaggerBolt()
+				.withMessageTagger(tagger).withOutputFieldName(topology_name);
+
+		builder.setBolt("AlertsBolt", alerts_bolt,
+				config.getInt("bolt.alerts.parallelism.hint"))
+				.shuffleGrouping("ParserBolt")
+				.setNumTasks(config.getInt("bolt.alerts.num.tasks"));
+
 		// ------------Geo Enrichment Bolt Configuration
-		
+
 		List<String> geo_keys = new ArrayList<String>();
 		geo_keys.add(config.getString("bolt.enrichment.geo.source_ip"));
 		geo_keys.add(config.getString("bolt.enrichment.geo.resp_ip"));
@@ -106,11 +131,12 @@ public class SourcefireEnrichmentTestTopology {
 				.withMaxTimeRetain(
 						config.getInt("bolt.enrichment.geo.MAX_TIME_RETAIN"))
 				.withMaxCacheSize(
-						config.getInt("bolt.enrichment.geo.MAX_CACHE_SIZE")).withKeys(geo_keys);
+						config.getInt("bolt.enrichment.geo.MAX_CACHE_SIZE"))
+				.withKeys(geo_keys).withMetricConfiguration(config);
 
 		builder.setBolt("GeoEnrichBolt", geo_enrichment,
 				config.getInt("bolt.enrichment.geo.parallelism.hint"))
-				.shuffleGrouping("ParserBolt")
+				.shuffleGrouping("AlertsBolt")
 				.setNumTasks(config.getInt("bolt.enrichment.geo.num.tasks"));
 
 		// ------------Indexing BOLT configuration
@@ -124,7 +150,8 @@ public class SourcefireEnrichmentTestTopology {
 						config.getString("bolt.indexing.documentname"))
 				.withBulk(config.getInt("bolt.indexing.bulk"))
 				.withOutputFieldName(topology_name)
-				.withIndexAdapter(new ESBaseBulkAdapter());
+				.withIndexAdapter(new ESBaseBulkAdapter())
+				.withMetricConfiguration(config);
 
 		builder.setBolt("IndexingBolt", indexing_bolt,
 				config.getInt("bolt.indexing.parallelism.hint"))

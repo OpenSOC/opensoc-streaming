@@ -39,17 +39,13 @@
 			<version>${storm.version}</version>
 			<scope>provided</scope>
 		</dependency>
-  </dependencies>
-  <dependencyManagement>
-  	<dependencies>
   		<dependency>
   			<groupId>junit</groupId>
   			<artifactId>junit</artifactId>
   			<version>3.8.2</version>
-  		</dependency>
-  	</dependencies>
-  </dependencyManagement>
- <reporting>
+  		</dependency>		
+  </dependencies> 
+<reporting>
     <plugins>
 	<!-- Normally, dependency report takes time, skip it -->
       <plugin>
@@ -60,14 +56,19 @@
 		<configuration>
 	          <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
 		</configuration>
-      </plugin>
- 
+      </plugin>    
       <plugin>
-		<groupId>org.codehaus.mojo</groupId>
-		<artifactId>emma-maven-plugin</artifactId>
-		<version>1.0-alpha-3</version>
-		<inherited>true</inherited>
-      </plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>emma-maven-plugin</artifactId>
+        <version>1.0-alpha-3</version>
+      </plugin>    
+      <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-pmd-plugin</artifactId>
+          <configuration>
+            <targetJdk>1.6</targetJdk>
+		  </configuration>
+        </plugin>            
     </plugins>
-  </reporting>  
+  </reporting>    
 </project>

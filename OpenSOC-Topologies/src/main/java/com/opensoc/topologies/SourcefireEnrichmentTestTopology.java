@@ -19,13 +19,17 @@ package com.opensoc.topologies;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.regex.Pattern;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.PropertiesConfiguration;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
@@ -36,6 +40,7 @@ import com.opensoc.enrichment.adapters.geo.GeoMysqlAdapter;
 import com.opensoc.enrichment.adapters.whois.WhoisHBaseAdapter;
 import com.opensoc.enrichment.common.EnrichmentAdapter;
 import com.opensoc.enrichment.common.GenericEnrichmentBolt;
+import com.opensoc.enrichment.host.HostAdapter;
 import com.opensoc.indexing.TelemetryIndexingBolt;
 import com.opensoc.indexing.adapters.ESBaseBulkAdapter;
 import com.opensoc.parsing.TelemetryParserBolt;
@@ -98,7 +103,8 @@ public class SourcefireEnrichmentTestTopology {
 				config.getString("bolt.alerts.staticsource"));
 		static_alerts_message.put("priority",
 				config.getString("bolt.alerts.staticpriority"));
-		static_alerts_message.put("designated_host", "NOT CONFIGURED");
+		static_alerts_message.put("cluster",
+				config.getString("bolt.alerts.cluster"));
 
 		TaggerAdapter tagger = new StaticAllTagger(static_alerts_message);
 
@@ -125,7 +131,7 @@ public class SourcefireEnrichmentTestTopology {
 
 		GenericEnrichmentBolt geo_enrichment = new GenericEnrichmentBolt()
 				.withEnrichmentTag(
-						config.getString("bolt.enrichment.geo.geo_enrichment_tag"))
+						config.getString("bolt.enrichment.geo.enrichment_tag"))
 				.withOutputFieldName(topology_name)
 				.withAdapter(geo_adapter)
 				.withMaxTimeRetain(
@@ -138,7 +144,39 @@ public class SourcefireEnrichmentTestTopology {
 				config.getInt("bolt.enrichment.geo.parallelism.hint"))
 				.shuffleGrouping("AlertsBolt")
 				.setNumTasks(config.getInt("bolt.enrichment.geo.num.tasks"));
+		
+		// ------------Hosts Enrichment Bolt Configuration
+		
+		Configuration hosts = new PropertiesConfiguration("TopologyConfigs/known_hosts/known_hosts.conf");
+		
+		Iterator<String> keys = hosts.getKeys();
+		Map<String, JSONObject> known_hosts = new HashMap<String, JSONObject>();
+		JSONParser parser = new JSONParser();
+		 
+		    while(keys.hasNext())
+		    {
+		    	String key = keys.next().trim();
+		    	JSONArray value = (JSONArray) parser.parse(hosts.getProperty(key).toString());
+		    	known_hosts.put(key, (JSONObject) value.get(0));
+		    }
+		
+		
+		System.out.println("---------------READ IN HOSTS" + known_hosts);
+		
+		HostAdapter host_adapter = new HostAdapter(known_hosts);
+		
+		GenericEnrichmentBolt host_enrichment = new GenericEnrichmentBolt().withEnrichmentTag(config.getString("bolt.enrichment.host.enrichment_tag")).
+				withAdapter(host_adapter).withMaxTimeRetain(
+						config.getInt("bolt.enrichment.host.MAX_TIME_RETAIN"))
+				.withMaxCacheSize(
+						config.getInt("bolt.enrichment.host.MAX_CACHE_SIZE")).withOutputFieldName(topology_name)
+						.withKeys(geo_keys).withMetricConfiguration(config);
 
+		builder.setBolt("HostEnrichBolt", host_enrichment,
+				config.getInt("bolt.enrichment.host.parallelism.hint"))
+				.shuffleGrouping("GeoEnrichBolt")
+				.setNumTasks(config.getInt("bolt.enrichment.host.num.tasks"));
+ 
 		// ------------Indexing BOLT configuration
 
 		TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
@@ -155,7 +193,7 @@ public class SourcefireEnrichmentTestTopology {
 
 		builder.setBolt("IndexingBolt", indexing_bolt,
 				config.getInt("bolt.indexing.parallelism.hint"))
-				.shuffleGrouping("GeoEnrichBolt")
+				.shuffleGrouping("AlertsBolt")
 				.setNumTasks(config.getInt("bolt.indexing.num.tasks"));
 
 		// ------------HDFS BOLT configuration

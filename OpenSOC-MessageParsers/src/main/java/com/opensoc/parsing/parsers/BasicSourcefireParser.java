@@ -73,14 +73,10 @@ public class BasicSourcefireParser extends AbstractParser {
 			}
 
 			payload.put("timestamp", System.currentTimeMillis());
-			payload.put("message", toParse.substring(0, toParse.indexOf("{")));
-
-			//String fqdn = (String) payload.get(hostkey);
-			//String domain_name = getDomain(fqdn);
-			//payload.put("domain_name", domain_name);
+			payload.put("original_string", toParse.substring(0, toParse.indexOf("{")));
 
 			JSONObject output = new JSONObject();
-			output.put("sourcefire", payload);
+			output.put("message", payload);
 
 			// String parsed = "{\"sourcefire\":" + jo.toString() + "}";
 			_LOG.debug("Parsed message: " + output);
@@ -90,8 +86,8 @@ public class BasicSourcefireParser extends AbstractParser {
 		} catch (Exception e) {
 			e.printStackTrace();
 			_LOG.error("Failed to parse: " + toParse);
-			return new JSONObject();
-			// return null;
+			//return new JSONObject();
+			 return null;
 		}
 	}
 

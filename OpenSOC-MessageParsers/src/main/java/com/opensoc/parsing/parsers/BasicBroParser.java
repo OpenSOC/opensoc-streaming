@@ -37,8 +37,60 @@ public class BasicBroParser extends AbstractParser
 		
 		try {
 			JSONObject cleaned_message = cleaner.Clean(raw_message);
-			_LOG.debug("Cleaned message: " + cleaned_message);
-			return cleaned_message;
+			
+			String key = cleaned_message.keySet().iterator().next().toString();
+			
+			JSONObject inner_message = (JSONObject) cleaned_message.get(key);
+
+			if(inner_message.containsKey("id.orig_h"))
+			{
+				String source_ip = inner_message.remove("id.orig_h").toString();
+				inner_message.put("ip_src_addr", source_ip);
+			}
+			if(inner_message.containsKey("id.resp_h"))
+			{
+				String source_ip = inner_message.remove("id.resp_h").toString();
+				inner_message.put("ip_dst_addr", source_ip);	
+			}
+			if(inner_message.containsKey("id.orig_p"))
+			{
+				String source_port = inner_message.remove("id.orig_p").toString();
+				inner_message.put("ip_src_port", source_port);	
+			}
+			if(inner_message.containsKey("id.resp_p"))
+			{
+				String dest_port = inner_message.remove("id.resp_p").toString();
+				inner_message.put("ip_dst_port", dest_port);	
+			}
+			if(inner_message.containsKey("host"))
+			{
+				
+				
+				String host = inner_message.get("host").toString().trim();
+				String[] parts = host.split("\\.");
+				int length = parts.length;
+				inner_message.put("whois_enrich", parts[length-2] + "." + parts[length-1]);
+			}
+			if(inner_message.containsKey("query"))
+			{
+				String host = inner_message.get("query").toString();
+				String[] parts = host.split("\\.");
+				int length = parts.length;
+				inner_message.put("tld", parts[length-2] + "." + parts[length-1]);
+			}
+
+			
+			_LOG.debug("Inner message: " + inner_message);
+			
+			//cleaned_message.put(key, inner_message);
+			inner_message.put("protocol", key);
+			
+			JSONObject message = new JSONObject();
+			message.put("message", inner_message);
+			
+			//message.put("original_string", cleaned_message);
+			
+			return message;
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block
 			_LOG.error("Unable to Parse Message: " + raw_message);

@@ -79,6 +79,9 @@ public class TelemetryParserBolt extends AbstractParserBolt {
 
 			JSONObject transformed_message = _parser.parse(original_mesasge);
 			LOG.debug("Transformed Telemetry message: " + transformed_message);
+			
+			if(transformed_message == null)
+				throw new Exception("Invalid message format");
 
 			_collector.ack(tuple);
 			ackCounter.inc();

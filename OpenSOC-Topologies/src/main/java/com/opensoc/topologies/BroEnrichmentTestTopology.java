@@ -19,6 +19,7 @@ package com.opensoc.topologies;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -34,30 +35,29 @@ import org.apache.storm.hdfs.bolt.rotation.FileSizeRotationPolicy;
 import org.apache.storm.hdfs.bolt.rotation.FileSizeRotationPolicy.Units;
 import org.apache.storm.hdfs.bolt.sync.CountSyncPolicy;
 import org.apache.storm.hdfs.bolt.sync.SyncPolicy;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
-import storm.kafka.BrokerHosts;
-import storm.kafka.KafkaSpout;
-import storm.kafka.SpoutConfig;
-import storm.kafka.StringScheme;
-import storm.kafka.ZkHosts;
 import storm.kafka.bolt.KafkaBolt;
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
-import backtype.storm.spout.SchemeAsMultiScheme;
 import backtype.storm.topology.TopologyBuilder;
 
 import com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter;
+import com.opensoc.enrichment.adapters.geo.GeoMysqlAdapter;
 import com.opensoc.enrichment.adapters.whois.WhoisHBaseAdapter;
 import com.opensoc.enrichment.common.EnrichmentAdapter;
 import com.opensoc.enrichment.common.GenericEnrichmentBolt;
+import com.opensoc.enrichment.host.HostAdapter;
 import com.opensoc.indexing.TelemetryIndexingBolt;
 import com.opensoc.indexing.adapters.ESBaseBulkAdapter;
 import com.opensoc.json.serialization.JSONKryoSerializer;
 import com.opensoc.parsing.AbstractParserBolt;
 import com.opensoc.parsing.TelemetryParserBolt;
 import com.opensoc.parsing.parsers.BasicBroParser;
+import com.opensoc.test.spouts.GenericInternalTestSpout;
 
 /**
  * This is a basic example of a Storm topology.
@@ -87,7 +87,7 @@ public class BroEnrichmentTestTopology {
 
 		// ------------KAFKA spout configuration
 
-		BrokerHosts zk = new ZkHosts(config.getString("kafka.zk"));
+	/*	BrokerHosts zk = new ZkHosts(config.getString("kafka.zk"));
 		String input_topic = config.getString("spout.kafka.topic");
 		SpoutConfig kafkaConfig = new SpoutConfig(zk, input_topic, "",
 				input_topic);
@@ -97,18 +97,18 @@ public class BroEnrichmentTestTopology {
 
 		builder.setSpout("kafka-spout", new KafkaSpout(kafkaConfig),
 				config.getInt("spout.kafka.parallelism.hint")).setNumTasks(
-				config.getInt("spout.kafka.num.tasks"));
+				config.getInt("spout.kafka.num.tasks"));*/
 
 
 		// Testing Spout
-		/*
+		
 		  GenericInternalTestSpout testSpout = new GenericInternalTestSpout()
 		  .withFilename("SampleInput/BroExampleOutput").withRepeating( false);
 		  
 		  builder.setSpout("EnrichmentSpout", testSpout,
 		  config.getInt("spout.test.parallelism.hint")).setNumTasks(
 		  config.getInt("spout.test.num.tasks"));
-		 */
+		 
 
 		// ------------ParserBolt configuration
 
@@ -119,8 +119,66 @@ public class BroEnrichmentTestTopology {
 
 		builder.setBolt("ParserBolt", parser_bolt,
 				config.getInt("bolt.parser.parallelism.hint"))
-				.shuffleGrouping("kafka-spout")
+				.shuffleGrouping("EnrichmentSpout")
 				.setNumTasks(config.getInt("bolt.parser.num.tasks"));
+		
+		// ------------Geo Enrichment Bolt Configuration
+
+		List<String> geo_keys = new ArrayList<String>();
+		geo_keys.add(config.getString("bolt.enrichment.geo.source_ip"));
+		geo_keys.add(config.getString("bolt.enrichment.geo.resp_ip"));
+
+		GeoMysqlAdapter geo_adapter = new GeoMysqlAdapter(
+				config.getString("bolt.enrichment.geo.adapter.ip"),
+				config.getInt("bolt.enrichment.geo.adapter.port"),
+				config.getString("bolt.enrichment.geo.adapter.username"),
+				config.getString("bolt.enrichment.geo.adapter.password"),
+				config.getString("bolt.enrichment.geo.adapter.table"));
+
+		GenericEnrichmentBolt geo_enrichment = new GenericEnrichmentBolt()
+				.withEnrichmentTag(
+						config.getString("bolt.enrichment.geo.enrichment_tag"))
+				.withOutputFieldName(topology_name)
+				.withAdapter(geo_adapter)
+				.withMaxTimeRetain(
+						config.getInt("bolt.enrichment.geo.MAX_TIME_RETAIN"))
+				.withMaxCacheSize(
+						config.getInt("bolt.enrichment.geo.MAX_CACHE_SIZE"))
+				.withKeys(geo_keys).withMetricConfiguration(config);
+
+		builder.setBolt("GeoEnrichBolt", geo_enrichment,
+				config.getInt("bolt.enrichment.geo.parallelism.hint"))
+				.shuffleGrouping("ParserBolt")
+				.setNumTasks(config.getInt("bolt.enrichment.geo.num.tasks"));
+		
+		// ------------Hosts Enrichment Bolt Configuration
+		
+		Configuration hosts = new PropertiesConfiguration("TopologyConfigs/known_hosts/known_hosts.conf");
+		
+		Iterator<String> keys = hosts.getKeys();
+		Map<String, JSONObject> known_hosts = new HashMap<String, JSONObject>();
+		JSONParser parser = new JSONParser();
+		 
+		    while(keys.hasNext())
+		    {
+		    	String key = keys.next().trim();
+		    	JSONArray value = (JSONArray) parser.parse(hosts.getProperty(key).toString());
+		    	known_hosts.put(key, (JSONObject) value.get(0));
+		    }
+		
+		HostAdapter host_adapter = new HostAdapter(known_hosts);
+		
+		GenericEnrichmentBolt host_enrichment = new GenericEnrichmentBolt().withEnrichmentTag(config.getString("bolt.enrichment.host.enrichment_tag")).
+				withAdapter(host_adapter).withMaxTimeRetain(
+						config.getInt("bolt.enrichment.host.MAX_TIME_RETAIN"))
+				.withMaxCacheSize(
+						config.getInt("bolt.enrichment.host.MAX_CACHE_SIZE")).withOutputFieldName(topology_name)
+						.withKeys(geo_keys).withMetricConfiguration(config);
+
+		builder.setBolt("HostEnrichBolt", host_enrichment,
+				config.getInt("bolt.enrichment.host.parallelism.hint"))
+				.shuffleGrouping("GeoEnrichBolt")
+				.setNumTasks(config.getInt("bolt.enrichment.host.num.tasks"));
 		
 		
 		// ------------Whois Enrichment Bolt Configuration
@@ -138,7 +196,7 @@ public class BroEnrichmentTestTopology {
 
 		GenericEnrichmentBolt whois_enrichment = new GenericEnrichmentBolt()
 				.withEnrichmentTag(
-						config.getString("bolt.enrichment.whois.whois_enrichment_tag"))
+						config.getString("bolt.enrichment.whois.enrichment_tag"))
 				.withOutputFieldName(topology_name)
 				.withAdapter(whois_adapter)
 				.withMaxTimeRetain(
@@ -149,7 +207,7 @@ public class BroEnrichmentTestTopology {
 
 		builder.setBolt("WhoisEnrichBolt", whois_enrichment,
 				config.getInt("bolt.enrichment.whois.parallelism.hint"))
-				.shuffleGrouping("ParserBolt")
+				.shuffleGrouping("HostEnrichBolt")
 				.setNumTasks(config.getInt("bolt.enrichment.whois.num.tasks"));
 		
 
@@ -176,6 +234,8 @@ public class BroEnrichmentTestTopology {
 		cif_keys.add(config.getString("bolt.enrichment.cif.email"));
 
 		GenericEnrichmentBolt cif_enrichment = new GenericEnrichmentBolt()
+		.withEnrichmentTag(
+				config.getString("bolt.enrichment.cif.enrichment_tag"))
 				.withAdapter(
 						new CIFHbaseAdapter(config.getString("kafka.zk.list"),
 								config.getString("kafka.zk.port"),config.getString("bolt.enrichment.cif.tablename")))
@@ -190,7 +250,7 @@ public class BroEnrichmentTestTopology {
 
 		builder.setBolt("CIFEnrichmentBolt", cif_enrichment,
 				config.getInt("bolt.enrichment.cif.parallelism.hint"))
-				.shuffleGrouping("ParserBolt")
+				.shuffleGrouping("WhoisEnrichBolt")
 				.setNumTasks(config.getInt("bolt.enrichment.cif.num.tasks"));
 
 		// ------------Kafka Bolt Configuration
@@ -249,7 +309,7 @@ public class BroEnrichmentTestTopology {
 				.withRotationPolicy(rotationPolicy).withSyncPolicy(syncPolicy);
 
 		builder.setBolt("HDFSBolt", hdfsBolt, config.getInt("bolt.hdfs.parallelism.hint"))
-				.shuffleGrouping("kafka-spout").setNumTasks(config.getInt("bolt.hdfs.num.tasks"));
+				.shuffleGrouping("CIFEnrichmentBolt").setNumTasks(config.getInt("bolt.hdfs.num.tasks"));
 		
 		
 		// * ------------HDFS BOLT For Enriched Data configuration

@@ -1,7 +1,10 @@
 package com.opensoc.topologies;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
@@ -16,6 +19,9 @@ import org.apache.storm.hdfs.bolt.rotation.FileSizeRotationPolicy;
 import org.apache.storm.hdfs.bolt.rotation.FileSizeRotationPolicy.Units;
 import org.apache.storm.hdfs.bolt.sync.CountSyncPolicy;
 import org.apache.storm.hdfs.bolt.sync.SyncPolicy;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
@@ -25,12 +31,17 @@ import backtype.storm.generated.InvalidTopologyException;
 import backtype.storm.topology.TopologyBuilder;
 
 import com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter;
+import com.opensoc.enrichment.adapters.geo.GeoMysqlAdapter;
 import com.opensoc.enrichment.common.GenericEnrichmentBolt;
+import com.opensoc.enrichment.host.HostAdapter;
 import com.opensoc.indexing.TelemetryIndexingBolt;
 import com.opensoc.indexing.adapters.ESBaseBulkAdapter;
 import com.opensoc.parsing.AbstractParserBolt;
 import com.opensoc.parsing.TelemetryParserBolt;
 import com.opensoc.parsing.parsers.BasicLancopeParser;
+import com.opensoc.tagger.interfaces.TaggerAdapter;
+import com.opensoc.tagging.TelemetryTaggerBolt;
+import com.opensoc.tagging.adapters.StaticAllTagger;
 import com.opensoc.test.spouts.GenericInternalTestSpout;
 
 public class LancopeTestTopology {
@@ -66,6 +77,7 @@ public class LancopeTestTopology {
 		// ------------ParserBolt configuration
 
 		AbstractParserBolt parser_bolt = new TelemetryParserBolt()
+				.withMetricConfig(config)
 				.withMessageParser(new BasicLancopeParser())
 				.withOutputFieldName(topology_name);
 
@@ -73,10 +85,91 @@ public class LancopeTestTopology {
 				config.getInt("bolt.parser.parallelism.hint"))
 				.shuffleGrouping("EnrichmentSpout")
 				.setNumTasks(config.getInt("bolt.parser.num.tasks"));
+		
+		// -------------Alerts Bolt
+
+				JSONObject static_alerts_message = new JSONObject();
+				static_alerts_message.put("source",
+						config.getString("bolt.alerts.staticsource"));
+				static_alerts_message.put("priority",
+						config.getString("bolt.alerts.staticpriority"));
+				static_alerts_message.put("cluster",
+						config.getString("bolt.alerts.cluster"));
+
+				TaggerAdapter tagger = new StaticAllTagger(static_alerts_message);
+
+				TelemetryTaggerBolt alerts_bolt = new TelemetryTaggerBolt()
+						.withMessageTagger(tagger).withOutputFieldName(topology_name);
+
+				builder.setBolt("AlertsBolt", alerts_bolt,
+						config.getInt("bolt.alerts.parallelism.hint"))
+						.shuffleGrouping("ParserBolt")
+						.setNumTasks(config.getInt("bolt.alerts.num.tasks"));
+
+				// ------------Geo Enrichment Bolt Configuration
+
+				List<String> geo_keys = new ArrayList<String>();
+				geo_keys.add(config.getString("bolt.enrichment.geo.source_ip"));
+				geo_keys.add(config.getString("bolt.enrichment.geo.resp_ip"));
+
+				GeoMysqlAdapter geo_adapter = new GeoMysqlAdapter(
+						config.getString("bolt.enrichment.geo.adapter.ip"),
+						config.getInt("bolt.enrichment.geo.adapter.port"),
+						config.getString("bolt.enrichment.geo.adapter.username"),
+						config.getString("bolt.enrichment.geo.adapter.password"),
+						config.getString("bolt.enrichment.geo.adapter.table"));
+
+				GenericEnrichmentBolt geo_enrichment = new GenericEnrichmentBolt()
+						.withEnrichmentTag(
+								config.getString("bolt.enrichment.geo.enrichment_tag"))
+						.withOutputFieldName(topology_name)
+						.withAdapter(geo_adapter)
+						.withMaxTimeRetain(
+								config.getInt("bolt.enrichment.geo.MAX_TIME_RETAIN"))
+						.withMaxCacheSize(
+								config.getInt("bolt.enrichment.geo.MAX_CACHE_SIZE"))
+						.withKeys(geo_keys).withMetricConfiguration(config);
+
+				builder.setBolt("GeoEnrichBolt", geo_enrichment,
+						config.getInt("bolt.enrichment.geo.parallelism.hint"))
+						.shuffleGrouping("AlertsBolt")
+						.setNumTasks(config.getInt("bolt.enrichment.geo.num.tasks"));
+				
+				// ------------Hosts Enrichment Bolt Configuration
+				
+				Configuration hosts = new PropertiesConfiguration("TopologyConfigs/known_hosts/known_hosts.conf");
+				
+				Iterator<String> keys = hosts.getKeys();
+				Map<String, JSONObject> known_hosts = new HashMap<String, JSONObject>();
+				JSONParser parser = new JSONParser();
+				 
+				    while(keys.hasNext())
+				    {
+				    	String key = keys.next().trim();
+				    	JSONArray value = (JSONArray) parser.parse(hosts.getProperty(key).toString());
+				    	known_hosts.put(key, (JSONObject) value.get(0));
+				    }
+				
+				
+				System.out.println("---------------READ IN HOSTS" + known_hosts);
+				
+				HostAdapter host_adapter = new HostAdapter(known_hosts);
+				
+				GenericEnrichmentBolt host_enrichment = new GenericEnrichmentBolt().withEnrichmentTag(config.getString("bolt.enrichment.host.enrichment_tag")).
+						withAdapter(host_adapter).withMaxTimeRetain(
+								config.getInt("bolt.enrichment.host.MAX_TIME_RETAIN"))
+						.withMaxCacheSize(
+								config.getInt("bolt.enrichment.host.MAX_CACHE_SIZE")).withOutputFieldName(topology_name)
+								.withKeys(geo_keys).withMetricConfiguration(config);
+
+				builder.setBolt("HostEnrichBolt", host_enrichment,
+						config.getInt("bolt.enrichment.host.parallelism.hint"))
+						.shuffleGrouping("GeoEnrichBolt")
+						.setNumTasks(config.getInt("bolt.enrichment.host.num.tasks"));
 
 		// --------------CIF Enrichment
 
-		List<String> cif_keys = new ArrayList<String>();
+	/*	List<String> cif_keys = new ArrayList<String>();
 		cif_keys.add(config.getString("bolt.enrichment.cif.host"));
 
 		GenericEnrichmentBolt cif_enrichment = new GenericEnrichmentBolt()
@@ -96,7 +189,7 @@ public class LancopeTestTopology {
 		builder.setBolt("CIFEnrichmentBolt", cif_enrichment,
 				config.getInt("bolt.enrichment.cif.parallelism.hint"))
 				.shuffleGrouping("ParserBolt")
-				.setNumTasks(config.getInt("bolt.enrichment.cif.num.tasks"));
+				.setNumTasks(config.getInt("bolt.enrichment.cif.num.tasks"));*/
 
 		// * ------------HDFS BOLT For Enriched Data configuration
 
@@ -118,7 +211,7 @@ public class LancopeTestTopology {
 
 		builder.setBolt("HDFSBolt_enriched", hdfsBolt_enriched,
 				config.getInt("bolt.hdfs.parallelism.hint"))
-				.shuffleGrouping("CIFEnrichmentBolt")
+				.shuffleGrouping("HostEnrichBolt")
 				.setNumTasks(config.getInt("bolt.hdfs.num.tasks"));
 
 		// ------------Indexing BOLT configuration
@@ -136,7 +229,7 @@ public class LancopeTestTopology {
 
 		builder.setBolt("IndexingBolt", indexing_bolt,
 				config.getInt("bolt.indexing.parallelism.hint"))
-				.shuffleGrouping("CIFEnrichmentBolt")
+				.shuffleGrouping("HostEnrichBolt")
 				.setNumTasks(config.getInt("bolt.indexing.num.tasks"));
 		
 		

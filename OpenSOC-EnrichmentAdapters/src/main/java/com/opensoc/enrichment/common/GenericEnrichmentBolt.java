@@ -42,6 +42,7 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 	private static final Logger LOG = LoggerFactory
 			.getLogger(GenericEnrichmentBolt.class);
 	private JSONObject metricConfiguration;
+	
 
 	public GenericEnrichmentBolt withAdapter(EnrichmentAdapter adapter) {
 		_adapter = adapter;
@@ -84,8 +85,75 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 				.subset("com.opensoc.metrics"));
 		return this;
 	}
-
+	
 	@SuppressWarnings("unchecked")
+	public void execute(Tuple tuple) {
+
+		JSONObject in_json = (JSONObject) tuple.getValue(0);
+		LOG.debug("Received tuple: " + in_json);
+		
+		JSONObject message = (JSONObject) in_json.get("message");
+		LOG.debug("Extracted message: " + message);
+		
+		if(message == null)
+		{
+			LOG.error("The following message is improperly formatted: " + in_json);
+			_collector.fail(tuple);
+		}
+
+		for (String jsonkey : _jsonKeys) 
+		{
+			LOG.debug("Processing:" + jsonkey + " within:" + message);
+		
+			String jsonvalue = (String) message.get(jsonkey);
+			LOG.debug("---------Processing: " + jsonkey + " -> " + jsonvalue);
+
+			if (null == jsonvalue)
+			{
+				LOG.debug("Key " + jsonkey + "not present in message " + message);
+				continue;
+			}
+
+			JSONObject enrichment = cache.getUnchecked(jsonvalue);
+			LOG.debug("---------Enriched: " + jsonkey + " -> " + enrichment);
+			
+			if(enrichment == null)
+			{
+				LOG.error("Could not enrich string: " + jsonvalue);
+				_collector.fail(tuple);
+				continue;
+			}
+			
+			if(! in_json.containsKey("enrichment"))
+				in_json.put("enrichment", new JSONObject());
+			
+			JSONObject enr1 = (JSONObject) in_json.get("enrichment");
+			
+			if(! enr1.containsKey(_enrichment_tag))
+				enr1.put(_enrichment_tag, new JSONObject());
+			
+			System.out.println("-------------------ENR1 is: " + enr1);
+			
+			JSONObject enr2 = (JSONObject) enr1.get(_enrichment_tag);
+			enr2.put(jsonkey, enrichment);
+			
+			System.out.println("-------------------ENR2 is: " + enr2);
+
+			enr1.put(_enrichment_tag, enr2);
+			in_json.put("enrichment", enr1);
+		}
+
+		LOG.debug("-----------------combined: " + in_json);
+
+		_collector.emit(new Values(in_json));
+		emitCounter.inc();
+		_collector.ack(tuple);
+
+		ackCounter.inc();
+
+	}
+
+	/*@SuppressWarnings("unchecked")
 	public void execute(Tuple tuple) {
 
 		JSONObject original_message = (JSONObject) tuple.getValue(0);
@@ -130,7 +198,7 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 
 		ackCounter.inc();
 
-	}
+	}*/
 
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
 		declarer.declare(new Fields("message"));
@@ -142,9 +210,17 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 		LOG.info("Preparing Enrichment Bolt...");
 
 		_collector = collector;
+		
+		try
+		{
 		_reporter = new MetricReporter();
 		_reporter.initialize(metricConfiguration, GenericEnrichmentBolt.class);
 		this.registerCounters();
+		}
+		catch(Exception e)
+		{
+			LOG.error("Unable to initialize metrics reporting");
+		}
 
 		LOG.info("Enrichment bolt initialized...");
 	}

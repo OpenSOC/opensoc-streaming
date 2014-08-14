@@ -17,8 +17,14 @@
 
 package com.opensoc.parsing.parsers;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
+
+import com.esotericsoftware.minlog.Log;
 
 @SuppressWarnings("serial")
 public class BasicLancopeParser extends AbstractParser {
@@ -29,13 +35,39 @@ public class BasicLancopeParser extends AbstractParser {
 	@Override
 	public JSONObject parse(String raw_message) {
 
-		JSONObject payload;
-		payload = (JSONObject) JSONValue.parse(raw_message);
+		JSONObject payload = null;
 
-		JSONObject output = new JSONObject();
-		output.put("lancope", payload);
+		try {
+			payload = (JSONObject) JSONValue.parse(raw_message);
 
-		return output;
+			String message = payload.get("message").toString();
+			String[] parts = message.split(" ");
+			payload.put("ip_src_addr", parts[6]);
+			payload.put("ip_dst_addr", parts[7]);
+
+			String fixed_date = parts[5].replace('T', ' ');
+			fixed_date = fixed_date.replace('Z', ' ').trim();
+
+			SimpleDateFormat formatter = new SimpleDateFormat(
+					"yyyy-MM-dd HH:mm:ss");
+
+			Date date;
+
+			date = formatter.parse(fixed_date);
+			payload.put("timestamp", date.getTime());
+
+			payload.remove("@timestamp");
+			payload.remove("message");
+			payload.put("original_string", message);
+
+			JSONObject message_object = new JSONObject();
+			message_object.put("message", payload);
+
+			return message_object;
+		} catch (ParseException e) {
+
+			_LOG.error("Unable to parse message: " + payload.toJSONString());
+			return null;
+		}
 	}
-
 }

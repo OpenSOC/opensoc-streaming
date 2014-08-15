@@ -41,7 +41,7 @@ public class FileReader {
 		String strLine;
 		while ((strLine = br.readLine()) != null) 
 		{
-			System.out.println("-----------------I READ: " + strLine);
+			//System.out.println("-----------------I READ: " + strLine);
 			lines.add(strLine);
 		}
 		//br.close();

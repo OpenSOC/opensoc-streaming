@@ -16,11 +16,12 @@ public class StaticAllTagger extends AbstractTaggerAdapter{
 	}
 
 	@SuppressWarnings("unchecked")
-	@Override
 	public JSONObject tag(JSONObject raw_message) 
 	{
 		raw_message.put("alert", _static_tag_message);
 		return raw_message;
 	}
+
+
 
 }

@@ -95,9 +95,16 @@ public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 		boolean success = _adapter.initializeConnection(_IndexIP, _IndexPort,
 				_ClusterName, _IndexName, _DocumentName, _BulkIndexNumber);
 
-		_reporter = new MetricReporter();
-		_reporter.initialize(metricConfiguration, TelemetryIndexingBolt.class);
-		this.registerCounters();
+		try
+		{
+			_reporter = new MetricReporter();
+			_reporter.initialize(metricConfiguration, TelemetryIndexingBolt.class);
+			this.registerCounters();
+		}
+		catch (Exception e)
+		{
+			LOG.error("Unable to initialize metrics reporter");
+		}
 
 		if (!success)
 			throw new IllegalStateException(

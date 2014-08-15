@@ -2,13 +2,19 @@ package com.opensoc.dataservices.websocket;
 
 import java.net.HttpCookie;
 import java.util.List;
+import java.util.Properties;
 
 import org.eclipse.jetty.websocket.servlet.ServletUpgradeRequest;
 import org.eclipse.jetty.websocket.servlet.ServletUpgradeResponse;
 import org.eclipse.jetty.websocket.servlet.WebSocketCreator;
 
+import com.google.inject.Inject;
+
 public class MyWebSocketCreator implements WebSocketCreator
 {
+	@Inject
+	private Properties configProps;
+	
 	@Override
 	public Object createWebSocket(ServletUpgradeRequest request, ServletUpgradeResponse response) 
 	{
@@ -34,6 +40,6 @@ public class MyWebSocketCreator implements WebSocketCreator
 		}
 		
 		// return new RandomMessageSenderSocket( authGood );
-		return new KafkaMessageSenderSocket( authGood );
+		return new KafkaMessageSenderSocket( configProps, authGood );
 	}
 }

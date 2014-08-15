@@ -2,7 +2,7 @@ package com.opensoc.dataservices.websocket;
 
 
 import java.io.IOException;
-import java.util.UUID;
+import java.util.Properties;
 
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose;
@@ -10,20 +10,23 @@ import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 
+import com.google.inject.Inject;
 import com.opensoc.dataservices.kafkaclient.KafkaClient;
 
 @WebSocket(maxTextMessageSize = 64 * 1024)
 public class KafkaMessageSenderSocket 
 {
+	// config Properties object for our zooKeeper URL, etc. here 
+	private Properties configProps;
+	
 	boolean authGood = false;
 	int threads = 1;
 	KafkaClient client;
-	String zooKeeper = "ec2-54-210-207-24.compute-1.amazonaws.com:2181";
-    String groupId = "123f";
-    String topic = "test";
+
 	
-    public KafkaMessageSenderSocket( final boolean authGood )
+    public KafkaMessageSenderSocket( Properties configProps, final boolean authGood )
 	{
+    	this.configProps = configProps;
 		this.authGood = authGood;  
 	}
 	
@@ -61,7 +64,13 @@ public class KafkaMessageSenderSocket
 		
 		if( text.trim().equals( "startMessages" ))
 		{
-			client = new KafkaClient(zooKeeper, groupId, topic, session.getRemote() );
+			String zooKeeperHost = configProps.getProperty( "kafkaZookeeperHost" );
+			String zooKeeperPort = configProps.getProperty( "kafkaZookeeperPort" );
+			String groupId = configProps.getProperty( "kafkaGroupId" );
+		    String topic = configProps.getProperty( "kafkaTopicName" );
+			
+			
+			client = new KafkaClient(zooKeeperHost + ":" + zooKeeperPort, groupId, topic, session.getRemote() );
 	        client.run(threads);
 		}
 		else if( text.trim().equals( "stopMessages" ))

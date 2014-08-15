@@ -42,7 +42,7 @@ public class GeoMysqlAdapter extends AbstractGeoAdapter {
 		try {
 			_ip = InetAddress.getByName(ip).getHostAddress();
 			
-			boolean reachable = InetAddress.getByName(ip).isReachable(100);
+			boolean reachable = InetAddress.getByName(ip).isReachable(500);
 
 			if (!reachable)
 				throw new Exception("Unable to reach IP " + _ip);

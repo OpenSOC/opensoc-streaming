@@ -3,9 +3,6 @@ package com.opensoc.json.serialization;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import org.apache.commons.configuration.Configuration;
 import org.json.simple.JSONObject;
 

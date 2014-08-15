@@ -2,6 +2,7 @@ package com.opensoc.dataservices;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
@@ -9,10 +10,16 @@ import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Properties;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.ServletContext;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 import org.apache.jasper.servlet.JspServlet;
 import org.apache.shiro.guice.web.ShiroWebModule;
 import org.apache.shiro.realm.ldap.JndiLdapContextFactory;
@@ -40,9 +47,12 @@ import com.google.inject.Singleton;
 import com.google.inject.name.Names;
 import com.google.inject.servlet.GuiceFilter;
 import com.google.inject.servlet.ServletModule;
+import com.opensoc.alerts.server.AlertsProcessingServer;
+import com.opensoc.alerts.server.AlertsSearcher;
 import com.opensoc.dataservices.servlet.LoginServlet;
 import com.opensoc.dataservices.servlet.LogoutServlet;
 import com.opensoc.dataservices.websocket.MessageSenderServlet;
+import com.opensoc.dataservices.websocket.MyWebSocketCreator;
 
 public class Main {
 	
@@ -52,19 +62,64 @@ public class Main {
 	
     public static void main(String[] args) throws Exception {
 
+    	Options options = new Options();
+    	
+    	options.addOption( "homeDir", true, "Home directory for the service" );
+    	
+    	CommandLineParser parser = new GnuParser();
+    	CommandLine cmd = parser.parse( options, args);
+    	
+    	Properties configProps = new Properties();
+    	
+    	String homeDir = cmd.getOptionValue("homeDir");
+    	
+    	if( homeDir.endsWith( "/" ))
+    	{
+    		homeDir = homeDir.substring(0, homeDir.length()-1);
+    	}
+    	
+    	File configFile = new File( homeDir + "/config.properties" );
+    	FileReader configFileReader = new FileReader( configFile );
+    	try
+    	{
+    		configProps.load(configFileReader);
+    		
+    		Option[] cmdOptions = cmd.getOptions();
+    		for( Option opt : cmdOptions )
+    		{
+    			String argName = opt.getOpt();
+    			String argValue = opt.getValue();
+
+    			System.out.println( "adding argName\"" + argName + "\" with value \"" + argValue + "\"");	
+    			configProps.put(argName, argValue);
+    		}
+    		
+    	}
+    	finally
+    	{
+    		if( configFileReader != null )
+    		{
+    			configFileReader.close();
+    		}
+    	}
+    	
         WebAppContext context = new WebAppContext();
     	
-    	Injector injector = Guice.createInjector(new DefaultServletModule(), new DefaultShiroWebModule(context.getServletContext()), new AbstractModule() {
+    	Injector injector = Guice.createInjector(   new DefaultServletModule(configProps), 
+    												new AlertsServerModule(configProps),
+    												new DefaultShiroWebModule(configProps, context.getServletContext()), 
+    												new AbstractModule() {
 			
-			@Override
-			protected void configure() {
-				binder().requireExplicitBindings();
-				bind(GuiceFilter.class);
-				bind( GuiceResteasyBootstrapServletContextListener.class );
-				bind( EnvironmentLoaderListener.class );
-				
-			}
-		});
+														@Override
+														protected void configure() {
+															binder().requireExplicitBindings();
+															bind(GuiceFilter.class);
+															bind( GuiceResteasyBootstrapServletContextListener.class );
+															bind( EnvironmentLoaderListener.class );
+										
+														}
+													}
+    											);
 
     	
         injector.getAllBindings();
@@ -157,16 +212,49 @@ public class Main {
         
         server.setHandler(context);
         server.start();
+        
+        AlertsProcessingServer alertsServer = injector.getInstance(AlertsProcessingServer.class);
+        
+        alertsServer.startProcessing();
+        
         server.join();
     }
 }
 
+class AlertsServerModule extends AbstractModule {
+	
+	private Properties configProps;
+	
+	AlertsServerModule( final Properties configProps ) {
+		this.configProps = configProps;
+	}
+	
+	@Override
+	protected void configure() {
+		bind( AlertsProcessingServer.class).in(Singleton.class);
+		bind( AlertsSearcher.class).in(Singleton.class);
+	}
+	
+	@Provides Properties getConfigProps()
+	{
+		return configProps;
+	}
+}
+
 class DefaultServletModule extends ServletModule {
     
+    private Properties configProps;
+
+    public DefaultServletModule( final Properties configProps ) {
+        this.configProps = configProps;
+    }	
+	
 	@Override
     protected void configureServlets() {
         
 		ShiroWebModule.bindGuiceFilter(binder());
+		
+		bind( MyWebSocketCreator.class ).in(Singleton.class);
 		
         bind( HttpServletDispatcher.class ).in(Singleton.class);
         serve( "/rest/*").with(HttpServletDispatcher.class);
@@ -184,10 +272,18 @@ class DefaultServletModule extends ServletModule {
 }
 
 class DefaultShiroWebModule extends ShiroWebModule {
-    DefaultShiroWebModule(ServletContext sc) {
+    
+	private Properties configProps;
+	
+	DefaultShiroWebModule(final ServletContext sc) {
         super(sc);
     }
 
+    DefaultShiroWebModule(final Properties configProps, final ServletContext sc) {
+        super(sc);
+        this.configProps = configProps;
+    }    
+    
     protected void configureShiroWeb() {
         bindConstant().annotatedWith(Names.named("shiro.loginUrl")).to( "/login.jsp" );
     	bindRealm().to(JndiLdapRealm.class);
@@ -199,14 +295,20 @@ class DefaultShiroWebModule extends ShiroWebModule {
         addFilterChain("/withsocket2.jsp", ANON );
     }
     
-    @Provides JndiLdapRealm providesRealm()
+    @Provides 
+    @javax.inject.Singleton 
+    JndiLdapRealm providesRealm()
     {
+    	// pull our ldap url, etc., from config
+    	String ldapUrl = configProps.getProperty("ldapUrl");
+    	System.out.println( "got ldapurl from config: " + ldapUrl );
+    	
     	JndiLdapContextFactory contextFactory = new JndiLdapContextFactory();
-    	// contextFactory.setUrl( "ldap://54.210.98.199:389" );
-    	contextFactory.setUrl( "ldap://ec2-54-88-217-194.compute-1.amazonaws.com" );
+    	contextFactory.setUrl( ldapUrl );
     	contextFactory.setAuthenticationMechanism( "simple" );
     	JndiLdapRealm realm = new JndiLdapRealm();
     	realm.setContextFactory(contextFactory);
+    	
     	return realm;
     }
 }

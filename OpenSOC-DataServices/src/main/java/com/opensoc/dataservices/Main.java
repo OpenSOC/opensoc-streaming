@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Properties;
 
 import javax.servlet.DispatcherType;
-import javax.servlet.ServletContext;
+import javax.xml.parsers.FactoryConfigurationError;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -21,11 +21,8 @@ import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.jasper.servlet.JspServlet;
-import org.apache.shiro.guice.web.ShiroWebModule;
-import org.apache.shiro.realm.ldap.JndiLdapContextFactory;
-import org.apache.shiro.realm.ldap.JndiLdapRealm;
+import org.apache.log4j.xml.DOMConfigurator;
 import org.apache.shiro.web.env.EnvironmentLoaderListener;
-import org.apache.shiro.web.filter.authc.LogoutFilter;
 import org.apache.tomcat.InstanceManager;
 import org.apache.tomcat.SimpleInstanceManager;
 import org.eclipse.jetty.annotations.ServletContainerInitializersStarter;
@@ -37,22 +34,17 @@ import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.jboss.resteasy.plugins.guice.GuiceResteasyBootstrapServletContextListener;
-import org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
-import com.google.inject.name.Names;
 import com.google.inject.servlet.GuiceFilter;
-import com.google.inject.servlet.ServletModule;
 import com.opensoc.alerts.server.AlertsProcessingServer;
-import com.opensoc.alerts.server.AlertsSearcher;
-import com.opensoc.dataservices.servlet.LoginServlet;
-import com.opensoc.dataservices.servlet.LogoutServlet;
-import com.opensoc.dataservices.websocket.MessageSenderServlet;
-import com.opensoc.dataservices.websocket.MyWebSocketCreator;
+import com.opensoc.dataservices.modules.guice.AlertsServerModule;
+import com.opensoc.dataservices.modules.guice.DefaultServletModule;
+import com.opensoc.dataservices.modules.guice.DefaultShiroWebModule;
 
 public class Main {
 	
@@ -60,7 +52,10 @@ public class Main {
 	
 	private static final String WEBROOT_INDEX = "/webroot/";
 	
+	private static final Logger logger = LoggerFactory.getLogger( Main.class );
+	
     public static void main(String[] args) throws Exception {
+
 
     	Options options = new Options();
     	
@@ -77,6 +72,12 @@ public class Main {
     	{
     		homeDir = homeDir.substring(0, homeDir.length()-1);
     	}
+
+
+    	DOMConfigurator.configure( homeDir + "/log4j.xml" );
+    	
+    	logger.warn( "DataServices Server starting..." );
+    	
     	
     	File configFile = new File( homeDir + "/config.properties" );
     	FileReader configFileReader = new FileReader( configFile );
@@ -89,8 +90,7 @@ public class Main {
     		{
     			String argName = opt.getOpt();
     			String argValue = opt.getValue();
-
-    			System.out.println( "adding argName\"" + argName + "\" with value \"" + argValue + "\"");	
+	
     			configProps.put(argName, argValue);
     		}
     		
@@ -218,97 +218,5 @@ public class Main {
         alertsServer.startProcessing();
         
         server.join();
-    }
-}
-
-class AlertsServerModule extends AbstractModule {
-	
-	private Properties configProps;
-	
-	AlertsServerModule( final Properties configProps ) {
-		this.configProps = configProps;
-	}
-	
-	@Override
-	protected void configure() {
-		bind( AlertsProcessingServer.class).in(Singleton.class);
-		bind( AlertsSearcher.class).in(Singleton.class);
-	}
-	
-	@Provides Properties getConfigProps()
-	{
-		return configProps;
-	}
-}
-
-class DefaultServletModule extends ServletModule {
-    
-    private Properties configProps;
-
-    public DefaultServletModule( final Properties configProps ) {
-        this.configProps = configProps;
-    }	
-	
-	@Override
-    protected void configureServlets() {
-        
-		ShiroWebModule.bindGuiceFilter(binder());
-		
-		bind( MyWebSocketCreator.class ).in(Singleton.class);
-		
-        bind( HttpServletDispatcher.class ).in(Singleton.class);
-        serve( "/rest/*").with(HttpServletDispatcher.class);
-        
-        bind( MessageSenderServlet.class ).in(Singleton.class);
-		serve( "/ws/*").with(MessageSenderServlet.class );
-		
-		bind( LoginServlet.class).in(Singleton.class);
-		serve( "/login" ).with( LoginServlet.class );
-        
-		bind( LogoutServlet.class).in(Singleton.class);
-		serve( "/logout" ).with( LogoutServlet.class );
-		
-    }
-}
-
-class DefaultShiroWebModule extends ShiroWebModule {
-    
-	private Properties configProps;
-	
-	DefaultShiroWebModule(final ServletContext sc) {
-        super(sc);
-    }
-
-    DefaultShiroWebModule(final Properties configProps, final ServletContext sc) {
-        super(sc);
-        this.configProps = configProps;
-    }    
-    
-    protected void configureShiroWeb() {
-        bindConstant().annotatedWith(Names.named("shiro.loginUrl")).to( "/login.jsp" );
-    	bindRealm().to(JndiLdapRealm.class);
-    	bind( LogoutFilter.class);
-        
-        addFilterChain("/login", ANON);
-        addFilterChain("/logout", ANON);
-        addFilterChain("/withsocket.jsp", AUTHC );
-        addFilterChain("/withsocket2.jsp", ANON );
-    }
-    
-    @Provides 
-    @javax.inject.Singleton 
-    JndiLdapRealm providesRealm()
-    {
-    	// pull our ldap url, etc., from config
-    	String ldapUrl = configProps.getProperty("ldapUrl");
-    	System.out.println( "got ldapurl from config: " + ldapUrl );
-    	
-    	JndiLdapContextFactory contextFactory = new JndiLdapContextFactory();
-    	contextFactory.setUrl( ldapUrl );
-    	contextFactory.setAuthenticationMechanism( "simple" );
-    	JndiLdapRealm realm = new JndiLdapRealm();
-    	realm.setContextFactory(contextFactory);
-    	
-    	return realm;
     }
 }

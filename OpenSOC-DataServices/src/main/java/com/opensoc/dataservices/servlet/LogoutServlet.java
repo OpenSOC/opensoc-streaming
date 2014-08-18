@@ -16,9 +16,14 @@ import org.apache.shiro.authc.LockedAccountException;
 import org.apache.shiro.authc.UnknownAccountException;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.opensoc.dataservices.kafkaclient.KafkaConsumer;
 
 public class LogoutServlet extends HttpServlet 
 {
+	private static final Logger logger = LoggerFactory.getLogger( LogoutServlet.class );
 	
 	private static final long serialVersionUID = 1L;
 
@@ -31,7 +36,7 @@ public class LogoutServlet extends HttpServlet
 	@Override
 	public void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException 
 	{
-		System.out.println( "Doing logout here..." );
+		logger.info( "Doing logout here..." );
 		
 		Subject currentUser = SecurityUtils.getSubject();
 

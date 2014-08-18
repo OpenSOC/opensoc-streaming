@@ -8,6 +8,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.eclipse.jetty.websocket.api.RemoteEndpoint;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.opensoc.dataservices.Main;
 
 import kafka.consumer.ConsumerConfig;
 import kafka.consumer.KafkaStream;
@@ -15,6 +19,8 @@ import kafka.javaapi.consumer.ConsumerConnector;
 
 public class KafkaClient 
 {
+	private static final Logger logger = LoggerFactory.getLogger( KafkaClient.class );
+	
 	private final ConsumerConnector consumer;
     private final String topic;
     private  ExecutorService executor;	
@@ -43,7 +49,7 @@ public class KafkaClient
     
     public void shutdown() {
     	
-    	System.out.println( "Client shutdown() method invoked" );
+    	logger.info( "Client shutdown() method invoked" );
     	
         if (consumer != null) { 
         	consumer.shutdown();
@@ -60,7 +66,7 @@ public class KafkaClient
         Map<String, List<KafkaStream<byte[], byte[]>>> consumerMap = consumer.createMessageStreams(topicCountMap);
         List<KafkaStream<byte[], byte[]>> streams = consumerMap.get(topic);
  
-        System.out.println( "streams.size = " + streams.size() );
+        logger.debug( "streams.size = " + streams.size() );
         
         // now launch all the threads
         //
@@ -70,7 +76,7 @@ public class KafkaClient
         //
         int threadNumber = 0;
         for (final KafkaStream stream : streams) {
-            executor.submit(new Consumer(this.remote, stream, threadNumber));
+            executor.submit(new KafkaConsumer(this.remote, stream, threadNumber));
             threadNumber++;
         }
     }   	

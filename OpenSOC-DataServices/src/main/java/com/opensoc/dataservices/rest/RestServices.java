@@ -2,13 +2,21 @@ package com.opensoc.dataservices.rest;
 
 import java.util.HashSet;
 import java.util.Set;
+
 import javax.ws.rs.core.Application;
 
-public class MyServices extends Application 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.opensoc.dataservices.kafkaclient.KafkaConsumer;
+
+public class RestServices extends Application 
 {
+	private static final Logger logger = LoggerFactory.getLogger( RestServices.class );
+	
 	private static Set services = new HashSet();
 
-	public MyServices() 
+	public RestServices() 
 	{
 		// initialize restful services
 		services.add(new Index());

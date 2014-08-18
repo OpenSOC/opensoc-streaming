@@ -300,6 +300,7 @@ public class BroEnrichmentTestTopology {
 				.withBulk(config.getInt("bolt.indexing.bulk"))
 				.withOutputFieldName(topology_name)
 				.withIndexAdapter(new ESBaseBulkAdapter())
+				.withMetricConfiguration(config)
 				;
 
 		builder.setBolt("IndexingBolt", indexing_bolt,

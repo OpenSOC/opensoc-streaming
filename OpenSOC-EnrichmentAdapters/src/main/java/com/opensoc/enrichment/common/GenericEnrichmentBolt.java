@@ -145,10 +145,10 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 
 		LOG.debug("-----------------combined: " + in_json);
 
-		_collector.emit(new Values(in_json));
-		emitCounter.inc();
+		_collector.emit(new Values(in_json));	
 		_collector.ack(tuple);
 
+		emitCounter.inc();
 		ackCounter.inc();
 
 	}

@@ -124,7 +124,7 @@ public class BroEnrichmentTestTopology {
 		
 		// ------------Geo Enrichment Bolt Configuration
 
-		List<String> geo_keys = new ArrayList<String>();
+	/*	List<String> geo_keys = new ArrayList<String>();
 		geo_keys.add(config.getString("bolt.enrichment.geo.source_ip"));
 		geo_keys.add(config.getString("bolt.enrichment.geo.resp_ip"));
 
@@ -149,11 +149,11 @@ public class BroEnrichmentTestTopology {
 		builder.setBolt("GeoEnrichBolt", geo_enrichment,
 				config.getInt("bolt.enrichment.geo.parallelism.hint"))
 				.shuffleGrouping("ParserBolt")
-				.setNumTasks(config.getInt("bolt.enrichment.geo.num.tasks"));
+				.setNumTasks(config.getInt("bolt.enrichment.geo.num.tasks"));*/
 		
 		// ------------Hosts Enrichment Bolt Configuration
 		
-		Configuration hosts = new PropertiesConfiguration("TopologyConfigs/known_hosts/known_hosts.conf");
+	/*	Configuration hosts = new PropertiesConfiguration("TopologyConfigs/known_hosts/known_hosts.conf");
 		
 		Iterator<String> keys = hosts.getKeys();
 		Map<String, JSONObject> known_hosts = new HashMap<String, JSONObject>();
@@ -178,7 +178,7 @@ public class BroEnrichmentTestTopology {
 		builder.setBolt("HostEnrichBolt", host_enrichment,
 				config.getInt("bolt.enrichment.host.parallelism.hint"))
 				.shuffleGrouping("GeoEnrichBolt")
-				.setNumTasks(config.getInt("bolt.enrichment.host.num.tasks"));
+				.setNumTasks(config.getInt("bolt.enrichment.host.num.tasks"));*/
 		
 		// -------------Alerts Bolt
 		
@@ -222,7 +222,7 @@ public class BroEnrichmentTestTopology {
 
 		builder.setBolt("WhoisEnrichBolt", whois_enrichment,
 				config.getInt("bolt.enrichment.whois.parallelism.hint"))
-				.shuffleGrouping("HostEnrichBolt")
+				.shuffleGrouping("ParserBolt")
 				.setNumTasks(config.getInt("bolt.enrichment.whois.num.tasks"));
 		
 

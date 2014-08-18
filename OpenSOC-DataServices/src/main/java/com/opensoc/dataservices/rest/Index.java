@@ -8,9 +8,16 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.opensoc.dataservices.kafkaclient.KafkaConsumer;
+
 @Path("/")
 public class Index 
 {
+	private static final Logger logger = LoggerFactory.getLogger( Index.class );
+	
 	@GET
 	@Produces("text/html")
 	public Response index() throws URISyntaxException 

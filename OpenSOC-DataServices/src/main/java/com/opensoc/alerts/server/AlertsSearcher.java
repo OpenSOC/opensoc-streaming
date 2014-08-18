@@ -13,6 +13,7 @@ import java.util.function.Consumer;
 import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
+
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
@@ -23,11 +24,16 @@ import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
+import com.opensoc.dataservices.Main;
 
 public class AlertsSearcher implements Runnable {
 
+	private static final Logger logger = LoggerFactory.getLogger( AlertsSearcher.class );
+	
 	@Inject
 	private Properties configProps;
 	
@@ -39,7 +45,7 @@ public class AlertsSearcher implements Runnable {
 
 		try
 		{
-			System.out.println( "Doing Elastic Search search..." );
+			logger.debug( "Doing Elastic Search search..." );
 			
 			long currentSearchTime = System.currentTimeMillis();
 			long lastSearchTime = 0L;
@@ -50,12 +56,12 @@ public class AlertsSearcher implements Runnable {
 				homeDir = homeDir.substring(0, homeDir.length()-1);
 			}
 			
-			System.out.println( "using homeDir = " + homeDir );
+			logger.info( "using homeDir = " + homeDir );
 			
 			File searcherStateFile = new File( homeDir + "/searcherState.properties" );
 			if( searcherStateFile.exists() )
 			{
-				System.out.println( "found existing searcherState.properties file" );
+				logger.info( "found existing searcherState.properties file" );
 				FileInputStream fis = null;
 				try {
 					fis = new FileInputStream( searcherStateFile );
@@ -64,26 +70,24 @@ public class AlertsSearcher implements Runnable {
 					lastSearchTime = Long.parseLong( searcherState.getProperty("lastSearchTime"));
 				}
 				catch( FileNotFoundException e ) {
-					e.printStackTrace();
-					// TODO: handle this exception properly...
+					logger.error( "Error locating lastSearchTime value from state file", e );
+					
 				} catch (IOException e) {
-					// TODO: handle this exception properly...
-					e.printStackTrace();
+					logger.error( "Error locating lastSearchTime value from state file", e );
 				}
 				finally
 				{
 					try {
 						fis.close();
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						logger.error( "Probably ignorable error closing file stream: ", e );
 					}
 				}
 			}
 			else
 			{
 				// nothing to do here.  We'll write out our lastSearchTime at the end
-				System.out.println( "No existing searcherState.properties found" );
+				logger.info( "No existing searcherState.properties found" );
 			}
 			
 			// search for alerts newer than "lastSearchTime" 
@@ -94,13 +98,13 @@ public class AlertsSearcher implements Runnable {
 			Client client = null;
 			try
 			{
-				System.out.println( "initializing elasticsearch client" );
+				logger.info( "initializing elasticsearch client" );
 				
 				String elasticSearchHostName = configProps.getProperty( "elasticSearchHostName", "localhost" );
 				int elasticSearchHostPort = Integer.parseInt(configProps.getProperty( "elasticSearchHostPort", "9300" ) );
 				client = new TransportClient(settings).addTransportAddress(new InetSocketTransportAddress(elasticSearchHostName, elasticSearchHostPort));
 					
-				System.out.println( "lastSearchTime: " + lastSearchTime );
+				logger.info( "lastSearchTime: " + lastSearchTime );
 				
 				SearchResponse response = client.prepareSearch( "alerts" )
 				.setTypes( "alert" )
@@ -113,7 +117,7 @@ public class AlertsSearcher implements Runnable {
 				.actionGet();
 				
 				SearchHits hits = response.getHits();
-				System.out.println( "Total hits: " + hits.getTotalHits());
+				logger.debug( "Total hits: " + hits.getTotalHits());
 
 				
 				// for all hits, put the alert onto the Kafka topic.
@@ -139,10 +143,9 @@ public class AlertsSearcher implements Runnable {
 				
 			}
 			catch(  FileNotFoundException e ) {
-				e.printStackTrace();
+				logger.error( "Error saving lastSearchTime: ", e );
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				logger.error( "Error saving lastSearchTime: ", e );
 			}
 			finally {
 				
@@ -150,16 +153,15 @@ public class AlertsSearcher implements Runnable {
 					fos.close();
 				} 
 				catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					logger.error( "Probably ignorable error closing file stream: ", e );
 				}
 			}
 			
-			System.out.println( "Done with ElasticSearch search... " );
+			logger.info( "Done with ElasticSearch search... " );
 		}
 		catch( Exception e )
 		{
-			e.printStackTrace();
+			logger.error( "Unexpected error while searching ElasticSearch index:", e );
 		}
 	}
 	
@@ -169,13 +171,13 @@ public class AlertsSearcher implements Runnable {
 		String kafkaBrokerHostPort = configProps.getProperty("kafkaBrokerHostPort", "9092" );
 		String kafkaTopicName = configProps.getProperty("kafkaTopicName", "test" );
 		
-		System.out.println( "kafkaBrokerHostName: " + kafkaBrokerHostName );
-		System.out.println( "kafkaBrokerHostPort: " + kafkaBrokerHostPort );
-		System.out.println( "kafkaTopicName: " + kafkaTopicName );
+		logger.debug( "kafkaBrokerHostName: " + kafkaBrokerHostName );
+		logger.debug( "kafkaBrokerHostPort: " + kafkaBrokerHostPort );
+		logger.debug( "kafkaTopicName: " + kafkaTopicName );
 		
 		String sourceData = hit.getSourceAsString();
 		
-		System.out.println( "Source Data: " + sourceData );
+		logger.debug( "Source Data: " + sourceData );
 		Properties props = new Properties();
 		 
 		props.put("metadata.broker.list", kafkaBrokerHostName + ":" + kafkaBrokerHostPort );

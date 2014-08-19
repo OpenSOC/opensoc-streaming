@@ -96,6 +96,7 @@ public class ISEParser implements ISEParserConstants {
       key = null;
       value = null;
     }
+    ensureEOF();
     {if (true) return map;}
     throw new Error("Missing return statement in function");
   }
@@ -103,6 +104,7 @@ public class ISEParser implements ISEParserConstants {
   final public String objectKey() throws ParseException {
   String k;
     k = string();
+    System.out.println("key == " + k);
     {if (true) return k;}
     throw new Error("Missing return statement in function");
   }
@@ -112,36 +114,46 @@ public class ISEParser implements ISEParserConstants {
   String eof = "EOF";
   Map m = null;
     if (jj_2_1(2147483647)) {
-      x = innerMap();
+      x = nullValue();
     } else if (jj_2_2(2147483647)) {
-      x = nullValue1();
+      x = innerMap();
     } else {
       switch (jj_nt.kind) {
-      case STRING_BODY:
-        x = string();
-        break;
-      case NULL:
-        x = nullValue();
+      case TAG:
+        x = tagString();
         break;
       default:
         jj_la1[2] = jj_gen;
-        jj_consume_token(-1);
-        throw new ParseException();
+        if (jj_2_3(2147483647)) {
+          x = blankValue();
+        } else if (jj_2_4(2)) {
+          x = string();
+        } else {
+          jj_consume_token(-1);
+          throw new ParseException();
+        }
       }
     }
-    if (x instanceof Map)
-        {if (true) return "Map";}
-    {if (true) return (String)x;}
+    System.out.println("val == " + x);
+
+    if (x instanceof Map) {if (true) return "Map";}
+    {if (true) return (String) x;}
     throw new Error("Missing return statement in function");
   }
 
   final public String nullValue() throws ParseException {
-    jj_consume_token(NULL);
     {if (true) return null;}
     throw new Error("Missing return statement in function");
   }
 
-  final public String nullValue1() throws ParseException {
+  final public String tagString() throws ParseException {
+  String output = "(tag=0)";
+    jj_consume_token(TAG);
+    {if (true) return output;}
+    throw new Error("Missing return statement in function");
+  }
+
+  final public String blankValue() throws ParseException {
     {if (true) return null;}
     throw new Error("Missing return statement in function");
   }
@@ -149,7 +161,7 @@ public class ISEParser implements ISEParserConstants {
   final public String string() throws ParseException {
   String s;
     jj_consume_token(STRING_BODY);
-                        {if (true) return token.image;}
+    {if (true) return token.image;}
     throw new Error("Missing return statement in function");
   }
 
@@ -167,7 +179,105 @@ public class ISEParser implements ISEParserConstants {
     finally { jj_save(1, xla); }
   }
 
+  private boolean jj_2_3(int xla) {
+    jj_la = xla; jj_lastpos = jj_scanpos = token;
+    try { return !jj_3_3(); }
+    catch(LookaheadSuccess ls) { return true; }
+    finally { jj_save(2, xla); }
+  }
+
+  private boolean jj_2_4(int xla) {
+    jj_la = xla; jj_lastpos = jj_scanpos = token;
+    try { return !jj_3_4(); }
+    catch(LookaheadSuccess ls) { return true; }
+    finally { jj_save(3, xla); }
+  }
+
+  private boolean jj_3R_14() {
+    return false;
+  }
+
+  private boolean jj_3_3() {
+    if (jj_scan_token(0)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_3() {
+    if (jj_3R_5()) return true;
+    if (jj_scan_token(EQUALS)) return true;
+    if (jj_3R_6()) return true;
+    Token xsp;
+    while (true) {
+      xsp = jj_scanpos;
+      if (jj_3R_7()) { jj_scanpos = xsp; break; }
+    }
+    return false;
+  }
+
+  private boolean jj_3_2() {
+    if (jj_3R_3()) return true;
+    return false;
+  }
+
+  private boolean jj_3_1() {
+    if (jj_scan_token(COMMA)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_13() {
+    if (jj_scan_token(TAG)) return true;
+    return false;
+  }
+
+  private boolean jj_3_4() {
+    if (jj_3R_4()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_11() {
+    if (jj_3R_14()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_10() {
+    if (jj_3R_13()) return true;
+    return false;
+  }
+
   private boolean jj_3R_5() {
+    if (jj_3R_4()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_4() {
+    if (jj_scan_token(STRING_BODY)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_9() {
+    if (jj_3R_3()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_7() {
+    if (jj_scan_token(SLASH)) return true;
+    if (jj_scan_token(COMMA)) return true;
+    if (jj_3R_5()) return true;
+    if (jj_scan_token(EQUALS)) return true;
+    if (jj_3R_6()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_8() {
+    if (jj_3R_12()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_12() {
+    return false;
+  }
+
+  private boolean jj_3R_6() {
     Token xsp;
     xsp = jj_scanpos;
     if (jj_3R_8()) {
@@ -176,80 +286,13 @@ public class ISEParser implements ISEParserConstants {
     jj_scanpos = xsp;
     if (jj_3R_10()) {
     jj_scanpos = xsp;
-    if (jj_3R_11()) return true;
+    if (jj_3R_11()) {
+    jj_scanpos = xsp;
+    if (jj_3_4()) return true;
     }
     }
     }
-    return false;
-  }
-
-  private boolean jj_3R_8() {
-    if (jj_3R_3()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_13() {
-    if (jj_scan_token(NULL)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_7() {
-    if (jj_scan_token(STRING_BODY)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_3() {
-    if (jj_3R_4()) return true;
-    if (jj_scan_token(EQUALS)) return true;
-    if (jj_3R_5()) return true;
-    Token xsp;
-    while (true) {
-      xsp = jj_scanpos;
-      if (jj_3R_6()) { jj_scanpos = xsp; break; }
     }
-    return false;
-  }
-
-  private boolean jj_3_2() {
-    if (jj_scan_token(0)) return true;
-    return false;
-  }
-
-  private boolean jj_3_1() {
-    if (jj_3R_3()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_11() {
-    if (jj_3R_13()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_4() {
-    if (jj_3R_7()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_10() {
-    if (jj_3R_7()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_12() {
-    return false;
-  }
-
-  private boolean jj_3R_9() {
-    if (jj_3R_12()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_6() {
-    if (jj_scan_token(SLASH)) return true;
-    if (jj_scan_token(COMMA)) return true;
-    if (jj_3R_4()) return true;
-    if (jj_scan_token(EQUALS)) return true;
-    if (jj_3R_5()) return true;
     return false;
   }
 
@@ -269,9 +312,9 @@ public class ISEParser implements ISEParserConstants {
       jj_la1_init_0();
    }
    private static void jj_la1_init_0() {
-      jj_la1_0 = new int[] {0x80,0x20,0x300,};
+      jj_la1_0 = new int[] {0x80,0x20,0x100,};
    }
-  final private JJCalls[] jj_2_rtns = new JJCalls[2];
+  final private JJCalls[] jj_2_rtns = new JJCalls[4];
   private boolean jj_rescan = false;
   private int jj_gc = 0;
 
@@ -447,7 +490,7 @@ public class ISEParser implements ISEParserConstants {
   /** Generate ParseException. */
   public ParseException generateParseException() {
     jj_expentries.clear();
-    boolean[] la1tokens = new boolean[10];
+    boolean[] la1tokens = new boolean[11];
     if (jj_kind >= 0) {
       la1tokens[jj_kind] = true;
       jj_kind = -1;
@@ -461,7 +504,7 @@ public class ISEParser implements ISEParserConstants {
         }
       }
     }
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 11; i++) {
       if (la1tokens[i]) {
         jj_expentry = new int[1];
         jj_expentry[0] = i;
@@ -488,7 +531,7 @@ public class ISEParser implements ISEParserConstants {
 
   private void jj_rescan_token() {
     jj_rescan = true;
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < 4; i++) {
     try {
       JJCalls p = jj_2_rtns[i];
       do {
@@ -497,6 +540,8 @@ public class ISEParser implements ISEParserConstants {
           switch (i) {
             case 0: jj_3_1(); break;
             case 1: jj_3_2(); break;
+            case 2: jj_3_3(); break;
+            case 3: jj_3_4(); break;
           }
         }
         p = p.next;

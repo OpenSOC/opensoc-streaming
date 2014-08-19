@@ -79,8 +79,7 @@ public class MetricReporter {
 		}
 
 		catch (IOException io) {
-			_Logger.error("Unable to Connect to Graphite");
-			io.printStackTrace();
+			_Logger.warn("Unable to Connect to Graphite");
 		}
 	}
 }

@@ -17,46 +17,17 @@
 
 package com.opensoc.topologies;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.storm.hdfs.bolt.HdfsBolt;
-import org.apache.storm.hdfs.bolt.format.DefaultFileNameFormat;
-import org.apache.storm.hdfs.bolt.format.DelimitedRecordFormat;
-import org.apache.storm.hdfs.bolt.format.FileNameFormat;
-import org.apache.storm.hdfs.bolt.format.RecordFormat;
-import org.apache.storm.hdfs.bolt.rotation.FileRotationPolicy;
-import org.apache.storm.hdfs.bolt.rotation.FileSizeRotationPolicy;
-import org.apache.storm.hdfs.bolt.rotation.FileSizeRotationPolicy.Units;
-import org.apache.storm.hdfs.bolt.sync.CountSyncPolicy;
-import org.apache.storm.hdfs.bolt.sync.SyncPolicy;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-
-import storm.kafka.bolt.KafkaBolt;
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
 import backtype.storm.topology.TopologyBuilder;
 
-import com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter;
-import com.opensoc.enrichment.adapters.geo.GeoMysqlAdapter;
-import com.opensoc.enrichment.adapters.whois.WhoisHBaseAdapter;
-import com.opensoc.enrichment.common.EnrichmentAdapter;
-import com.opensoc.enrichment.common.GenericEnrichmentBolt;
-import com.opensoc.enrichment.host.HostAdapter;
-import com.opensoc.indexing.TelemetryIndexingBolt;
-import com.opensoc.indexing.adapters.ESBaseBulkAdapter;
 import com.opensoc.json.serialization.JSONKryoSerializer;
 import com.opensoc.parsing.AbstractParserBolt;
 import com.opensoc.parsing.TelemetryParserBolt;
-import com.opensoc.parsing.parsers.BasicBroParser;
 import com.opensoc.parsing.parsers.BasicIseParser;
 import com.opensoc.test.spouts.GenericInternalTestSpout;
 

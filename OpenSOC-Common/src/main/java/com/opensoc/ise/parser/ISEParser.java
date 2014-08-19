@@ -43,14 +43,14 @@ public class ISEParser implements Serializable, ISEParserConstants {
     throw new Error("Missing return statement in function");
   }
 
-  final public LinkedHashMap < String, String > innerMap() throws ParseException {
-  final LinkedHashMap < String, String > map = new LinkedHashMap < String, String > ();
+  final public JSONObject innerMap() throws ParseException {
+  final JSONObject json = new JSONObject();
   String key;
-  String value;
+  Object value;
     key = objectKey();
     jj_consume_token(EQUALS);
     value = value();
-    map.put(key, value);
+    json.put(key, value);
     key = null;
     value = null;
     label_1:
@@ -68,22 +68,22 @@ public class ISEParser implements Serializable, ISEParserConstants {
       key = objectKey();
       jj_consume_token(EQUALS);
       value = value();
-      map.put(key, value);
+      json.put(key, value);
       key = null;
       value = null;
     }
-    {if (true) return map;}
+    {if (true) return json;}
     throw new Error("Missing return statement in function");
   }
 
   final public JSONObject object() throws ParseException {
-  final JSONObject  map = new JSONObject();
+  final JSONObject json = new JSONObject();
   String key;
-  String value;
+  Object value;
     key = objectKey();
     jj_consume_token(EQUALS);
     value = value();
-    map.put(key, value);
+    json.put(key, value);
     key = null;
     value = null;
     label_2:
@@ -97,23 +97,23 @@ public class ISEParser implements Serializable, ISEParserConstants {
       key = objectKey();
       jj_consume_token(EQUALS);
       value = value();
-      map.put(key, value);
-      key = null;
-      value = null;
+        json.put(key, value);
+        key = null;
+        value = null;
     }
-    {if (true) return map;}
+    {if (true) return json;}
     throw new Error("Missing return statement in function");
   }
 
   final public String objectKey() throws ParseException {
   String k;
     k = string();
-   //  System.out.println("key == " + k);
-    {if (true) return k;}
+    //  System.out.println("key == " + k);
+    {if (true) return k.trim();}
     throw new Error("Missing return statement in function");
   }
 
-  final public String value() throws ParseException {
+  final public Object value() throws ParseException {
   Object x;
   String eof = "EOF";
   Map m = null;
@@ -140,9 +140,10 @@ public class ISEParser implements Serializable, ISEParserConstants {
         }
       }
     }
-   //  System.out.println("val == " + x);
-    if (x instanceof Map) {if (true) return "Map";}
-    {if (true) return (String) x;}
+    //  System.out.println("val == " + x);
+    //if (x instanceof Map) return "Map";
+    //return (String) x;
+    {if (true) return x;}
     throw new Error("Missing return statement in function");
   }
 
@@ -167,17 +168,17 @@ public class ISEParser implements Serializable, ISEParserConstants {
   final public String string() throws ParseException {
   String s;
     jj_consume_token(STRING_BODY);
-    {if (true) return token.image;}
+    {if (true) return token.image.trim();}
     throw new Error("Missing return statement in function");
   }
 
   final public String braced_string() throws ParseException {
   String s;
     jj_consume_token(BRACED_STRING);
-  //  System.out.println("braced == " + token.image);
+    //  System.out.println("braced == " + token.image);
     s = token.image;
     jj_consume_token(COMMA);
-    {if (true) return s;}
+    {if (true) return s.trim();}
     throw new Error("Missing return statement in function");
   }
 
@@ -223,8 +224,36 @@ public class ISEParser implements Serializable, ISEParserConstants {
     finally { jj_save(5, xla); }
   }
 
+  private boolean jj_3_5() {
+    if (jj_3R_5()) return true;
+    return false;
+  }
+
+  private boolean jj_3_4() {
+    if (jj_scan_token(0)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_5() {
+    if (jj_scan_token(BRACED_STRING)) return true;
+    if (jj_scan_token(COMMA)) return true;
+    return false;
+  }
+
   private boolean jj_3_3() {
     if (jj_3R_4()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_4() {
+    if (jj_3R_3()) return true;
+    if (jj_scan_token(EQUALS)) return true;
+    if (jj_3R_7()) return true;
+    Token xsp;
+    while (true) {
+      xsp = jj_scanpos;
+      if (jj_3R_8()) { jj_scanpos = xsp; break; }
+    }
     return false;
   }
 
@@ -238,15 +267,9 @@ public class ISEParser implements Serializable, ISEParserConstants {
     return false;
   }
 
-  private boolean jj_3R_4() {
+  private boolean jj_3_1() {
+    if (jj_scan_token(COMMA)) return true;
     if (jj_3R_3()) return true;
-    if (jj_scan_token(EQUALS)) return true;
-    if (jj_3R_7()) return true;
-    Token xsp;
-    while (true) {
-      xsp = jj_scanpos;
-      if (jj_3R_8()) { jj_scanpos = xsp; break; }
-    }
     return false;
   }
 
@@ -265,19 +288,13 @@ public class ISEParser implements Serializable, ISEParserConstants {
     return false;
   }
 
-  private boolean jj_3_1() {
-    if (jj_scan_token(COMMA)) return true;
-    if (jj_3R_3()) return true;
+  private boolean jj_3R_6() {
+    if (jj_scan_token(STRING_BODY)) return true;
     return false;
   }
 
   private boolean jj_3R_10() {
     if (jj_3R_4()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_6() {
-    if (jj_scan_token(STRING_BODY)) return true;
     return false;
   }
 
@@ -323,10 +340,6 @@ public class ISEParser implements Serializable, ISEParserConstants {
     return false;
   }
 
-  private boolean jj_3R_14() {
-    return false;
-  }
-
   private boolean jj_3R_8() {
     if (jj_scan_token(SLASH)) return true;
     if (jj_scan_token(COMMA)) return true;
@@ -336,19 +349,7 @@ public class ISEParser implements Serializable, ISEParserConstants {
     return false;
   }
 
-  private boolean jj_3_5() {
-    if (jj_3R_5()) return true;
-    return false;
-  }
-
-  private boolean jj_3_4() {
-    if (jj_scan_token(0)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_5() {
-    if (jj_scan_token(BRACED_STRING)) return true;
-    if (jj_scan_token(COMMA)) return true;
+  private boolean jj_3R_14() {
     return false;
   }
 
@@ -546,7 +547,7 @@ public class ISEParser implements Serializable, ISEParserConstants {
   /** Generate ParseException. */
   public ParseException generateParseException() {
     jj_expentries.clear();
-    boolean[] la1tokens = new boolean[12];
+    boolean[] la1tokens = new boolean[11];
     if (jj_kind >= 0) {
       la1tokens[jj_kind] = true;
       jj_kind = -1;
@@ -560,7 +561,7 @@ public class ISEParser implements Serializable, ISEParserConstants {
         }
       }
     }
-    for (int i = 0; i < 12; i++) {
+    for (int i = 0; i < 11; i++) {
       if (la1tokens[i]) {
         jj_expentry = new int[1];
         jj_expentry[0] = i;

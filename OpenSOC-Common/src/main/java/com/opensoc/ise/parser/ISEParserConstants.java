@@ -27,11 +27,9 @@ interface ISEParserConstants {
   /** RegularExpression Id. */
   int TAG = 8;
   /** RegularExpression Id. */
-  int NULL = 9;
+  int STRING_BODY = 9;
   /** RegularExpression Id. */
-  int STRING_BODY = 10;
-  /** RegularExpression Id. */
-  int BRACED_STRING = 11;
+  int BRACED_STRING = 10;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -47,7 +45,6 @@ interface ISEParserConstants {
     "\"=\"",
     "\"\\\\\"",
     "\"(tag=0)\"",
-    "\"null\"",
     "<STRING_BODY>",
     "<BRACED_STRING>",
   };

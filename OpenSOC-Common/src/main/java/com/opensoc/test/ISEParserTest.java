@@ -45,12 +45,12 @@ public class ISEParserTest {
 		int i=0;
 		while ((strLine = br.readLine()) != null) 
 		{
-			System.out.println("header=" + strLine.trim());
+		//	System.out.println("header=" + strLine.trim());
 		ISEParser parser = new ISEParser(new StringReader("header=" + strLine.trim()));
 
 		JSONObject result = parser.parseObject();
 
-		System.out.println("Rownum:" + ++i + " Result Size:" +  result.toJSONString());
+		System.out.println(result.toJSONString());
 
 	/*	Iterator it = result.entrySet().iterator();
 

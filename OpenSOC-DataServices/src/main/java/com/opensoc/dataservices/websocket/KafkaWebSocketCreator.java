@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
+import com.opensoc.dataservices.auth.AuthToken;
 import com.opensoc.dataservices.kafkaclient.KafkaConsumer;
 
 public class KafkaWebSocketCreator implements WebSocketCreator
@@ -31,9 +32,19 @@ public class KafkaWebSocketCreator implements WebSocketCreator
 			if( name!= null && name.equals( "authToken" ))
 			{
 				String value = cookie.getValue();
-				if( value != null && value.equals( "ABC123" ))
+				
+				try
 				{
-					authGood = true;
+					if( value != null && AuthToken.validateToken(configProps, value))
+					{
+						authGood = true;
+						break;
+					}
+				}
+				catch( Exception e )
+				{
+					logger.error(" Exception validating authToken:", e );
+					authGood = false;
 					break;
 				}
 				

@@ -65,8 +65,11 @@ public class TelemetryParserBolt extends AbstractParserBolt {
 			OutputCollector collector) throws IOException {
 
 		LOG.info("Preparing TelemetryParser Bolt...");
-		_reporter = new MetricReporter();
-		_reporter.initialize(metricConfiguration, TelemetryParserBolt.class);
+		if (null != metricConfiguration) {
+			_reporter = new MetricReporter();
+			_reporter
+					.initialize(metricConfiguration, TelemetryParserBolt.class);
+		}
 		this.registerCounters();
 	}
 
@@ -79,8 +82,8 @@ public class TelemetryParserBolt extends AbstractParserBolt {
 
 			JSONObject transformed_message = _parser.parse(original_mesasge);
 			LOG.debug("Transformed Telemetry message: " + transformed_message);
-			
-			if(transformed_message == null)
+
+			if (transformed_message == null)
 				throw new Exception("Invalid message format");
 
 			_collector.ack(tuple);

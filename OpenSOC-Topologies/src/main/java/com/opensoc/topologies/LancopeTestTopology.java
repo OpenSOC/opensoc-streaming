@@ -79,7 +79,8 @@ public class LancopeTestTopology {
 		AbstractParserBolt parser_bolt = new TelemetryParserBolt()
 				.withMetricConfig(config)
 				.withMessageParser(new BasicLancopeParser())
-				.withOutputFieldName(topology_name);
+				.withOutputFieldName(topology_name)
+				.withMetricConfig(config);
 
 		builder.setBolt("ParserBolt", parser_bolt,
 				config.getInt("bolt.parser.parallelism.hint"))
@@ -130,11 +131,11 @@ public class LancopeTestTopology {
 								config.getInt("bolt.enrichment.geo.MAX_CACHE_SIZE"))
 						.withKeys(geo_keys).withMetricConfiguration(config);
 
-				builder.setBolt("GeoEnrichBolt", geo_enrichment,
+			/*	builder.setBolt("GeoEnrichBolt", geo_enrichment,
 						config.getInt("bolt.enrichment.geo.parallelism.hint"))
 						.shuffleGrouping("AlertsBolt")
 						.setNumTasks(config.getInt("bolt.enrichment.geo.num.tasks"));
-				
+				*/
 				// ------------Hosts Enrichment Bolt Configuration
 				
 				Configuration hosts = new PropertiesConfiguration("TopologyConfigs/known_hosts/known_hosts.conf");
@@ -162,11 +163,11 @@ public class LancopeTestTopology {
 								config.getInt("bolt.enrichment.host.MAX_CACHE_SIZE")).withOutputFieldName(topology_name)
 								.withKeys(geo_keys).withMetricConfiguration(config);
 
-				builder.setBolt("HostEnrichBolt", host_enrichment,
+			/*	builder.setBolt("HostEnrichBolt", host_enrichment,
 						config.getInt("bolt.enrichment.host.parallelism.hint"))
 						.shuffleGrouping("GeoEnrichBolt")
 						.setNumTasks(config.getInt("bolt.enrichment.host.num.tasks"));
-
+*/
 		// --------------CIF Enrichment
 
 	/*	List<String> cif_keys = new ArrayList<String>();
@@ -225,7 +226,8 @@ public class LancopeTestTopology {
 						config.getString("bolt.indexing.documentname"))
 				.withBulk(config.getInt("bolt.indexing.bulk"))
 				.withOutputFieldName(topology_name)
-				.withIndexAdapter(new ESBaseBulkAdapter());
+				.withIndexAdapter(new ESBaseBulkAdapter())
+				.withMetricConfiguration(config);
 
 		builder.setBolt("IndexingBolt", indexing_bolt,
 				config.getInt("bolt.indexing.parallelism.hint"))

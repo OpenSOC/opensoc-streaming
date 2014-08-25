@@ -17,6 +17,8 @@
 
 package com.opensoc.parsing.parsers;
 
+import java.io.StringReader;
+
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,26 +31,34 @@ public class BasicIseParser extends AbstractParser {
 
 	protected static final Logger _LOG = LoggerFactory
 			.getLogger(BasicIseParser.class);
+	static final transient ISEParser _parser = new ISEParser("header=");
 
 	public JSONObject parse(String raw_message) {
 		_LOG.debug("Received message: " + raw_message);
-		// _parser.ReInit(new StringReader(raw_message));
-		ISEParser _parser = new ISEParser("header=" + raw_message.trim());
+
+		/*if (null == _parser)
+			_parser = new ISEParser("header=" + raw_message.trim());
+		else*/
+			_parser.ReInit(new StringReader("header=" + raw_message.trim()));
 
 		try {
-			JSONObject output = _parser.parseObject();
+			JSONObject payload = _parser.parseObject();
 
-			String ip_src_addr = (String) output.get("Device IP Address");
-			String ip_src_port = (String) output.get("Device Port");
-			String ip_dst_addr = (String) output.get("DestinationIPAddress");
-			String ip_dst_port = (String) output.get("DestinationPort");
+			String ip_src_addr = (String) payload.get("Device IP Address");
+			String ip_src_port = (String) payload.get("Device Port");
+			String ip_dst_addr = (String) payload.get("DestinationIPAddress");
+			String ip_dst_port = (String) payload.get("DestinationPort");
 
-			output.put("ip_src_addr", ip_src_addr);
-			output.put("ip_src_port", ip_src_port);
-			output.put("ip_dst_addr", ip_dst_addr);
-			output.put("ip_dst_port", ip_dst_port);
+			payload.put("ip_src_addr", ip_src_addr);
+			payload.put("ip_src_port", ip_src_port);
+			payload.put("ip_dst_addr", ip_dst_addr);
+			payload.put("ip_dst_port", ip_dst_port);
+			
+			JSONObject message = new JSONObject();
+			message.put("message", payload);
+			
 
-			return output;
+			return message;
 
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block

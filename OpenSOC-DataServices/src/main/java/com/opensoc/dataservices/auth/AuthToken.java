@@ -46,8 +46,9 @@ public class AuthToken {
 		
 		Cipher cipher = Cipher.getInstance("AES");
 		cipher.init(Cipher.ENCRYPT_MODE, key);		
+		String tokenString = "OpenSOC_AuthToken:" + System.currentTimeMillis();
 		
-		byte[] encryptedData = cipher.doFinal("OpenSOC_AuthToken".getBytes());	
+		byte[] encryptedData = cipher.doFinal(tokenString.getBytes());	
 		
 		Base64.Encoder encoder = Base64.getEncoder();
 		String base64Token = encoder.encodeToString( encryptedData );
@@ -64,7 +65,7 @@ public class AuthToken {
 		String keystoreFile = configProps.getProperty( "keystoreFile" );
 		String keystorePassword = configProps.getProperty( "keystorePassword" );
 		String keystoreAlias = configProps.getProperty( "authTokenAlias" );
-		
+		long tokenMaxAgeInMilliseconds = Long.parseLong( configProps.getProperty( "authTokenMaxAge", "600000" ));
 		
 		FileInputStream fis = null;
 		try {
@@ -92,11 +93,22 @@ public class AuthToken {
 		byte[] unencryptedBytes = cipher.doFinal(encryptedBytes);
 		String clearTextToken = new String( unencryptedBytes );
 		
-		// System.out.println( "clearTextToken: " + clearTextToken );
+		System.out.println( "clearTextToken: " + clearTextToken );
+		String[] tokenParts = clearTextToken.split( ":" );
 		
-		if( clearTextToken.equals( "OpenSOC_AuthToken" ))
+		if( tokenParts[0].equals( "OpenSOC_AuthToken" ))
 		{
-			return true;
+			long now = System.currentTimeMillis();
+			long tokenTime = Long.parseLong(tokenParts[1]);
+			
+			if( now > (tokenTime + tokenMaxAgeInMilliseconds ))
+			{
+				return false;
+			}
+			else
+			{
+				return true;
+			}
 		}
 		else
 		{

@@ -30,7 +30,7 @@ import org.apache.hadoop.hbase.client.Result;
 import org.json.simple.JSONObject;
 
 public class WhoisHBaseAdapter extends AbstractWhoisAdapter {
-	
+
 	/**
 	 * 
 	 */
@@ -39,16 +39,15 @@ public class WhoisHBaseAdapter extends AbstractWhoisAdapter {
 	private String _table_name;
 	private String _quorum;
 	private String _port;
-	
-	public WhoisHBaseAdapter(String table_name, String quorum, String port)
-	{
-		_table_name=table_name;
-		_quorum=quorum;
-		_port=port;
+
+	public WhoisHBaseAdapter(String table_name, String quorum, String port) {
+		_table_name = table_name;
+		_quorum = quorum;
+		_port = port;
 	}
-	
+
 	public boolean initializeAdapter() {
-	/*	Configuration conf = null;
+		Configuration conf = null;
 		conf = HBaseConfiguration.create();
 		conf.set("hbase.zookeeper.quorum", _quorum);
 		conf.set("hbase.zookeeper.property.clientPort", _port);
@@ -56,50 +55,46 @@ public class WhoisHBaseAdapter extends AbstractWhoisAdapter {
 		conf.set("hbase.rpc.timeout", "20");
 		conf.set("zookeeper.recovery.retry", "1");
 		conf.set("zookeeper.recovery.retry.intervalmill", "1");
-		
 
 		try {
-			
+
 			LOG.debug("=======Connecting to HBASE===========");
-			LOG.debug("=======ZOOKEEPER = "+ conf.get("hbase.zookeeper.quorum"));
-			
+			LOG.debug("=======ZOOKEEPER = "
+					+ conf.get("hbase.zookeeper.quorum"));
+
 			System.out.println("--------CONNECTING TO HBASE WITH: " + conf);
-			
+
 			HConnection connection = HConnectionManager.createConnection(conf);
 
-			
 			System.out.println("--------CONNECTED TO HBASE");
-			
+
 			table = connection.getTable(_table_name);
-		
 
 			System.out.println("--------CONNECTED TO TABLE: " + table);
-			
+
 			JSONObject tester = enrich("cisco.com");
-			
-			if(tester.keySet().size() == 0)
-				throw new IOException("Either HBASE is misconfigured or whois table is missing");
-			
+
+			if (tester.keySet().size() == 0)
+				throw new IOException(
+						"Either HBASE is misconfigured or whois table is missing");
+
 			return true;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
 
-		return false; */
-		
-		return true;
+		return false;
 
 	}
 
 	@SuppressWarnings({ "unchecked", "deprecation" })
 	public JSONObject enrich(String metadata) {
-		
-		/*LOG.debug("=======Pinging HBase For:" + metadata);
-		
+
+		LOG.debug("=======Pinging HBase For:" + metadata);
+
 		System.out.println("--------HBASE WHOIS LOOKUP: " + metadata);
-		
+
 		JSONObject output = new JSONObject();
 		JSONObject payload = new JSONObject();
 
@@ -111,22 +106,16 @@ public class WhoisHBaseAdapter extends AbstractWhoisAdapter {
 
 			for (KeyValue kv : rs.raw())
 				payload.put(metadata, new String(kv.getValue()));
-			
+
 			output.put("whois", payload);
 
 		} catch (IOException e) {
 			output.put(metadata, "{}");
 			e.printStackTrace();
 		}
-		
-		return output;*/
-		
-		JSONObject output = new JSONObject();
 
 		return output;
-		
 
 	}
-		
-		
+
 }

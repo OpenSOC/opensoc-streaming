@@ -75,14 +75,8 @@ public class BasicSourcefireParser extends AbstractParser {
 			payload.put("timestamp", System.currentTimeMillis());
 			payload.put("original_string", toParse.substring(0, toParse.indexOf("{")));
 
-			JSONObject output = new JSONObject();
-			output.put("message", payload);
 
-			// String parsed = "{\"sourcefire\":" + jo.toString() + "}";
-			_LOG.debug("Parsed message: " + output);
-
-			// return parsed;
-			return output;
+			return payload;
 		} catch (Exception e) {
 			e.printStackTrace();
 			_LOG.error("Failed to parse: " + toParse);

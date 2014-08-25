@@ -54,8 +54,7 @@ public class KafkaWebSocketCreator implements WebSocketCreator
 				continue;
 			}
 		}
-		
-		// return new RandomMessageSenderSocket( authGood );
+
 		return new KafkaMessageSenderSocket( configProps, authGood );
 	}
 }

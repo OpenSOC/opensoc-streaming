@@ -3,6 +3,7 @@ package com.opensoc.dataservices.websocket;
 
 import java.io.IOException;
 import java.util.Properties;
+import java.util.UUID;
 
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose;
@@ -67,18 +68,43 @@ public class KafkaMessageSenderSocket
 		
 		logger.debug( "WebSocket TEXT message received: " + text );
 		
-		if( text.trim().equals( "startMessages" ))
+		String msg = text.trim();
+		if( msg.startsWith( "startMessages" ))
 		{
 			String zooKeeperHost = configProps.getProperty( "kafkaZookeeperHost" );
+			logger.info( "kafkaZookeeperHost: " + zooKeeperHost );
 			String zooKeeperPort = configProps.getProperty( "kafkaZookeeperPort" );
-			String groupId = configProps.getProperty( "kafkaGroupId" );
+			logger.info( "kafkaZookeeperPort: " + zooKeeperPort );
+			String groupId = null; // configProps.getProperty( "kafkaGroupId" );
 		    String topic = configProps.getProperty( "kafkaTopicName" );
+			logger.info( "kafkaTopic: " + topic );
 			
+		    // try to parse out a groupID.  If one exists, use it. If not
+		    // generate a new one and return to the client. 
+		    
+		    if( msg.contains( ":" ))
+		    {
+		    	String[] parts = msg.split( ":" );
+		    	groupId = parts[1];
+		    }
+		    else
+		    {
+		    	groupId = UUID.randomUUID().toString();
+		    	try
+		    	{
+		    		session.getRemote().sendString( "groupId:" + groupId );
+		    	}
+		    	catch( IOException e )
+		    	{
+		    		throw new RuntimeException( e );
+		    	}
+		    }
 			
-			client = new KafkaClient(zooKeeperHost + ":" + zooKeeperPort, groupId, topic, session.getRemote() );
+		    System.out.println( "using groupId: " + groupId );
+		    client = new KafkaClient(zooKeeperHost + ":" + zooKeeperPort, groupId, topic, session.getRemote() );
 	        client.run(threads);
 		}
-		else if( text.trim().equals( "stopMessages" ))
+		else if( msg.equals( "stopMessages" ))
 		{
 			client.shutdown();
 		}

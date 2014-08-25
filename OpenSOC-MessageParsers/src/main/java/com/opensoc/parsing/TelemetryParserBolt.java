@@ -82,10 +82,13 @@ public class TelemetryParserBolt extends AbstractParserBolt {
 			
 			if(transformed_message == null)
 				throw new Exception("Invalid message format");
+			
+			JSONObject new_message = new JSONObject();
+			new_message.put("message", transformed_message);
 
 			_collector.ack(tuple);
 			ackCounter.inc();
-			_collector.emit(new Values(transformed_message));
+			_collector.emit(new Values(new_message));
 			emitCounter.inc();
 
 		} catch (Exception e) {

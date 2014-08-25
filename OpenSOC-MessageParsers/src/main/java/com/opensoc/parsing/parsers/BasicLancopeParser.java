@@ -60,10 +60,7 @@ public class BasicLancopeParser extends AbstractParser {
 			payload.remove("message");
 			payload.put("original_string", message);
 
-			JSONObject message_object = new JSONObject();
-			message_object.put("message", payload);
-
-			return message_object;
+			return payload;
 		} catch (ParseException e) {
 
 			_LOG.error("Unable to parse message: " + payload.toJSONString());

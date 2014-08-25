@@ -23,76 +23,63 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("serial")
-public class BasicBroParser extends AbstractParser
-{
-	
-	//private Logger _LOG ;
+public class BasicBroParser extends AbstractParser {
+
+	// private Logger _LOG ;
 	protected static final Logger _LOG = LoggerFactory
 			.getLogger(BasicBroParser.class);
 	JSONCleaner cleaner = new JSONCleaner();
 
-	public JSONObject parse(String raw_message) 
-	{
+	public JSONObject parse(String raw_message) {
 		_LOG.debug("Received message: " + raw_message);
-		
+
 		try {
 			JSONObject cleaned_message = cleaner.Clean(raw_message);
-			
+
 			String key = cleaned_message.keySet().iterator().next().toString();
-			
+
 			JSONObject inner_message = (JSONObject) cleaned_message.get(key);
 
-			if(inner_message.containsKey("id.orig_h"))
-			{
+			if (inner_message.containsKey("id.orig_h")) {
 				String source_ip = inner_message.remove("id.orig_h").toString();
 				inner_message.put("ip_src_addr", source_ip);
 			}
-			if(inner_message.containsKey("id.resp_h"))
-			{
+			if (inner_message.containsKey("id.resp_h")) {
 				String source_ip = inner_message.remove("id.resp_h").toString();
-				inner_message.put("ip_dst_addr", source_ip);	
+				inner_message.put("ip_dst_addr", source_ip);
 			}
-			if(inner_message.containsKey("id.orig_p"))
-			{
-				String source_port = inner_message.remove("id.orig_p").toString();
-				inner_message.put("ip_src_port", source_port);	
+			if (inner_message.containsKey("id.orig_p")) {
+				String source_port = inner_message.remove("id.orig_p")
+						.toString();
+				inner_message.put("ip_src_port", source_port);
 			}
-			if(inner_message.containsKey("id.resp_p"))
-			{
+			if (inner_message.containsKey("id.resp_p")) {
 				String dest_port = inner_message.remove("id.resp_p").toString();
-				inner_message.put("ip_dst_port", dest_port);	
+				inner_message.put("ip_dst_port", dest_port);
 			}
-			if(inner_message.containsKey("host"))
-			{
-				
-				
+			if (inner_message.containsKey("host")) {
+
 				String host = inner_message.get("host").toString().trim();
 				String[] parts = host.split("\\.");
 				int length = parts.length;
-				inner_message.put("tld", parts[length-2] + "." + parts[length-1]);
+				inner_message.put("tld", parts[length - 2] + "."
+						+ parts[length - 1]);
 			}
-			if(inner_message.containsKey("query"))
-			{
+			if (inner_message.containsKey("query")) {
 				String host = inner_message.get("query").toString();
 				String[] parts = host.split("\\.");
 				int length = parts.length;
-				inner_message.put("tld", parts[length-2] + "." + parts[length-1]);
+				inner_message.put("tld", parts[length - 2] + "."
+						+ parts[length - 1]);
 			}
 
-			
 			_LOG.debug("Inner message: " + inner_message);
-			
-			//cleaned_message.put(key, inner_message);
+
 			inner_message.put("protocol", key);
-			
-			JSONObject message = new JSONObject();
-			message.put("message", inner_message);
-			
-			//message.put("original_string", cleaned_message);
-			
-			return message;
+
+			return inner_message;
 		} catch (ParseException e) {
-			// TODO Auto-generated catch block
+
 			_LOG.error("Unable to Parse Message: " + raw_message);
 			e.printStackTrace();
 		}

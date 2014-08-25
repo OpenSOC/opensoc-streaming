@@ -20,6 +20,7 @@ package com.opensoc.tagging;
 import java.io.IOException;
 import java.util.Map;
 
+import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +46,7 @@ public abstract class AbstractTaggerBolt extends BaseRichBolt {
 	protected TaggerAdapter _adapter;
 
 	protected String OutputFieldName;
+	protected JSONObject _identifier;
 
 	public final void prepare(Map conf, TopologyContext topologyContext,
 			OutputCollector collector) {
@@ -52,7 +54,8 @@ public abstract class AbstractTaggerBolt extends BaseRichBolt {
 		
 		if (this._adapter == null)
 			throw new IllegalStateException("Tagging must be specified");
-		
+		if(this._identifier == null)
+			throw new IllegalStateException("Identifier must be specified");
 		try {
 			doPrepare(conf, topologyContext, collector);
 		} catch (IOException e) {

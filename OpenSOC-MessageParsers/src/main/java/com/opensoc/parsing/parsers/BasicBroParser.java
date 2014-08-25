@@ -69,7 +69,7 @@ public class BasicBroParser extends AbstractParser
 				String host = inner_message.get("host").toString().trim();
 				String[] parts = host.split("\\.");
 				int length = parts.length;
-				inner_message.put("whois_enrich", parts[length-2] + "." + parts[length-1]);
+				inner_message.put("tld", parts[length-2] + "." + parts[length-1]);
 			}
 			if(inner_message.containsKey("query"))
 			{

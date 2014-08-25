@@ -224,7 +224,7 @@ public class LancopeTestTopology {
 				.withDocumentName(
 						config.getString("bolt.indexing.documentname"))
 				.withBulk(config.getInt("bolt.indexing.bulk"))
-				.withOutputFieldName(topology_name)
+				
 				.withIndexAdapter(new ESBaseBulkAdapter());
 
 		builder.setBolt("IndexingBolt", indexing_bolt,

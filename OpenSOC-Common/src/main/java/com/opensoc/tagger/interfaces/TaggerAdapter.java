@@ -1,8 +1,9 @@
 package com.opensoc.tagger.interfaces;
 
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 public interface TaggerAdapter {
 
-	JSONObject tag(JSONObject raw_message);
+	JSONArray tag(JSONObject raw_message);
 }

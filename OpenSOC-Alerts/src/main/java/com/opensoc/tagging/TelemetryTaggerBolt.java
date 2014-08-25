@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
 
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import backtype.storm.task.OutputCollector;
@@ -57,6 +58,12 @@ public class TelemetryTaggerBolt extends AbstractTaggerBolt {
 		this.metricProperties = metricProperties;
 		return this;
 	}
+	
+	public TelemetryTaggerBolt withIdentifier(JSONObject identifier)
+	{
+		this._identifier = identifier;
+		return this;
+	}
 
 	@Override
 	void doPrepare(Map conf, TopologyContext topologyContext,
@@ -74,14 +81,27 @@ public class TelemetryTaggerBolt extends AbstractTaggerBolt {
 
 		try {
 
-			JSONObject tagged_message = _adapter.tag(original_message);
-			LOG.debug("Tagged message: " + tagged_message);
+			JSONObject alerts_tag = new JSONObject();
+			JSONArray alerts_list = _adapter.tag(original_message);
+			LOG.debug("Tagged message: " + alerts_list);
+				
+			System.out.println("------------- TAGGED: " + alerts_list);
 			
-			System.out.println("------------- TAGGED: " + tagged_message);
+			if(original_message.containsKey("alerts"))
+			{
+				JSONObject tag = (JSONObject) original_message.get("alerts");
+				JSONArray already_triggered = (JSONArray) tag.get("triggered");
+				alerts_list.addAll(already_triggered);
+			}
+
+			alerts_tag.put("identifier", _identifier);
+			alerts_tag.put("triggered", alerts_list);
+			original_message.put("alerts", alerts_tag);
+				
 
 			_collector.ack(tuple);
 		//	_reporter.incCounter("com.opensoc.metrics.TelemetryParserBolt.acks");
-			_collector.emit(new Values(tagged_message));
+			_collector.emit(new Values(original_message));
 		//	_reporter.incCounter("com.opensoc.metrics.TelemetryParserBolt.emits");
 
 		} catch (Exception e) {

@@ -10,7 +10,7 @@
 		$(document).ready(function() {
 			
 				var exampleSocket = null;
-			
+				var groupId = null;
 			
 			   	$("#startBtn").click(
 					function() {
@@ -21,8 +21,24 @@
 							exampleSocket.onmessage = function (event)
 							{
 								
-								// console.log( event.data );
-								$('#msgList').append( '<li>' + event.data + '</li>' );
+								var msg = event.data;
+								var index = msg.search( "groupId:" ); 
+								if(  index >= 0 )
+								{
+									console.log( "groupId message" );
+									// this is our groupId from the server, save it for future use
+									
+									groupId = msg.substring( index + 8 ).trim();
+									console.log( "groupId: " + groupId );
+								}
+								else
+								{
+									// console.log( "alert message" );
+									// this is an alert message, just render it...
+									
+									// console.log( event.data );
+									$('#msgList').append( '<li>' + msg + '</li>' );
+								}
 							}
 							
 							exampleSocket.onopen = function() {

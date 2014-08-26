@@ -5,10 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Date;
 import java.util.Properties;
-import java.util.Random;
-import java.util.function.Consumer;
 
 import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;
@@ -28,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
-import com.opensoc.dataservices.Main;
 
 public class AlertsSearcher implements Runnable {
 
@@ -127,8 +123,10 @@ public class AlertsSearcher implements Runnable {
 
 				
 				// for all hits, put the alert onto the Kafka topic.
-				Consumer<SearchHit> func =  this::doSenderWork;
-				hits.forEach( func );
+				for( SearchHit hit : hits )
+				{
+					doSenderWork(hit);
+				}
 			
 			}
 			finally

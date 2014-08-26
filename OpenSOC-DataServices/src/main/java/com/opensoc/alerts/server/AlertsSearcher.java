@@ -127,8 +127,10 @@ public class AlertsSearcher implements Runnable {
 
 				
 				// for all hits, put the alert onto the Kafka topic.
-				Consumer<SearchHit> func =  this::doSenderWork;
-				hits.forEach( func );
+				for( SearchHit hit : hits )
+				{
+					doSenderWork(hit);
+				}
 			
 			}
 			finally

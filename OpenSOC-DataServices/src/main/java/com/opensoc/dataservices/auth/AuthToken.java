@@ -2,18 +2,17 @@ package com.opensoc.dataservices.auth;
 
 import java.io.FileInputStream;
 import java.security.KeyStore;
-import java.util.Base64;
 import java.util.Properties;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
+import org.apache.commons.codec.binary.Base64;
 
 public class AuthToken {
 
@@ -50,8 +49,7 @@ public class AuthToken {
 		
 		byte[] encryptedData = cipher.doFinal(tokenString.getBytes());	
 		
-		Base64.Encoder encoder = Base64.getEncoder();
-		String base64Token = encoder.encodeToString( encryptedData );
+		String base64Token = new String( Base64.encodeBase64(encryptedData) );
 		
 		// System.out.println( "base64Token: " + base64Token );
 		
@@ -87,8 +85,7 @@ public class AuthToken {
 		Cipher cipher = Cipher.getInstance("AES");
 		cipher.init(Cipher.DECRYPT_MODE, key);		
 		
-		Base64.Decoder decoder = Base64.getDecoder();
-		byte[] encryptedBytes = decoder.decode(authToken);
+		byte[] encryptedBytes = Base64.decodeBase64(authToken);
 		
 		byte[] unencryptedBytes = cipher.doFinal(encryptedBytes);
 		String clearTextToken = new String( unencryptedBytes );

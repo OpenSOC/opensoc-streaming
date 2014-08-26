@@ -45,7 +45,8 @@ public class GeoMysqlAdapter extends AbstractGeoAdapter {
 			boolean reachable = InetAddress.getByName(ip).isReachable(500);
 
 			if (!reachable)
-				throw new Exception("Unable to reach IP " + _ip);
+				throw new Exception("Unable to reach IP " + _ip + " with username " + _username + " and password " + _password 
+						+ " accessing table name " + _tablename);
 			
 		} catch (Exception e) {
 			_LOG.error("Environment misconfigured, cannot reach MYSQL server....");

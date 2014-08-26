@@ -70,11 +70,6 @@ public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 		return this;
 	}
 
-	public TelemetryIndexingBolt withOutputFieldName(String OutputFieldName) {
-		this.OutputFieldName = OutputFieldName;
-		return this;
-	}
-
 	public TelemetryIndexingBolt withIndexAdapter(IndexAdapter adapter) {
 		_adapter = adapter;
 
@@ -133,7 +128,7 @@ public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declearer) {
-		declearer.declare(new Fields(this.OutputFieldName));
+		
 	}
 
 }

@@ -40,6 +40,12 @@ public class AlertsSearcher implements Runnable {
 	// TODO: inject Searcher module for either ElasticSearch or Solr...
 	// TODO: inject OpenSocServiceFactory here
 	
+	// need a place to store recently seen alerts.  We'll also need a
+	// reaper thread to clear out the expired entries...
+	
+	
+	
+	
 	@Override
 	public void run() {
 

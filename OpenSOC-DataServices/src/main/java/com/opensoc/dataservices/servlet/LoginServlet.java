@@ -1,6 +1,7 @@
 package com.opensoc.dataservices.servlet;
 
 import java.io.IOException;
+import java.util.Properties;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
@@ -19,7 +20,8 @@ import org.apache.shiro.subject.Subject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.opensoc.dataservices.kafkaclient.KafkaConsumer;
+import com.google.inject.Inject;
+import com.opensoc.dataservices.auth.AuthToken;
 
 public class LoginServlet extends HttpServlet 
 {
@@ -27,6 +29,9 @@ public class LoginServlet extends HttpServlet
 	
 	private static final long serialVersionUID = 1L;
 
+	@Inject
+	private Properties configProps;
+	
 	@Override
 	public void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException 
 	{
@@ -52,32 +57,45 @@ public class LoginServlet extends HttpServlet
 		{
 			logger.warn( "Failing login with 405:", uae );
 			resp.sendError(405);
+			return;
 		} 
 		catch ( IncorrectCredentialsException ice ) 
 		{
 			logger.warn( "Failing login with 405:", ice );
 			resp.sendError(405);
+			return;
 		} 
 		catch ( LockedAccountException lae ) 
 		{
 			logger.warn( "Failing login with 405:", lae ); 
 			resp.sendError(405);
+			return;
 		} 
 		catch ( ExcessiveAttemptsException eae ) 
 		{
 			logger.warn( "Failing login with 405:", eae );
 			resp.sendError(405);
+			return;
 		}  
 		catch ( AuthenticationException ae ) 
 		{
 			logger.warn( "Failing login with 405:", ae );
 			resp.sendError(405);
+			return;
 		}
 		
-		// resp.setHeader( "authToken", "ABC123" );
-		Cookie authTokenCookie = new Cookie("authToken", "ABC123");
-		resp.addCookie(authTokenCookie);
+		try
+		{
 		
+			Cookie authTokenCookie = new Cookie("authToken", AuthToken.generateToken(configProps));
+			resp.addCookie(authTokenCookie);
+		}
+		catch( Exception e )
+		{
+			logger.error( "Failed creating authToken cookie.", e );
+			resp.sendError( 500 );
+			return;
+		}
 		
 		// resp.setStatus(HttpServletResponse.SC_OK);
 		resp.sendRedirect( "/withsocket.jsp" );

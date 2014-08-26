@@ -46,6 +46,7 @@
 		<module>OpenSOC-MessageParsers</module>
 		<module>OpenSOC-Indexing</module>
 		<module>OpenSOC-Alerts</module>
+		<module>OpenSOC-DataLoads</module>
 		<module>OpenSOC-Topologies</module>
 	</modules>
 	<dependencies>	

@@ -1,5 +1,6 @@
 package com.opensoc.tagging.adapters;
 
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 public class StaticAllTagger extends AbstractTaggerAdapter{
@@ -16,10 +17,9 @@ public class StaticAllTagger extends AbstractTaggerAdapter{
 	}
 
 	@SuppressWarnings("unchecked")
-	public JSONObject tag(JSONObject raw_message) 
+	public JSONArray tag(JSONObject raw_message) 
 	{
-		raw_message.put("alert", _static_tag_message);
-		return raw_message;
+		return new JSONArray();
 	}
 
 

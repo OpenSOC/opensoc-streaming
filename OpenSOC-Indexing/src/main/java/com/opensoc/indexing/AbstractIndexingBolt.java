@@ -54,7 +54,6 @@ public abstract class AbstractIndexingBolt extends BaseRichBolt {
 	protected String _DocumentName;
 	protected int _BulkIndexNumber = 10;
 
-	protected String OutputFieldName;
 	protected Counter ackCounter, emitCounter, failCounter;
 
 	protected void registerCounters() {
@@ -86,8 +85,6 @@ public abstract class AbstractIndexingBolt extends BaseRichBolt {
 			throw new IllegalStateException("_IndexName must be specified");
 		if (this._DocumentName == null)
 			throw new IllegalStateException("_DocumentName must be specified");
-		if (this.OutputFieldName == null)
-			throw new IllegalStateException("OutputFieldName must be specified");
 		if (this._adapter == null)
 			throw new IllegalStateException("IndexAdapter must be specified");
 
@@ -100,7 +97,7 @@ public abstract class AbstractIndexingBolt extends BaseRichBolt {
 	}
 
 	public void declareOutputFields(OutputFieldsDeclarer declearer) {
-		declearer.declare(new Fields(this.OutputFieldName));
+		
 	}
 
 	abstract void doPrepare(Map conf, TopologyContext topologyContext,

@@ -42,7 +42,7 @@ public class LogoutServlet extends HttpServlet
 
 		currentUser.logout();
 		
-		Cookie authCookie = new Cookie("authToken", "ABC123");
+		Cookie authCookie = new Cookie("authToken", "Logout" );
 		authCookie.setMaxAge( 0 );
 		resp.addCookie(authCookie);
 		

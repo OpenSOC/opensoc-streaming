@@ -574,7 +574,7 @@ public class IseEnrichmentTestTopology {
 			// * ------------HDFS BOLT For Enriched Data configuration
 
 			FileNameFormat fileNameFormat_enriched = new DefaultFileNameFormat()
-					.withPath("/" + topology_name + "_enriched/");
+					.withPath(config.getString("bolt.hdfs.path","/") + topology_name + "_enriched/");
 			RecordFormat format_enriched = new DelimitedRecordFormat()
 					.withFieldDelimiter("|");
 

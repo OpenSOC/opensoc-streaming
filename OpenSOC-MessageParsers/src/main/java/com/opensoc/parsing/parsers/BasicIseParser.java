@@ -23,6 +23,7 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.esotericsoftware.minlog.Log;
 import com.opensoc.ise.parser.ISEParser;
 import com.opensoc.ise.parser.ParseException;
 
@@ -33,15 +34,16 @@ public class BasicIseParser extends AbstractParser {
 			.getLogger(BasicIseParser.class);
 	static final transient ISEParser _parser = new ISEParser("header=");
 
-	public JSONObject parse(String raw_message) {
-		_LOG.debug("Received message: " + raw_message);
-
-		/*if (null == _parser)
-			_parser = new ISEParser("header=" + raw_message.trim());
-		else*/
-			_parser.ReInit(new StringReader("header=" + raw_message.trim()));
+	public JSONObject parse(byte[] msg) {
+	
+		String raw_message = "";
 
 		try {
+
+			raw_message = new String(msg, "UTF-8");
+			_LOG.debug("Received message: " + raw_message);
+			_parser.ReInit(new StringReader("header=" + raw_message.trim()));
+
 			JSONObject payload = _parser.parseObject();
 
 			String ip_src_addr = (String) payload.get("Device IP Address");
@@ -53,15 +55,14 @@ public class BasicIseParser extends AbstractParser {
 			payload.put("ip_src_port", ip_src_port);
 			payload.put("ip_dst_addr", ip_dst_addr);
 			payload.put("ip_dst_port", ip_dst_port);
-			
+
 			JSONObject message = new JSONObject();
 			message.put("message", payload);
-			
 
 			return message;
 
-		} catch (ParseException e) {
-			// TODO Auto-generated catch block
+		} catch (Exception e) {
+			Log.error(e.toString());
 			e.printStackTrace();
 		}
 		return null;

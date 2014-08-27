@@ -108,7 +108,7 @@ public class AlertsSearcher implements Runnable {
 					
 				logger.info( "lastSearchTime: " + lastSearchTime );
 				
-				SearchResponse response = client.prepareSearch( "alerts" )
+				SearchResponse response = client.prepareSearch( "ise_index", "lancope_index", "sourcefire_index", "bro_index" )
 				.setTypes( "alert" )
 				.setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
 				.addField("_source")

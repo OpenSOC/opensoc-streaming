@@ -28,6 +28,21 @@
 		<metrics.version>3.0.2</metrics.version>
 		<commons.config.version>1.10</commons.config.version>
 	</properties>
+	<repositories>
+		<repository>
+			<id>kraken</id>
+			<url>http://download.krakenapps.org/</url>
+		</repository>
+		<repository>
+			<id>krakenapps</id>
+			<url>http://krakenapps.org/mvn/</url>
+		</repository>
+	</repositories>
+	<repository>
+                        <id>Kraken-Repo</id>
+                        <name>Kraken Repository</name>
+                        <url>http://download.krakenapps.org</url>
+                </repository>
 	<dependencies>
 		<dependency>
 			<groupId>com.googlecode.json-simple</groupId>
@@ -76,36 +91,41 @@
 			<artifactId>commons-configuration</artifactId>
 			<version>${commons.config.version}</version>
 		</dependency>
-  		<dependency>
-  			<groupId>junit</groupId>
-  			<artifactId>junit</artifactId>
-  			<version>3.8.2</version>
-  		</dependency>		
+		<dependency>
+			<groupId>org.krakenapps</groupId>
+			<artifactId>kraken-pcap</artifactId>
+			<version>1.5.0</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>3.8.2</version>
+		</dependency>
 	</dependencies>
-<reporting>
-    <plugins>
-	<!-- Normally, dependency report takes time, skip it -->
-      <plugin>
-		<groupId>org.apache.maven.plugins</groupId>
-		<artifactId>maven-project-info-reports-plugin</artifactId>
-		<version>2.7</version>
-	 
-		<configuration>
-	          <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
-		</configuration>
-      </plugin>
-       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>emma-maven-plugin</artifactId>
-        <version>1.0-alpha-3</version>
-      </plugin>    
-      <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-pmd-plugin</artifactId>
-          <configuration>
-            <targetJdk>1.6</targetJdk>
-		  </configuration>
-        </plugin>   
-    </plugins>
-  </reporting> 	
+	<reporting>
+		<plugins>
+			<!-- Normally, dependency report takes time, skip it -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-project-info-reports-plugin</artifactId>
+				<version>2.7</version>
+
+				<configuration>
+					<dependencyLocationsEnabled>false</dependencyLocationsEnabled>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>emma-maven-plugin</artifactId>
+				<version>1.0-alpha-3</version>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<configuration>
+					<targetJdk>1.6</targetJdk>
+				</configuration>
+			</plugin>
+		</plugins>
+	</reporting>
 </project>

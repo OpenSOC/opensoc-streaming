@@ -70,7 +70,7 @@ public class BroParserTest extends TestCase {
 		String jsonString = "{ \"first_Column\":\"SomeValue\", \"second+Column\":\"someValue\" }";
 
 		BasicBroParser broparser = new BasicBroParser();
-		JSONObject cleanJson = broparser.parse(jsonString);
+		JSONObject cleanJson = broparser.parse(jsonString.getBytes());
 		System.out.println(cleanJson);
 
 		Pattern p = Pattern.compile("[^\\._a-z0-9 ]", Pattern.CASE_INSENSITIVE);

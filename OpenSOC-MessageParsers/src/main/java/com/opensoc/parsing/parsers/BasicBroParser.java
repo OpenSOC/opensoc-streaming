@@ -30,10 +30,16 @@ public class BasicBroParser extends AbstractParser {
 			.getLogger(BasicBroParser.class);
 	JSONCleaner cleaner = new JSONCleaner();
 
-	public JSONObject parse(String raw_message) {
-		_LOG.debug("Received message: " + raw_message);
+	public JSONObject parse(byte[] msg) {
+
+		String raw_message = "";
 
 		try {
+
+			raw_message = new String(msg, "UTF-8");
+
+			_LOG.debug("Received message: " + raw_message);
+
 			JSONObject cleaned_message = cleaner.Clean(raw_message);
 
 			String key = cleaned_message.keySet().iterator().next().toString();
@@ -78,7 +84,7 @@ public class BasicBroParser extends AbstractParser {
 			inner_message.put("protocol", key);
 
 			return inner_message;
-		} catch (ParseException e) {
+		} catch (Exception e) {
 
 			_LOG.error("Unable to Parse Message: " + raw_message);
 			e.printStackTrace();

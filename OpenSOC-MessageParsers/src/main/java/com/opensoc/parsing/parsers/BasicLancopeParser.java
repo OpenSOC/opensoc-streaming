@@ -33,11 +33,14 @@ public class BasicLancopeParser extends AbstractParser {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public JSONObject parse(String raw_message) {
+	public JSONObject parse(byte[] msg) {
 
 		JSONObject payload = null;
 
 		try {
+			
+			String raw_message = new String(msg, "UTF-8");
+			
 			payload = (JSONObject) JSONValue.parse(raw_message);
 
 			String message = payload.get("message").toString();
@@ -61,7 +64,7 @@ public class BasicLancopeParser extends AbstractParser {
 			payload.put("original_string", message);
 
 			return payload;
-		} catch (ParseException e) {
+		} catch (Exception e) {
 
 			_LOG.error("Unable to parse message: " + payload.toJSONString());
 			return null;

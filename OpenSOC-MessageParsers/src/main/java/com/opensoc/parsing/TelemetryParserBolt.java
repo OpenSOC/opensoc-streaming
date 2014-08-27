@@ -74,11 +74,13 @@ public class TelemetryParserBolt extends AbstractParserBolt {
 	}
 
 	public void execute(Tuple tuple) {
-		String original_mesasge = tuple.getString(0);
+		
+		
+		byte[] original_mesasge = tuple.getBinary(0);
 
 		try {
 
-			LOG.debug("Original Telemetry message: " + original_mesasge);
+			//LOG.debug("Original Telemetry message: " + original_mesasge);
 
 			JSONObject transformed_message = _parser.parse(original_mesasge);
 			LOG.debug("Transformed Telemetry message: " + transformed_message);

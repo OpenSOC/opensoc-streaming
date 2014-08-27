@@ -22,6 +22,7 @@ public class MetricReporter {
 	private GraphiteReporter graphiteReporter = null;
 
 	private Class _klas;
+	private String _topologyname = "topology";
 
 	/** The Constant LOGGER. */
 	private static final Logger _Logger = Logger
@@ -31,12 +32,15 @@ public class MetricReporter {
 
 		_Logger.debug("===========Initializing Reporter");
 		this._klas = klas;
+		if (config.get("topologyname")!=null)
+			_topologyname = (String) config.get("topologyname");
+			
 		this.start(config);
 
 	}
 
 	public Counter registerCounter(String countername) {
-		return metrics.counter(MetricRegistry.name(_klas, countername));
+		return metrics.counter(MetricRegistry.name(_topologyname,_klas.getCanonicalName(), countername));
 	}
 
 	public void start(Map config) {

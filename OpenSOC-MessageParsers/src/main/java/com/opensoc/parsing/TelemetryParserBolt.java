@@ -64,6 +64,7 @@ public class TelemetryParserBolt extends AbstractParserBolt {
 	void doPrepare(Map conf, TopologyContext topologyContext,
 			OutputCollector collector) throws IOException {
 
+		
 		LOG.info("Preparing TelemetryParser Bolt...");
 		if (null != metricConfiguration) {
 			_reporter = new MetricReporter();

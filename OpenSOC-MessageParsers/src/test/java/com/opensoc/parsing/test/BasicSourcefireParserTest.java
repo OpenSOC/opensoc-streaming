@@ -70,7 +70,7 @@ public class BasicSourcefireParserTest extends TestCase
 	 */
 	@SuppressWarnings({ "rawtypes", "unused" })
 	public void testParse() {
-		JSONObject parsed = sourceFireParser.parse(getSourceFireString());
+		JSONObject parsed = sourceFireParser.parse(getSourceFireString().getBytes());
 		assertNotNull(parsed);
 		
 		System.out.println(parsed);

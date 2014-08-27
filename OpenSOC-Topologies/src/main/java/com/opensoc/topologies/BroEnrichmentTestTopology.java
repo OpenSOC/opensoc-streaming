@@ -266,7 +266,7 @@ public class BroEnrichmentTestTopology {
 		try {
 
 			GenericInternalTestSpout testSpout = new GenericInternalTestSpout()
-					.withFilename(file_path).withRepeating(false);
+					.withFilename(file_path).withRepeating(config.getBoolean("spout.test.parallelism.repeat", false));
 
 			builder.setSpout(name, testSpout,
 					config.getInt("spout.test.parallelism.hint")).setNumTasks(
@@ -573,7 +573,7 @@ public class BroEnrichmentTestTopology {
 			// * ------------HDFS BOLT For Enriched Data configuration
 
 			FileNameFormat fileNameFormat_enriched = new DefaultFileNameFormat()
-					.withPath(config.getString("bolt.hdfs.path","/") + topology_name + "_enriched/");
+					.withPath(config.getString("bolt.hdfs.path","/") + "/" + topology_name + "_enriched/");
 			RecordFormat format_enriched = new DelimitedRecordFormat()
 					.withFieldDelimiter("|");
 

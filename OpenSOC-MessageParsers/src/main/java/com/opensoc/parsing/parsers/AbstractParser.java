@@ -37,6 +37,6 @@ public abstract class AbstractParser implements MessageParser, Serializable {
 
 	}
 
-	abstract public JSONObject parse(String raw_message) ;
+	abstract public JSONObject parse(byte[] raw_message) ;
 
 }

@@ -36,7 +36,6 @@ import org.apache.storm.hdfs.bolt.sync.CountSyncPolicy;
 import org.apache.storm.hdfs.bolt.sync.SyncPolicy;
 import org.json.simple.JSONObject;
 
-
 import storm.kafka.BrokerHosts;
 import storm.kafka.KafkaSpout;
 import storm.kafka.SpoutConfig;
@@ -46,6 +45,7 @@ import storm.kafka.bolt.KafkaBolt;
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
+import backtype.storm.spout.RawScheme;
 import backtype.storm.spout.SchemeAsMultiScheme;
 import backtype.storm.topology.TopologyBuilder;
 
@@ -247,7 +247,7 @@ public class IseEnrichmentTestTopology {
 			String input_topic = config.getString("spout.kafka.topic");
 			SpoutConfig kafkaConfig = new SpoutConfig(zk, input_topic, "",
 					input_topic);
-			kafkaConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
+			kafkaConfig.scheme = new SchemeAsMultiScheme(new RawScheme());
 			// kafkaConfig.forceFromStart = Boolean.valueOf("True");
 			kafkaConfig.startOffsetTime = -1;
 

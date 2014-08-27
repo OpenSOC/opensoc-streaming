@@ -30,12 +30,16 @@ public class BasicSourcefireParser extends AbstractParser {
 	Pattern pattern = Pattern.compile(domain_name_regex);
 
 	@SuppressWarnings({ "unchecked", "unused", "rawtypes" })
-	public JSONObject parse(String toParse) {
+	public JSONObject parse(byte[] msg) {
 
 		JSONObject payload = new JSONObject();
-		_LOG.debug("Received message: " + toParse);
+		String toParse = "";
 
 		try {
+
+			toParse = new String(msg, "UTF-8");
+			_LOG.debug("Received message: " + toParse);
+
 			String tmp = toParse.substring(toParse.lastIndexOf("{"));
 			payload.put("key", tmp);
 
@@ -73,15 +77,15 @@ public class BasicSourcefireParser extends AbstractParser {
 			}
 
 			payload.put("timestamp", System.currentTimeMillis());
-			payload.put("original_string", toParse.substring(0, toParse.indexOf("{")));
-
+			payload.put("original_string",
+					toParse.substring(0, toParse.indexOf("{")));
 
 			return payload;
 		} catch (Exception e) {
 			e.printStackTrace();
 			_LOG.error("Failed to parse: " + toParse);
-			//return new JSONObject();
-			 return null;
+			// return new JSONObject();
+			return null;
 		}
 	}
 

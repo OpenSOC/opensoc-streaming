@@ -19,9 +19,10 @@ public class AlertsProcessingServer {
 	
 	private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 	
-	// inject our AlertsSearcher runnable...
 	@Inject
 	private AlertsSearcher searcher;
+	@Inject
+	private AlertsCacheReaper reaper;
 	@Inject
 	private Properties configProps;
 	
@@ -32,8 +33,12 @@ public class AlertsProcessingServer {
 		int initialDelayTime = Integer.parseInt( configProps.getProperty( "searchInitialDelayTime", "30" ) );
 		int searchIntervalTime = Integer.parseInt( configProps.getProperty( "searchIntervalTime", "30" ) );
 		
+		reaper.setSearcher(searcher);
+		
 		final ScheduledFuture<?> alertsSearcherHandle =
 			       scheduler.scheduleAtFixedRate( searcher, initialDelayTime, searchIntervalTime, SECONDS );
+				
+		scheduler.scheduleAtFixedRate(reaper, 120, 380, SECONDS);
 		
 	}
 }

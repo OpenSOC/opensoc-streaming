@@ -5,6 +5,10 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import kafka.javaapi.producer.Producer;
@@ -36,11 +40,14 @@ public class AlertsSearcher implements Runnable {
 	// TODO: inject Searcher module for either ElasticSearch or Solr...
 	// TODO: inject OpenSocServiceFactory here
 	
-	// need a place to store recently seen alerts.  We'll also need a
-	// reaper thread to clear out the expired entries...
+	public final Map<String, AlertsFilterCacheEntry> alertsFilterCache = new HashMap<String, AlertsFilterCacheEntry>();
+	MessageDigest md;
 	
-	
-	
+	public AlertsSearcher() throws NoSuchAlgorithmException
+	{
+		md = MessageDigest.getInstance("SHA-256");
+
+	}
 	
 	@Override
 	public void run() {
@@ -111,8 +118,7 @@ public class AlertsSearcher implements Runnable {
 				SearchResponse response = client.prepareSearch( "ise_index", "lancope_index", "sourcefire_index", "bro_index" )
 				.setTypes( "alert" )
 				.setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
-				.addField("_source")
-				// .setQuery(QueryBuilders.queryString("enrichment.geo.ip_src_addr.country:US"))		
+				.addField("_source")		
 				.setQuery( QueryBuilders.boolQuery().must(  QueryBuilders.wildcardQuery( "alert.source", "*" ) )
 													.must( QueryBuilders.rangeQuery("message.timestamp").from(lastSearchTime).to(System.currentTimeMillis()).includeLower(true).includeUpper(false)))
 				.execute()
@@ -125,6 +131,22 @@ public class AlertsSearcher implements Runnable {
 				// for all hits, put the alert onto the Kafka topic.
 				for( SearchHit hit : hits )
 				{
+					// calculate hash for this hit...
+					String sourceData = hit.getSourceAsString();
+					String hash = new String( md.digest(sourceData.getBytes()));
+					
+					if( alertsFilterCache.containsKey(hash))
+					{
+						logger.warn( "We have already seen this Alert, so skipping..." );
+						continue;
+					}
+					else
+					{
+						long timeNow = System.currentTimeMillis();
+						AlertsFilterCacheEntry cacheEntry = new AlertsFilterCacheEntry( sourceData, timeNow );
+						alertsFilterCache.put(hash, cacheEntry);
+					}
+					
 					doSenderWork(hit);
 				}
 			

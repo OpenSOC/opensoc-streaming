@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import com.opensoc.alerts.server.AlertsCacheReaper;
 import com.opensoc.alerts.server.AlertsProcessingServer;
 import com.opensoc.alerts.server.AlertsSearcher;
 
@@ -25,6 +26,7 @@ public class AlertsServerModule extends AbstractModule {
 	protected void configure() {
 		bind( AlertsProcessingServer.class).in(Singleton.class);
 		bind( AlertsSearcher.class).in(Singleton.class);
+		bind( AlertsCacheReaper.class ).in(Singleton.class );
 	}
 	
 	@Provides Properties getConfigProps()

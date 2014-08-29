@@ -30,19 +30,11 @@
 	</properties>
 	<repositories>
 		<repository>
-			<id>kraken</id>
-			<url>http://download.krakenapps.org/</url>
-		</repository>
-		<repository>
-			<id>krakenapps</id>
-			<url>http://krakenapps.org/mvn/</url>
+			<id>Kraken-Repo</id>
+			<name>Kraken Repository</name>
+			<url>http://download.krakenapps.org</url>
 		</repository>
 	</repositories>
-	<repository>
-                        <id>Kraken-Repo</id>
-                        <name>Kraken Repository</name>
-                        <url>http://download.krakenapps.org</url>
-                </repository>
 	<dependencies>
 		<dependency>
 			<groupId>com.googlecode.json-simple</groupId>

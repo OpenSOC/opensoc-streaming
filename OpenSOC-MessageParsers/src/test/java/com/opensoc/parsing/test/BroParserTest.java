@@ -41,7 +41,7 @@ public class BroParserTest extends TestCase {
 	 * @throws java.lang.Exception
 	 */
 	public static void setUpBeforeClass() throws Exception {
-		setBroJsonString("{\"http\":{\"ts\":1402307733473,\"uid\":\"CTo78A11g7CYbbOHvj\",\"id.orig_h\":\"10.122.196.204\",\"id.orig_p\":58808,\"id.resp_h\":\"72.163.4.161\",\"id.resp_p\":80,\"trans_depth\":1,\"method\":\"GET\",\"host\":\"www.cisco.com\",\"uri\":\"/\",\"user_agent\":\"curl/7.22.0 (x86_64-pc-linux-gnu) libcurl/7.22.0 OpenSSL/1.0.1 zlib/1.2.3.4 libidn/1.23 librtmp/2.3\",\"request_body_len\":0,\"response_body_len\":25523,\"status_code\":200,\"status_msg\":\"OK\",\"tags\":[],\"resp_fuids\":[\"FJDyMC15lxUn5ngPfd\"],\"resp_mime_types\":[\"text/html\"]}}");
+		setBroJsonString("{\"http\":{\"ts\":1402307733473,\"uid\":\"CTo78A11g7CYbbOHvj\",\"id.orig_h\":\"192.249.113.37\",\"id.orig_p\":58808,\"id.resp_h\":\"72.163.4.161\",\"id.resp_p\":80,\"trans_depth\":1,\"method\":\"GET\",\"host\":\"www.cisco.com\",\"uri\":\"/\",\"user_agent\":\"curl/7.22.0 (x86_64-pc-linux-gnu) libcurl/7.22.0 OpenSSL/1.0.1 zlib/1.2.3.4 libidn/1.23 librtmp/2.3\",\"request_body_len\":0,\"response_body_len\":25523,\"status_code\":200,\"status_msg\":\"OK\",\"tags\":[],\"resp_fuids\":[\"FJDyMC15lxUn5ngPfd\"],\"resp_mime_types\":[\"text/html\"]}}");
 	}
 
 	/**
@@ -67,10 +67,9 @@ public class BroParserTest extends TestCase {
 	@SuppressWarnings({ "unused", "rawtypes" })
 	public void testParse() throws ParseException {
 
-		String jsonString = "{ \"first_Column\":\"SomeValue\", \"second+Column\":\"someValue\" }";
 
 		BasicBroParser broparser = new BasicBroParser();
-		JSONObject cleanJson = broparser.parse(jsonString.getBytes());
+		JSONObject cleanJson = broparser.parse(getBroJsonString().getBytes());
 		System.out.println(cleanJson);
 
 		Pattern p = Pattern.compile("[^\\._a-z0-9 ]", Pattern.CASE_INSENSITIVE);

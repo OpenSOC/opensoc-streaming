@@ -42,6 +42,8 @@ public class BasicLancopeParser extends AbstractParser {
 			String raw_message = new String(msg, "UTF-8");
 			
 			payload = (JSONObject) JSONValue.parse(raw_message);
+			
+			
 
 			String message = payload.get("message").toString();
 			String[] parts = message.split(" ");

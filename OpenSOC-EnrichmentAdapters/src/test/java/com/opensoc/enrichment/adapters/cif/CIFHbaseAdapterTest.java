@@ -18,6 +18,8 @@
  */
 package com.opensoc.enrichment.adapters.cif;
 
+import java.util.Properties;
+
 import com.opensoc.test.AbstractTestContext;
 
 
@@ -31,6 +33,9 @@ import com.opensoc.test.AbstractTestContext;
  * @version $Revision: 1.1 $
  */
 public class CIFHbaseAdapterTest extends AbstractTestContext {
+
+    private static CIFHbaseAdapter cifHbaseAdapter=null;
+
 
     /**
      * Constructs a new <code>CIFHbaseAdapterTest</code> instance.
@@ -62,6 +67,13 @@ public class CIFHbaseAdapterTest extends AbstractTestContext {
 
     protected void setUp() throws Exception {
         super.setUp();
+        Properties prop = super.getTestProperties();
+        assertNotNull(prop);
+        System.out.println("kafka.zk.list ="+(String) prop.get("kafka.zk.list"));
+        System.out.println("kafka.zk.list ="+(String) prop.get("kafka.zk.port"));   
+        System.out.println("kafka.zk.list ="+(String) prop.get("bolt.enrichment.cif.tablename"));   
+        
+        cifHbaseAdapter=new CIFHbaseAdapter((String) prop.get("kafka.zk.list"), (String) prop.get("kafka.zk.port"),(String) prop.get("bolt.enrichment.cif.tablename")); 
     }
 
     /* 
@@ -71,59 +83,80 @@ public class CIFHbaseAdapterTest extends AbstractTestContext {
 
     protected void tearDown() throws Exception {
         super.tearDown();
+        cifHbaseAdapter=null;
     }
 
     /**
      * Test method for {@link com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter#initializeAdapter()}.
      */
     public void testInitializeAdapter() {
-        //fail("Not yet implemented");
+        assertTrue(cifHbaseAdapter.initializeAdapter());
     }
 
     /**
      * Test method for {@link com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter#enrichByIP(java.lang.String)}.
      */
     public void testEnrichByIP() {
-        //fail("Not yet implemented");
+        assertNull(cifHbaseAdapter.enrichByIP("11.1.1"));
     }
 
     /**
      * Test method for {@link com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter#enrichByDomain(java.lang.String)}.
      */
     public void testEnrichByDomain() {
-        //fail("Not yet implemented");
+        assertNull(cifHbaseAdapter.enrichByIP("invaliddomain"));
     }
 
     /**
      * Test method for {@link com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter#enrichByEmail(java.lang.String)}.
      */
     public void testEnrichByEmail() {
-        //fail("Not yet implemented");
+        assertNull(cifHbaseAdapter.enrichByIP("sample@invalid.com"));
     }
 
     /**
      * Test method for {@link com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter#CIFHbaseAdapter(java.lang.String, java.lang.String, java.lang.String)}.
      */
     public void testCIFHbaseAdapter() {
-        //fail("Not yet implemented");
+        assertNotNull(cifHbaseAdapter);
     }
 
     /**
      * Test method for {@link com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter#enrich(java.lang.String)}.
      */
     public void testEnrich() {
-        //fail("Not yet implemented");
+        cifHbaseAdapter.initializeAdapter();
+        assertNotNull(cifHbaseAdapter.enrich("testinvalid.metadata"));
+        
+        assertNotNull(cifHbaseAdapter.enrich("ivalid.ip"));
+        assertNotNull(cifHbaseAdapter.enrich("1.1.1.10"));
     }
+    
 
     /**
      * Test method for {@link com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter#getCIFObject(java.lang.String)}.
      */
     public void testGetCIFObject() {
-        //fail("Not yet implemented");
+        cifHbaseAdapter.initializeAdapter();
+        assertNotNull(cifHbaseAdapter.getCIFObject("testkey"));
+    }
+    /**
+     * Returns the cifHbaseAdapter.
+     * @return the cifHbaseAdapter.
+     */
+    
+    public static CIFHbaseAdapter getCifHbaseAdapter() {
+        return CIFHbaseAdapterTest.cifHbaseAdapter;
     }
 
     /**
-     * Class Details if any
+     * Sets the cifHbaseAdapter.
+     * @param cifHbaseAdapter the cifHbaseAdapter.
      */
+    
+    public static void setCifHbaseAdapter(CIFHbaseAdapter cifHbaseAdapter) {
+    
+        CIFHbaseAdapterTest.cifHbaseAdapter = cifHbaseAdapter;
+    }
 }
 

@@ -62,9 +62,10 @@ import com.opensoc.parsing.TelemetryParserBolt;
 import com.opensoc.parsing.parsers.BasicBroParser;
 import com.opensoc.tagger.interfaces.TaggerAdapter;
 import com.opensoc.tagging.TelemetryTaggerBolt;
-import com.opensoc.tagging.adapters.RegexTagger;
+
 import com.opensoc.test.spouts.GenericInternalTestSpout;
 import com.opensoc.topologyhelpers.SettingsLoader;
+import com.opensoc.tagging.adapters.RegexTagger;
 
 /**
  * This is a basic example of a Storm topology.

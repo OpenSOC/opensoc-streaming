@@ -26,15 +26,11 @@ import storm.kafka.KafkaSpout;
 import storm.kafka.SpoutConfig;
 import storm.kafka.ZkHosts;
 import backtype.storm.Config;
-import backtype.storm.spout.RawMultiScheme;
 import backtype.storm.spout.RawScheme;
 import backtype.storm.spout.SchemeAsMultiScheme;
 import backtype.storm.topology.TopologyBuilder;
 
-import org.apache.commons.lang.StringUtils;
-
 import com.opensoc.json.serialization.JSONKryoSerializer;
-import com.opensoc.test.spouts.GenericInternalTestSpout;
 import com.opensoc.topologyhelpers.SettingsLoader;
 
 public class PCAPTopology {

@@ -42,12 +42,12 @@ public class AbstractTestContext  extends TestCase{
          /**
          * The testProps.
          */
-        private File testPropFile=null;
+        protected File testPropFile=null;
 
         /**
          * The properties loaded for test.
          */
-        private Properties testProperties=new Properties();
+        protected Properties testProperties=new Properties();
 
         /**
          * Constructs a new <code>AbstractTestContext</code> instance.

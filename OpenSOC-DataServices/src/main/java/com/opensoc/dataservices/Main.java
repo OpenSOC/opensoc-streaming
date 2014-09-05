@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Properties;
 
 import javax.servlet.DispatcherType;
-import javax.xml.parsers.FactoryConfigurationError;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -28,10 +27,16 @@ import org.apache.tomcat.SimpleInstanceManager;
 import org.eclipse.jetty.annotations.ServletContainerInitializersStarter;
 import org.eclipse.jetty.apache.jsp.JettyJasperInitializer;
 import org.eclipse.jetty.plus.annotation.ContainerInitializer;
+import org.eclipse.jetty.server.HttpConfiguration;
+import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.jboss.resteasy.plugins.guice.GuiceResteasyBootstrapServletContextListener;
 import org.slf4j.Logger;
@@ -126,10 +131,70 @@ public class Main {
         injector.createChildInjector().getAllBindings();
 
         Server server = new Server(port);
+        
+        /***************************************************
+         *************** enable SSL ************************
+         ***************************************************/
+        
+        // HTTP Configuration
+        HttpConfiguration http_config = new HttpConfiguration();
+        http_config.setSecureScheme("https");
+        http_config.setSecurePort(8443);
+        http_config.setOutputBufferSize(32768);
+        http_config.setRequestHeaderSize(8192);
+        http_config.setResponseHeaderSize(8192);
+        http_config.setSendServerVersion(true);
+        http_config.setSendDateHeader(false);
+        // httpConfig.addCustomizer(new ForwardedRequestCustomizer())
+        // SSL Context Factory
+        SslContextFactory sslContextFactory = new SslContextFactory();
+        
+        String sslKeystorePath = configProps.getProperty( "sslKeystorePath", "/etc/keystore" );
+        sslContextFactory.setKeyStorePath( homeDir + sslKeystorePath );
+        
+        String sslKeystorePassword = configProps.getProperty( "sslKeystorePassword" );
+        sslContextFactory.setKeyStorePassword(sslKeystorePassword);
+        
+        String sslKeyManagerPassword = configProps.getProperty( "sslKeyManagerPassword" );
+        if( sslKeyManagerPassword != null && !sslKeyManagerPassword.isEmpty() )
+        {
+        	sslContextFactory.setKeyManagerPassword(sslKeyManagerPassword);
+        }
+        
+        String sslTruststorePath = configProps.getProperty( "sslTruststorePath", "/etc/keystore" );
+        if( sslTruststorePath != null && !sslTruststorePath.isEmpty() )
+        {
+        	sslContextFactory.setTrustStorePath( homeDir + sslTruststorePath );
+        }
+        
+        String sslTruststorePassword = configProps.getProperty( "sslTruststorePassword" );
+        if( sslTruststorePassword != null && !sslTruststorePassword.isEmpty())
+        {
+        	sslContextFactory.setTrustStorePassword( sslTruststorePassword );
+        }
+        
+        sslContextFactory.setExcludeCipherSuites(
+                "SSL_RSA_WITH_DES_CBC_SHA",
+                "SSL_DHE_RSA_WITH_DES_CBC_SHA",
+                "SSL_DHE_DSS_WITH_DES_CBC_SHA",
+                "SSL_RSA_EXPORT_WITH_RC4_40_MD5",
+                "SSL_RSA_EXPORT_WITH_DES40_CBC_SHA",
+                "SSL_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA",
+                "SSL_DHE_DSS_EXPORT_WITH_DES40_CBC_SHA");
+
+        // SSL HTTP Configuration
+        HttpConfiguration https_config = new HttpConfiguration(http_config);
+        https_config.addCustomizer(new SecureRequestCustomizer());
+
+        // SSL Connector
+        ServerConnector sslConnector = new ServerConnector(server,
+            new SslConnectionFactory(sslContextFactory,"http/1.1"),
+            new HttpConnectionFactory(https_config));
+        sslConnector.setPort(8443);
+        server.addConnector(sslConnector);        
+        
 
         FilterHolder guiceFilter = new FilterHolder(injector.getInstance(GuiceFilter.class));
-       
-
         
         
         /** For JSP support.  Used only for testing and debugging for now.  This came come out

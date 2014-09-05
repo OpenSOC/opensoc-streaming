@@ -10,7 +10,7 @@
 		$(document).ready(function(){
 			   $("#startBtn").click(
 					function() {
-						var exampleSocket = new WebSocket("ws://localhost:9091/ws/messages");
+						var exampleSocket = new WebSocket("wss://localhost:8443/ws/messages");
 						if( exampleSocket != null )
 						{
 							

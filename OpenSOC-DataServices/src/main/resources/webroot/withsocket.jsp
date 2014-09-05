@@ -14,7 +14,7 @@
 			
 			   	$("#startBtn").click(
 					function() {
-						exampleSocket = new WebSocket("ws://localhost:9091/ws/messages");
+						exampleSocket = new WebSocket("wss://localhost:8443/ws/messages");
 						if( exampleSocket != null )
 						{
 							

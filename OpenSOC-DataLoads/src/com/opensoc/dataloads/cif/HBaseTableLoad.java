@@ -36,7 +36,7 @@ public class HBaseTableLoad {
 		LoadDirHBase(args[0]);
 
 	}
-	
+
 	public static void LoadDirHBase(String dirName) {
 		System.out.println("Working on:" + dirName);
 		File folder = new File(dirName);
@@ -92,10 +92,17 @@ public class HBaseTableLoad {
 		BufferedReader br = new BufferedReader(new InputStreamReader(input));
 		String jsonString;
 		List<Put> allputs = new ArrayList<Put>();
+		Map json;
 
 		while ((jsonString = br.readLine()) != null) {
 
-			Map json = (Map) parser.parse(jsonString);
+			try {
+
+				json = (Map) parser.parse(jsonString);
+			} catch (ParseException e) {
+				//System.out.println("Unable to Parse: " +jsonString);
+				continue;
+			}
 			// Iterator iter = json.entrySet().iterator();
 
 			// Get Address - either IP/domain or email and make that the Key

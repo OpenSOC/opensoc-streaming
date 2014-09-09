@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.util.Map;
 
 import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationMap;
 import org.json.simple.JSONObject;
 
 import backtype.storm.task.OutputCollector;
@@ -33,6 +32,7 @@ import backtype.storm.tuple.Values;
 
 import com.opensoc.json.serialization.JSONEncoderHelper;
 import com.opensoc.metrics.MetricReporter;
+import com.opensoc.parser.interfaces.MessageFilter;
 import com.opensoc.parser.interfaces.MessageParser;
 
 @SuppressWarnings("rawtypes")
@@ -53,6 +53,11 @@ public class TelemetryParserBolt extends AbstractParserBolt {
 		this.OutputFieldName = OutputFieldName;
 		return this;
 	}
+	public TelemetryParserBolt withMessageFilter(MessageFilter filter) {
+		this._filter = filter;
+		return this;
+	}
+	
 
 	public TelemetryParserBolt withMetricConfig(Configuration config) {
 		this.metricConfiguration = JSONEncoderHelper.getJSON(config
@@ -77,13 +82,13 @@ public class TelemetryParserBolt extends AbstractParserBolt {
 	public void execute(Tuple tuple) {
 		
 		
-		byte[] original_mesasge = tuple.getBinary(0);
+		byte[] original_message = tuple.getBinary(0);
 
 		try {
 
 			//LOG.debug("Original Telemetry message: " + original_mesasge);
 
-			JSONObject transformed_message = _parser.parse(original_mesasge);
+			JSONObject transformed_message = _parser.parse(original_message);
 			LOG.debug("Transformed Telemetry message: " + transformed_message);
 
 			if (transformed_message == null)
@@ -94,12 +99,16 @@ public class TelemetryParserBolt extends AbstractParserBolt {
 
 			_collector.ack(tuple);
 			ackCounter.inc();
-			_collector.emit(new Values(new_message));
-			emitCounter.inc();
+			//Check if message can be emitted
+			if (_filter.emitTuple(transformed_message))
+			{
+				_collector.emit(new Values(new_message));
+				emitCounter.inc();
+			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			LOG.error("Failed to parse telemetry message :" + original_mesasge);
+			LOG.error("Failed to parse telemetry message :" + original_message);
 			_collector.fail(tuple);
 			failCounter.inc();
 		}

@@ -29,6 +29,7 @@ import backtype.storm.topology.base.BaseRichBolt;
 
 import com.codahale.metrics.Counter;
 import com.opensoc.metrics.MetricReporter;
+import com.opensoc.parser.interfaces.MessageFilter;
 import com.opensoc.parser.interfaces.MessageParser;
 
 @SuppressWarnings("rawtypes")
@@ -46,6 +47,7 @@ public abstract class AbstractParserBolt extends BaseRichBolt {
 
 	protected String OutputFieldName;
 	protected MetricReporter _reporter;
+	protected MessageFilter _filter;
 
 	protected Counter ackCounter, emitCounter, failCounter;
 
@@ -70,6 +72,9 @@ public abstract class AbstractParserBolt extends BaseRichBolt {
 			throw new IllegalStateException("MessageParser must be specified");
 		if (this.OutputFieldName == null)
 			throw new IllegalStateException("OutputFieldName must be specified");
+
+		if (this._filter == null)
+			throw new IllegalStateException("MessageFilter must be specified");
 
 		try {
 			doPrepare(conf, topologyContext, collector);

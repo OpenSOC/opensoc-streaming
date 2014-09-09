@@ -54,15 +54,17 @@ import com.opensoc.enrichment.adapters.whois.WhoisHBaseAdapter;
 import com.opensoc.enrichment.common.EnrichmentAdapter;
 import com.opensoc.enrichment.common.GenericEnrichmentBolt;
 import com.opensoc.enrichment.host.HostAdapter;
+import com.opensoc.filters.BroMessageFilter;
+import com.opensoc.filters.GenericMessageFilter;
 import com.opensoc.indexing.TelemetryIndexingBolt;
 import com.opensoc.indexing.adapters.ESBaseBulkAdapter;
 import com.opensoc.json.serialization.JSONKryoSerializer;
+import com.opensoc.parser.interfaces.MessageFilter;
 import com.opensoc.parsing.AbstractParserBolt;
 import com.opensoc.parsing.TelemetryParserBolt;
 import com.opensoc.parsing.parsers.BasicBroParser;
 import com.opensoc.tagger.interfaces.TaggerAdapter;
 import com.opensoc.tagging.TelemetryTaggerBolt;
-
 import com.opensoc.test.spouts.GenericInternalTestSpout;
 import com.opensoc.topologyhelpers.SettingsLoader;
 import com.opensoc.tagging.adapters.RegexTagger;
@@ -287,6 +289,7 @@ public class BroEnrichmentTestTopology {
 			AbstractParserBolt parser_bolt = new TelemetryParserBolt()
 					.withMessageParser(new BasicBroParser())
 					.withOutputFieldName(topology_name)
+					.withMessageFilter(new GenericMessageFilter())
 					.withMetricConfig(config);
 
 			builder.setBolt(name, parser_bolt,
@@ -301,6 +304,31 @@ public class BroEnrichmentTestTopology {
 
 		return true;
 	}
+	
+	public static boolean initializeParsingBolt(Configuration config, String topology_name,
+			String name) {
+		try {
+
+			MessageFilter filter = new BroMessageFilter(config);
+			AbstractParserBolt parser_bolt = new TelemetryParserBolt()
+					.withMessageParser(new BasicBroParser())
+					.withOutputFieldName(topology_name)
+					.withMessageFilter(filter)
+					.withMetricConfig(config);
+
+			builder.setBolt(name, parser_bolt,
+					config.getInt("bolt.parser.parallelism.hint"))
+					.shuffleGrouping(component)
+					.setNumTasks(config.getInt("bolt.parser.num.tasks"));
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.exit(0);
+		}
+
+		return true;
+	}
+	
 
 	public static boolean initializeGeoEnrichment(String topology_name,
 			String name) {

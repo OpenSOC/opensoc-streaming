@@ -55,6 +55,7 @@ import com.opensoc.enrichment.adapters.whois.WhoisHBaseAdapter;
 import com.opensoc.enrichment.common.EnrichmentAdapter;
 import com.opensoc.enrichment.common.GenericEnrichmentBolt;
 import com.opensoc.enrichment.host.HostAdapter;
+import com.opensoc.filters.GenericMessageFilter;
 import com.opensoc.indexing.TelemetryIndexingBolt;
 import com.opensoc.indexing.adapters.ESBaseBulkAdapter;
 import com.opensoc.json.serialization.JSONKryoSerializer;
@@ -287,6 +288,7 @@ public class LancopeTestTopology {
 			AbstractParserBolt parser_bolt = new TelemetryParserBolt()
 					.withMessageParser(new BasicLancopeParser())
 					.withOutputFieldName(topology_name)
+					.withMessageFilter(new GenericMessageFilter())
 					.withMetricConfig(config);
 
 			builder.setBolt(name, parser_bolt,

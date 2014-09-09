@@ -44,46 +44,46 @@ public class BasicBroParser extends AbstractParser {
 
 			String key = cleaned_message.keySet().iterator().next().toString();
 
-			JSONObject inner_message = (JSONObject) cleaned_message.get(key);
+			JSONObject payload = (JSONObject) cleaned_message.get(key);
 
-			if (inner_message.containsKey("id.orig_h")) {
-				String source_ip = inner_message.remove("id.orig_h").toString();
-				inner_message.put("ip_src_addr", source_ip);
+			if (payload.containsKey("id.orig_h")) {
+				String source_ip = payload.remove("id.orig_h").toString();
+				payload.put("ip_src_addr", source_ip);
 			}
-			if (inner_message.containsKey("id.resp_h")) {
-				String source_ip = inner_message.remove("id.resp_h").toString();
-				inner_message.put("ip_dst_addr", source_ip);
+			if (payload.containsKey("id.resp_h")) {
+				String source_ip = payload.remove("id.resp_h").toString();
+				payload.put("ip_dst_addr", source_ip);
 			}
-			if (inner_message.containsKey("id.orig_p")) {
-				String source_port = inner_message.remove("id.orig_p")
+			if (payload.containsKey("id.orig_p")) {
+				String source_port = payload.remove("id.orig_p")
 						.toString();
-				inner_message.put("ip_src_port", source_port);
+				payload.put("ip_src_port", source_port);
 			}
-			if (inner_message.containsKey("id.resp_p")) {
-				String dest_port = inner_message.remove("id.resp_p").toString();
-				inner_message.put("ip_dst_port", dest_port);
+			if (payload.containsKey("id.resp_p")) {
+				String dest_port = payload.remove("id.resp_p").toString();
+				payload.put("ip_dst_port", dest_port);
 			}
-			if (inner_message.containsKey("host")) {
+			if (payload.containsKey("host")) {
 
-				String host = inner_message.get("host").toString().trim();
+				String host = payload.get("host").toString().trim();
 				String[] parts = host.split("\\.");
 				int length = parts.length;
-				inner_message.put("tld", parts[length - 2] + "."
+				payload.put("tld", parts[length - 2] + "."
 						+ parts[length - 1]);
 			}
-			if (inner_message.containsKey("query")) {
-				String host = inner_message.get("query").toString();
+			if (payload.containsKey("query")) {
+				String host = payload.get("query").toString();
 				String[] parts = host.split("\\.");
 				int length = parts.length;
-				inner_message.put("tld", parts[length - 2] + "."
+				payload.put("tld", parts[length - 2] + "."
 						+ parts[length - 1]);
 			}
 
-			_LOG.debug("Inner message: " + inner_message);
+			_LOG.debug("Inner message: " + payload);
 
-			inner_message.put("protocol", key);
+			payload.put("protocol", key);
 
-			return inner_message;
+			return payload;
 		} catch (Exception e) {
 
 			_LOG.error("Unable to Parse Message: " + raw_message);

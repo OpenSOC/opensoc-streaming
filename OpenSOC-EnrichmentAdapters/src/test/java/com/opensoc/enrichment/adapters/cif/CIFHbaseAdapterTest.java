@@ -36,6 +36,14 @@ public class CIFHbaseAdapterTest extends AbstractTestContext {
 
     private static CIFHbaseAdapter cifHbaseAdapter=null;
 
+    /**
+    * Any Object for mavenMode
+    * @parameter
+    *   expression="${mavenMode}"
+    *   default-value="Global"
+    */
+    private Object mavenMode;
+    
 
     /**
      * Constructs a new <code>CIFHbaseAdapterTest</code> instance.
@@ -44,6 +52,7 @@ public class CIFHbaseAdapterTest extends AbstractTestContext {
 
     public CIFHbaseAdapterTest(String name) {
         super(name);
+        System.out.println("************** MAVEN MODE="+mavenMode+"  ***********");
     }
 
     /**
@@ -158,5 +167,24 @@ public class CIFHbaseAdapterTest extends AbstractTestContext {
     
         CIFHbaseAdapterTest.cifHbaseAdapter = cifHbaseAdapter;
     }
+
+    /**
+     * Returns the mavenMode.
+     * @return the mavenMode.
+     */
+    
+    public Object getMavenMode() {
+        return mavenMode;
+    }
+
+    /**
+     * Sets the mavenMode.
+     * @param mavenMode the mavenMode.
+     */
+    
+    public void setMavenMode(Object mavenMode) {
+    
+        this.mavenMode = mavenMode;
+    }    
 }
 

@@ -1,18 +1,19 @@
 package com.opensoc.dataservices.modules.guice;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.servlet.ServletContext;
 
 import org.apache.shiro.guice.web.ShiroWebModule;
-import org.apache.shiro.realm.ldap.JndiLdapContextFactory;
-import org.apache.shiro.realm.ldap.JndiLdapRealm;
 import org.apache.shiro.web.filter.authc.LogoutFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Provides;
 import com.google.inject.name.Names;
+import com.opensoc.dataservices.auth.CustomDomainADRealm;
 
 public class DefaultShiroWebModule extends ShiroWebModule {
     
@@ -31,7 +32,7 @@ public class DefaultShiroWebModule extends ShiroWebModule {
     
     protected void configureShiroWeb() {
         bindConstant().annotatedWith(Names.named("shiro.loginUrl")).to( "/login.jsp" );
-    	bindRealm().to(JndiLdapRealm.class);
+    	bindRealm().to(CustomDomainADRealm.class);
     	bind( LogoutFilter.class);
         
         addFilterChain("/login", ANON);
@@ -42,18 +43,48 @@ public class DefaultShiroWebModule extends ShiroWebModule {
     
     @Provides 
     @javax.inject.Singleton 
-    JndiLdapRealm providesRealm()
+    CustomDomainADRealm providesRealm()
     {
-    	// pull our ldap url, etc., from config
+    	
+    	CustomDomainADRealm realm = new CustomDomainADRealm();
+    	
     	String ldapUrl = configProps.getProperty("ldapUrl");
     	logger.info( "got ldapurl from config: " + ldapUrl );
+    	realm.setUrl(ldapUrl);
     	
-    	JndiLdapContextFactory contextFactory = new JndiLdapContextFactory();
-    	contextFactory.setUrl( ldapUrl );
-    	contextFactory.setAuthenticationMechanism( "simple" );
-    	JndiLdapRealm realm = new JndiLdapRealm();
-    	realm.setContextFactory(contextFactory);
+    	// String ldapAuthMechanism = configProps.getProperty( "ldapAuthMechanism", "simple" ).trim();
+    	// logger.info( "got ldapAuthMechanism from config: " + ldapAuthMechanism );
     	
+    	
+    	String activeDirectorySystemUsername = configProps.getProperty( "activeDirectorySystemUsername" ).trim();
+    	logger.info( "got activeDirectorySystemUsername from config: " + activeDirectorySystemUsername );
+    	realm.setSystemUsername(activeDirectorySystemUsername);
+    	
+    	String activeDirectorySystemPassword = configProps.getProperty( "activeDirectorySystemPassword" ).trim();
+    	logger.info( "got activeDirectorySystemPassword from config: " + activeDirectorySystemPassword );
+    	realm.setSystemPassword(activeDirectorySystemPassword);
+
+    	String adDomain = configProps.getProperty( "adDomain" ).trim();
+    	realm.setCustomDomain( adDomain );
+    	
+    	String activeDirectoryBaseSearchDN = configProps.getProperty( "activeDirectoryBaseSearchDN" ).trim();
+    	logger.info( "got activeDirectoryBaseSearchDN from config: " + activeDirectoryBaseSearchDN );
+    	realm.setSearchBase( activeDirectoryBaseSearchDN );
+    	
+    	String groupRolesMapStr = configProps.getProperty( "groupRolesMap" );
+    	logger.info( "got groupRolesMapStr from config: " + groupRolesMapStr );
+    	
+    	String[] mappings = groupRolesMapStr.split( "\\|" );
+    	
+    	Map<String,String> groupRolesMap = new HashMap<String, String>();
+    	for( String mapping : mappings )
+    	{
+    		System.out.println( "mapping: " + mapping );
+    		String[] mappingParts = mapping.split(":");
+    		groupRolesMap.put( mappingParts[0], mappingParts[1]);
+    	}
+    	
+    	realm.setGroupRolesMap(groupRolesMap);
     	return realm;
     }
 }

@@ -61,7 +61,6 @@ public class AbstractTestContext  extends TestCase{
          */
         public AbstractTestContext() {
             super();
-            setMode(System.getProperty("mode"));
         }
 
         /**
@@ -70,6 +69,16 @@ public class AbstractTestContext  extends TestCase{
          */
         public AbstractTestContext(String name) {
             super(name);
+            try{
+                if(System.getProperty("mode")!=null){
+                    setMode(System.getProperty("mode") );                
+                }else
+                {
+                    setMode("local");
+                }
+            }catch(Exception ex){
+                setMode("local");
+            }            
         }
 
         /*

@@ -1,6 +1,6 @@
 language: java
 before_script:
-- mvn clean
+- mvn clean install -Dmode=local
 - mvn emma:emma
 notifications:
   email:

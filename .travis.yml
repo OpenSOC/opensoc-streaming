@@ -1,4 +1,6 @@
 language: java
+before_script:
+  mvn clean install -Dmode=local
 notifications:
   email:
     recipients:

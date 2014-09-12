@@ -48,12 +48,21 @@ public class AbstractTestContext  extends TestCase{
          * The properties loaded for test.
          */
         protected Properties testProperties=new Properties();
+        
+        /**
+         * Any Object for mavenMode
+         * @parameter
+         *   expression="${modee}"
+         *   default-value="local"
+         */
+         private Object mode;        
 
         /**
          * Constructs a new <code>AbstractTestContext</code> instance.
          */
         public AbstractTestContext() {
             super();
+            setMode(System.getProperty("mode"));
         }
 
         /**
@@ -135,7 +144,38 @@ public class AbstractTestContext  extends TestCase{
        public void setTestPropFile(File testPropFile) {
        
            this.testPropFile = testPropFile;
-       }        
+       }     
+       
+       /**
+        * Skip Tests
+        */
+       public boolean skipTests(Object mode){
+           if(mode.toString().equals("local")){
+               return true;
+           }else {
+               return false;
+           }
+       }
+       
+       /**
+        * Returns the mode.
+        * @return the mode.
+        */
+       
+       public Object getMode() {
+           return mode;
+       }
+
+       /**
+        * Sets the mode.
+        * @param mode the mode.
+        */
+       
+       public void setMode(Object mode) {
+       
+           this.mode = mode;
+       }
+     
     }
 
 

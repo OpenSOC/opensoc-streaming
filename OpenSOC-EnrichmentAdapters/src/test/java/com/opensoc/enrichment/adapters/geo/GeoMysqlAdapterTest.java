@@ -43,6 +43,7 @@ public class GeoMysqlAdapterTest extends AbstractTestContext  {
 
     public GeoMysqlAdapterTest(String name) {
         super(name);
+        super.setMode(System.getProperty("mode"));
     }
 
     /**
@@ -69,9 +70,14 @@ public class GeoMysqlAdapterTest extends AbstractTestContext  {
         Properties prop = super.getTestProperties();
         assertNotNull(prop);   
         System.out.println("username ="+(String)prop.get("mysql.username"));
+        if(skipTests(this.getMode())){
+            System.out.println(getClass().getName()+" Skipping Tests !!Local Mode");
+            return;//skip tests
+       }else{
         geoMySqlAdapter=new GeoMysqlAdapter((String)prop.get("mysql.ip"), (new Integer((String)prop.get("mysql.port"))).intValue(),(String)prop.get("mysql.username"),(String)prop.get("mysql.password"), (String)prop.get("bolt.enrichment.geo.adapter.table"));
         connected =geoMySqlAdapter.initializeAdapter();
         assertTrue(connected);
+       }
     }
 
     /* 
@@ -88,6 +94,9 @@ public class GeoMysqlAdapterTest extends AbstractTestContext  {
      * Test method for {@link com.opensoc.enrichment.adapters.geo.GeoMysqlAdapter#enrich(java.lang.String)}.
      */
     public void testEnrich() {
+        if(skipTests(this.getMode())){
+            return;//skip tests
+       }else{
         JSONObject json = geoMySqlAdapter.enrich("72.163.4.161");
         
         //assert Geo Response is not null
@@ -98,21 +107,30 @@ public class GeoMysqlAdapterTest extends AbstractTestContext  {
         
         //assert right LocId is being returned
         assertEquals("4522",json.get("locID"));
+       }
     }
 
     /**
      * Test method for {@link com.opensoc.enrichment.adapters.geo.GeoMysqlAdapter#initializeAdapter()}.
      */
     public void testInitializeAdapter() {
+        if(skipTests(this.getMode())){
+            return;//skip tests
+       }else{        
         boolean connected =geoMySqlAdapter.initializeAdapter();
         assertTrue(connected);
+       }
     }
  
     /**
      * Test method for {@link com.opensoc.enrichment.adapters.geo.GeoMysqlAdapter#GeoMysqlAdapter(java.lang.String, int, java.lang.String, java.lang.String, java.lang.String)}.
      */
     public void testGeoMysqlAdapter() {
-        assertTrue(connected);
+        if(skipTests(this.getMode())){
+            return;//skip tests
+       }else{       
+           assertTrue(connected);
+       }
     }
 
     /**

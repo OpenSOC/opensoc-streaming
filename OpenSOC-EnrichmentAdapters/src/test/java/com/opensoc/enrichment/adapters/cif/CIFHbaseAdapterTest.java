@@ -44,8 +44,16 @@ public class CIFHbaseAdapterTest extends AbstractTestContext {
 
     public CIFHbaseAdapterTest(String name) {
         super(name);
-        super.setMode(System.getProperty("mode") );
-        
+        try{
+            if(System.getProperty("mode")!=null){
+                super.setMode(System.getProperty("mode") );                
+            }else
+            {
+                super.setMode("local");
+            }
+        }catch(Exception ex){
+            super.setMode("local");
+        }
     }
 
 

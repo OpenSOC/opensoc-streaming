@@ -52,10 +52,10 @@ public class AbstractTestContext  extends TestCase{
         /**
          * Any Object for mavenMode
          * @parameter
-         *   expression="${modee}"
+         *   expression="${mode}"
          *   default-value="local"
          */
-         private Object mode;        
+         private Object mode="local";        
 
         /**
          * Constructs a new <code>AbstractTestContext</code> instance.

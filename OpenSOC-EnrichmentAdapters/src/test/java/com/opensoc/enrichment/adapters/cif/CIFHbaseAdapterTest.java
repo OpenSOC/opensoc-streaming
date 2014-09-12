@@ -28,9 +28,8 @@ import com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter;
  * <ul>
  * <li>Title: CIFHbaseAdapterTest</li>
  * <li>Description: Test Class for CIGFHbaseAdapter</li>
- * <li>Created: Aug 7, 2014 by: spiddapa</li>
+ * <li>Created: Aug 7, 2014</li>
  * </ul>
- * @author $Author: spiddapa $
  * @version $Revision: 1.1 $
  */
 public class CIFHbaseAdapterTest extends AbstractTestContext {

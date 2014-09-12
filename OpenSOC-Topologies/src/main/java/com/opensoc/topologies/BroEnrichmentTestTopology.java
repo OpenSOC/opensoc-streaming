@@ -50,10 +50,10 @@ import backtype.storm.topology.TopologyBuilder;
 
 import com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter;
 import com.opensoc.enrichment.adapters.geo.GeoMysqlAdapter;
+import com.opensoc.enrichment.adapters.host.HostFromPropertiesFileAdapter;
 import com.opensoc.enrichment.adapters.whois.WhoisHBaseAdapter;
 import com.opensoc.enrichment.common.EnrichmentAdapter;
 import com.opensoc.enrichment.common.GenericEnrichmentBolt;
-import com.opensoc.enrichment.host.HostAdapter;
 import com.opensoc.filters.BroMessageFilter;
 import com.opensoc.filters.GenericMessageFilter;
 import com.opensoc.indexing.TelemetryIndexingBolt;
@@ -309,7 +309,7 @@ public class BroEnrichmentTestTopology {
 			String name) {
 		try {
 
-			MessageFilter filter = new BroMessageFilter(config);
+			MessageFilter filter = new BroMessageFilter(config, "protocol");
 			AbstractParserBolt parser_bolt = new TelemetryParserBolt()
 					.withMessageParser(new BasicBroParser())
 					.withOutputFieldName(topology_name)
@@ -379,7 +379,7 @@ public class BroEnrichmentTestTopology {
 			Map<String, JSONObject> known_hosts = SettingsLoader
 					.loadKnownHosts(hosts_path);
 
-			HostAdapter host_adapter = new HostAdapter(known_hosts);
+			HostFromPropertiesFileAdapter host_adapter = new HostFromPropertiesFileAdapter(known_hosts);
 
 			GenericEnrichmentBolt host_enrichment = new GenericEnrichmentBolt()
 					.withEnrichmentTag(
@@ -422,7 +422,8 @@ public class BroEnrichmentTestTopology {
 			TelemetryTaggerBolt alerts_bolt = new TelemetryTaggerBolt()
 					.withIdentifier(alerts_identifier)
 					.withMessageTagger(tagger_adapter)
-					.withOutputFieldName("message");
+					.withOutputFieldName("message")
+					.withMetricConfiguration(config);
 
 			builder.setBolt(name, alerts_bolt,
 					config.getInt("bolt.alerts.parallelism.hint"))

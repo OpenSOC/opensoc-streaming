@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.opensoc.enrichment.host;
+package com.opensoc.enrichment.adapters.host;
 
 import java.io.Serializable;
 
@@ -28,7 +28,7 @@ import com.opensoc.enrichment.common.EnrichmentAdapter;
 public abstract class AbstractHostAdapter implements EnrichmentAdapter,Serializable{
 
 	/**
-	 * 
+	 * Adapter to attach reputation information to the telemetry message
 	 */
 	private static final long serialVersionUID = 8280523289446309728L;
 	protected static final Logger LOG = LoggerFactory

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -30,6 +30,8 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Fields;
 
+import com.codahale.metrics.Counter;
+import com.opensoc.metrics.MetricReporter;
 import com.opensoc.tagger.interfaces.TaggerAdapter;
 
 @SuppressWarnings("rawtypes")
@@ -47,6 +49,23 @@ public abstract class AbstractTaggerBolt extends BaseRichBolt {
 
 	protected String OutputFieldName;
 	protected JSONObject _identifier;
+	protected MetricReporter _reporter;
+	
+	protected Counter ackCounter, emitCounter, failCounter;
+
+	protected void registerCounters() {
+
+		String ackString = _adapter.getClass().getSimpleName() + ".ack";
+
+		String emitString = _adapter.getClass().getSimpleName() + ".emit";
+
+		String failString = _adapter.getClass().getSimpleName() + ".fail";
+
+		ackCounter = _reporter.registerCounter(ackString);
+		emitCounter = _reporter.registerCounter(emitString);
+		failCounter = _reporter.registerCounter(failString);
+
+	}
 
 	public final void prepare(Map conf, TopologyContext topologyContext,
 			OutputCollector collector) {

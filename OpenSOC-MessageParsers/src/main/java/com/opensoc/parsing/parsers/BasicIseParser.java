@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 
 import com.esotericsoftware.minlog.Log;
 import com.opensoc.ise.parser.ISEParser;
-import com.opensoc.ise.parser.ParseException;
 
 @SuppressWarnings("serial")
 public class BasicIseParser extends AbstractParser {
@@ -34,6 +33,7 @@ public class BasicIseParser extends AbstractParser {
 			.getLogger(BasicIseParser.class);
 	static final transient ISEParser _parser = new ISEParser("header=");
 
+	@SuppressWarnings("unchecked")
 	public JSONObject parse(byte[] msg) {
 	
 		String raw_message = "";

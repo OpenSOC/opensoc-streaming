@@ -42,16 +42,6 @@ public class GeoMysqlAdapterTest extends AbstractTestContext  {
 
     public GeoMysqlAdapterTest(String name) {
         super(name);
-        try{
-            if(System.getProperty("mode")!=null){
-                super.setMode(System.getProperty("mode") );                
-            }else
-            {
-                super.setMode("local");
-            }
-        }catch(Exception ex){
-            super.setMode("local");
-        }
     }
 
     /**

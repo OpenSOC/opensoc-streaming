@@ -19,9 +19,8 @@ import com.opensoc.parsing.parsers.BasicBroParser;
  * <ul>
  * <li>Title: Test For BroParser</li>
  * <li>Description: </li>
- * <li>Created: July 8, 2014 by: Ratna Piddaparti</li>
+ * <li>Created: July 8, 2014</li>
  * </ul>
- * @author $Author: spiddapa $
  * @version $Revision: 1.0 $
  */
 public class BroParserTest extends TestCase {

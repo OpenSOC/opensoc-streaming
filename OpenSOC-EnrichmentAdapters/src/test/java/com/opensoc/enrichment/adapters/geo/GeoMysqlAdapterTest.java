@@ -26,9 +26,8 @@ import com.opensoc.test.AbstractTestContext;
  * <ul>
  * <li>Title: </li>
  * <li>Description: </li>
- * <li>Created: Aug 25, 2014 by: spiddapa</li>
+ * <li>Created: Aug 25, 2014</li>
  * </ul>
- * @author $Author: spiddapa $
  * @version $Revision: 1.1 $
  */
 public class GeoMysqlAdapterTest extends AbstractTestContext  {

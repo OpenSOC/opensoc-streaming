@@ -20,9 +20,8 @@ import com.opensoc.parsing.parsers.BasicSourcefireParser;
  * <ul>
  * <li>Title: Test For SourceFireParser</li>
  * <li>Description: </li>
- * <li>Created: July 8, 2014 by: Ratna Piddaparti</li>
+ * <li>Created: July 8, 2014</li>
  * </ul>
- * @author $Author: spiddapa $
  * @version $Revision: 1.0 $
  */
 public class BasicSourcefireParserTest extends TestCase

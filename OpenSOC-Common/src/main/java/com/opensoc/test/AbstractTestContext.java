@@ -33,9 +33,8 @@ import junit.framework.TestCase;
  * test properties. The <code>setup</code> method will attempt to
  * load a properties from a file, located in src/test/resources,
  * with the same name as the class.</li>
- * <li>Created: Aug 7, 2014 by: spiddapa</li>
+ * <li>Created: Aug 7, 2014</li>
  * </ul>
- * @author $Author: spiddapa $
  * @version $Revision: 1.1 $
  */
 public class AbstractTestContext  extends TestCase{

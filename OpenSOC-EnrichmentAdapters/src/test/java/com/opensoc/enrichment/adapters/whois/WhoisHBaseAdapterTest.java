@@ -43,6 +43,7 @@ public class WhoisHBaseAdapterTest extends AbstractTestContext {
 
     public WhoisHBaseAdapterTest(String name) {
         super(name);
+        
         super.setMode(System.getProperty("mode"));        
     }
 

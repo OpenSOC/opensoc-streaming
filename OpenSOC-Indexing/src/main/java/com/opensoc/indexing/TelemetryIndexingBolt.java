@@ -19,63 +19,118 @@ package com.opensoc.indexing;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.Properties;
 
 import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationMap;
 import org.json.simple.JSONObject;
 
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
-import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 
 import com.opensoc.index.interfaces.IndexAdapter;
 import com.opensoc.json.serialization.JSONEncoderHelper;
 import com.opensoc.metrics.MetricReporter;
 
+/**
+ * 
+ * Bolt for indexing telemetry messages into Elastic Search, Solr, Druid, etc...
+ * For a list of all adapters provided please see com.opensoc.indexing.adapters
+ * 
+ * As of release of this code the following adapters for indexing are provided:
+ *  <p>
+ * <ul>
+ * 
+ * <li>ESBulkAdapter = adapter that can bulk index messages into ES
+ * <li>ESBulkRotatingAdapter = adapter that can bulk index messages into ES, rotate the index, and apply an alias to the rotated index
+ * <ul>
+ * <p>
+ *
+ */
+
 @SuppressWarnings("serial")
 public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 
 	private JSONObject metricConfiguration;
 
+	/**
+	 * 
+	 * @param IndexIP ip of ElasticSearch/Solr/etc...
+	 * @return instance of bolt
+	 */
 	public TelemetryIndexingBolt withIndexIP(String IndexIP) {
 		_IndexIP = IndexIP;
 		return this;
 	}
 
+	/**
+	 * 
+	 * @param IndexPort port of ElasticSearch/Solr/etc...
+	 * @return instance of bolt
+	 */
+	
 	public TelemetryIndexingBolt withIndexPort(int IndexPort) {
 		_IndexPort = IndexPort;
 		return this;
 	}
 
+	/**
+	 * 
+	 * @param IndexName name of the index in ElasticSearch/Solr/etc...
+	 * @return instance of bolt
+	 */
 	public TelemetryIndexingBolt withIndexName(String IndexName) {
 		_IndexName = IndexName;
 		return this;
 	}
 
+	/**
+	 * 
+	 * @param ClusterName name of cluster to index into in ElasticSearch/Solr/etc...
+	 * @return instance of bolt
+	 */
 	public TelemetryIndexingBolt withClusterName(String ClusterName) {
 		_ClusterName = ClusterName;
 		return this;
 	}
+	
+	/**
+	 * 
+	 * @param DocumentName name of document to be indexed in ElasticSearch/Solr/etc...
+	 * @return
+	 */
 
 	public TelemetryIndexingBolt withDocumentName(String DocumentName) {
 		_DocumentName = DocumentName;
 		return this;
 	}
 
+	/**
+	 * 
+	 * @param BulkIndexNumber number of documents to bulk index together
+	 * @return instance of bolt
+	 */
 	public TelemetryIndexingBolt withBulk(int BulkIndexNumber) {
 		_BulkIndexNumber = BulkIndexNumber;
 		return this;
 	}
 
+	/**
+	 * 
+	 * @param adapter adapter that handles indexing of JSON strings
+	 * @return instance of bolt
+	 */
 	public TelemetryIndexingBolt withIndexAdapter(IndexAdapter adapter) {
 		_adapter = adapter;
 
 		return this;
 	}
 
+	/**
+	 * 
+	 * @param config - configuration for pushing metrics into graphite
+	 * @return instance of bolt
+	 */
 	public TelemetryIndexingBolt withMetricConfiguration(Configuration config) {
 		this.metricConfiguration = JSONEncoderHelper.getJSON(config
 				.subset("com.opensoc.metrics"));
@@ -89,6 +144,10 @@ public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 
 		boolean success = _adapter.initializeConnection(_IndexIP, _IndexPort,
 				_ClusterName, _IndexName, _DocumentName, _BulkIndexNumber);
+		
+		if (!success)
+			throw new IllegalStateException(
+					"Could not initialize index adapter");
 
 		try
 		{
@@ -98,21 +157,23 @@ public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 		}
 		catch (Exception e)
 		{
-			LOG.error("Unable to initialize metrics reporter");
+			LOG.trace("[OpenSOC] Unable to initialize metrics reporter");
 		}
 
-		if (!success)
-			throw new IllegalStateException(
-					"Could not initialize index adapter");
+		
 	}
 
 	public void execute(Tuple tuple) {
 
-		JSONObject message = (JSONObject) tuple.getValue(0);
+		JSONObject message = null;
 		
-		System.out.println("------INDEXING BOLT GETS:  " + message);
+		try{
+		LOG.trace("[OpenSOC] Indexing bolt gets:  " + message);
 
-		LOG.debug("Received message: " + message);
+		message = (JSONObject) tuple.getValue(0);
+		
+		if(message == null || message.isEmpty())
+			throw new Exception("Could not parse message from binary stream");
 
 		boolean success = _adapter.bulkIndex(message);
 
@@ -122,6 +183,11 @@ public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 		} else {
 			_collector.fail(tuple);
 			failCounter.inc();
+		}
+		}
+		catch(Exception e)
+		{
+			
 		}
 
 	}

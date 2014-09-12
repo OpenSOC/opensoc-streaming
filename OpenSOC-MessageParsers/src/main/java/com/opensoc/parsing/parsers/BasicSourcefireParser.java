@@ -17,7 +17,6 @@
 
 package com.opensoc.parsing.parsers;
 
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.json.simple.JSONObject;
@@ -29,7 +28,7 @@ public class BasicSourcefireParser extends AbstractParser {
 	String domain_name_regex = "([^\\.]+)\\.([a-z]{2}|[a-z]{3}|([a-z]{2}\\.[a-z]{2}))$";
 	Pattern pattern = Pattern.compile(domain_name_regex);
 
-	@SuppressWarnings({ "unchecked", "unused", "rawtypes" })
+	@SuppressWarnings({ "unchecked", "unused" })
 	public JSONObject parse(byte[] msg) {
 
 		JSONObject payload = new JSONObject();
@@ -84,19 +83,9 @@ public class BasicSourcefireParser extends AbstractParser {
 		} catch (Exception e) {
 			e.printStackTrace();
 			_LOG.error("Failed to parse: " + toParse);
-			// return new JSONObject();
 			return null;
 		}
 	}
 
-	private String getDomain(String fqdn) {
-
-		Matcher matcher = pattern.matcher(fqdn);
-
-		if (matcher.find())
-			return matcher.group();
-
-		return "";
-	}
 
 }

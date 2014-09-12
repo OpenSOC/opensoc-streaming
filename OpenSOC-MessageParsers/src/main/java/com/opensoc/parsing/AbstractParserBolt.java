@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -20,6 +20,7 @@ package com.opensoc.parsing;
 import java.io.IOException;
 import java.util.Map;
 
+import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +51,11 @@ public abstract class AbstractParserBolt extends BaseRichBolt {
 	protected MessageFilter _filter;
 
 	protected Counter ackCounter, emitCounter, failCounter;
-
+	
+	/**
+	 * Register counters to be reported to graphite
+	 * */
+	
 	protected void registerCounters() {
 
 		String ackString = _parser.getClass().getSimpleName() + ".ack";
@@ -65,6 +70,10 @@ public abstract class AbstractParserBolt extends BaseRichBolt {
 
 	}
 
+	/**
+	 * Check to make sure all required variables have been initialized
+	 * */
+	 
 	public final void prepare(Map conf, TopologyContext topologyContext,
 			OutputCollector collector) {
 		_collector = collector;
@@ -81,6 +90,53 @@ public abstract class AbstractParserBolt extends BaseRichBolt {
 		} catch (IOException e) {
 			LOG.error("Counld not initialize...");
 			e.printStackTrace();
+		}
+	}
+	
+	 /**
+	 * @param  parser  The parser class for parsing the incoming raw message byte stream
+	 * @return      Instance of this class
+	 */
+	
+	public boolean checkForSchemaCorrectness(JSONObject message)
+	{
+		int correct = 0;
+
+		if(message.containsKey("ip_src_addr"))
+		{
+			correct ++;
+			LOG.trace("[OpenSOC] Message contains ip_src_addr");
+		}
+		if(message.containsKey("ip_dst_addr"))
+		{
+			correct ++;
+			LOG.trace("[OpenSOC] Message contains ip_dst_addr");
+		}
+		if(message.containsKey("ip_src_port"))
+		{
+			correct ++;
+			LOG.trace("[OpenSOC] Message contains ip_src_port");
+		}
+		if(message.containsKey("ip_dst_port"))
+		{
+			correct ++;
+			LOG.trace("[OpenSOC] Message contains ip_dst_port");
+		}
+		if(message.containsKey("protocol"))
+		{
+			correct ++;
+			LOG.trace("[OpenSOC] Message contains protocol");
+		}
+		
+		if(correct == 0)
+		{
+			LOG.trace("[OpenSOC] Message conforms to schema: " + message);
+			return false;
+		}
+		else
+		{
+			LOG.trace("[OpenSOC] Message does not conform to schema: " + message);
+			return true;
 		}
 	}
 

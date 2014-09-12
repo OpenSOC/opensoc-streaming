@@ -24,7 +24,7 @@ public class ESBaseBulkAdapter extends AbstractIndexAdapter {
 			String cluster_name, String index_name, String document_name,
 			int bulk_size) {
 
-		_LOG.info("Initializing ESBulkAdapter...");
+		_LOG.trace("[OpenSOC] Initializing ESBulkAdapter...");
 
 		try {
 
@@ -83,24 +83,24 @@ public class ESBaseBulkAdapter extends AbstractIndexAdapter {
 
 	public boolean doIndex() {
 		try {
-			_LOG.debug("Adding to bulk load: element " + element_count
+			_LOG.trace("Adding to bulk load: element " + element_count
 					+ " of bulk size " + _bulk_size);
 
 			element_count++;
 			
-			System.out.println("-----COUNT + BULK SIZE: " + element_count + " " + _bulk_size);
+			_LOG.trace("[OpenSOC] COUNT + BULK SIZE: " + element_count + " " + _bulk_size);
 
 			if (element_count == _bulk_size) {
-				_LOG.debug("Starting bulk load of size: " + _bulk_size);
+				_LOG.trace("[OpenSOC] Starting bulk load of size: " + _bulk_size);
 				BulkResponse resp = bulkRequest.execute().actionGet();
 				element_count = 0;
-				_LOG.debug("Received bulk response: " + resp.toString());
+				_LOG.trace("[OpenSOC] Received bulk response: " + resp.toString());
 				
-				System.out.println("-----SENDING BULK INGEST: " + element_count);
+				_LOG.trace("[OpenSOC] SENDING BULK INGEST: " + element_count);
 
 				if (resp.hasFailures()) {
-					_LOG.error("Bulk update failed");
-					return false;
+					_LOG.error("[OpenSOC] Bulk update failed");
+					throw new Exception("Bulk update failed at element_count: " + element_count);
 				}
 			}
 

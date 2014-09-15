@@ -11,3 +11,5 @@ copy/
 .classpath
 .project
 .settings/
+
+OpenSOC-Topologies/pom.xml

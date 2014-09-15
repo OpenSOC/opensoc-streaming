@@ -61,6 +61,18 @@
 	</build>
 <reporting>
     <plugins>
+     <plugin>
+     <groupId>org.apache.maven.plugins</groupId>
+     <artifactId>maven-surefire-plugin</artifactId>
+     	<configuration>
+	   		<systemProperties>
+	   		    <property>
+	   		         <name>mode</name>
+	   		         <value>local</value>
+	   		    </property>
+	   		</systemProperties>
+		</configuration>
+     </plugin>    
       <!-- Normally, dependency report takes time, skip it -->
       <plugin>
 		<groupId>org.apache.maven.plugins</groupId>
@@ -76,8 +88,8 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-pmd-plugin</artifactId>
           <configuration>
-            <targetJdk>1.6</targetJdk>
-		  </configuration>
+            <targetJdk>1.7</targetJdk>
+	  </configuration>
         </plugin>   
         <plugin>
           <groupId>org.codehaus.mojo</groupId>

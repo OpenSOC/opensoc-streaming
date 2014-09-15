@@ -27,6 +27,7 @@
 		<kafka.version>0.8.0</kafka.version>
 		<metrics.version>3.0.2</metrics.version>
 		<commons.config.version>1.10</commons.config.version>
+		<hbase.version>0.98.5-hadoop2</hbase.version>
 	</properties>
 	<repositories>
 		<repository>
@@ -93,7 +94,13 @@
 			<artifactId>junit</artifactId>
 			<version>3.8.2</version>
 		</dependency>
+			<dependency>
+			<groupId>org.apache.hbase</groupId>
+			<artifactId>hbase-client</artifactId>
+			<version>${hbase.version}</version>
+		</dependency>
 	</dependencies>
+
 	<reporting>
 		<plugins>
 			<!-- Normally, dependency report takes time, skip it -->
@@ -115,9 +122,10 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-pmd-plugin</artifactId>
 				<configuration>
-					<targetJdk>1.6</targetJdk>
+					<targetJdk>1.7</targetJdk>
 				</configuration>
 			</plugin>
 		</plugins>
 	</reporting>
+
 </project>

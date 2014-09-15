@@ -15,12 +15,26 @@
  * limitations under the License.
  */
 
-package com.opensoc.enrichment.common;
+package com.opensoc.enrichment.adapters.host;
+
+import java.io.Serializable;
 
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public interface EnrichmentAdapter
-{
-	JSONObject enrich(String metadata);
-	boolean initializeAdapter();
+import com.opensoc.enrichment.interfaces.EnrichmentAdapter;
+
+public abstract class AbstractHostAdapter implements EnrichmentAdapter,Serializable{
+
+	/**
+	 * Adapter to attach reputation information to the telemetry message
+	 */
+	private static final long serialVersionUID = 8280523289446309728L;
+	protected static final Logger LOG = LoggerFactory
+			.getLogger(AbstractHostAdapter.class);
+	
+	abstract public boolean initializeAdapter();
+	abstract public JSONObject enrich(String metadata);
+
 }

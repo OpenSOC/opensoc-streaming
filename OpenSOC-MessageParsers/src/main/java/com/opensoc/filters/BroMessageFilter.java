@@ -10,51 +10,35 @@ import org.json.simple.JSONObject;
 
 import com.opensoc.parser.interfaces.MessageFilter;
 
-public class BroMessageFilter implements MessageFilter, Serializable {
+public class BroMessageFilter implements MessageFilter,Serializable {
 
 	/**
-	 * 
+	 * Filter protocols based on whitelists and blacklists
 	 */
-	private static final long serialVersionUID = 1L;
-	private final String _key = "protocol";
-	private final Set<String> _include_protocols, _exclude_protocols;
-	private boolean include_all = false;
-	private boolean exclude_none = false;
+	
+	private static final long serialVersionUID = -3824683649114625033L;
+	private String _key;
+	private final Set<String> _known_protocols;
 
-	public BroMessageFilter(Configuration conf) {
-		_include_protocols = new HashSet<String>();
-		_exclude_protocols = new HashSet<String>();
-		List include_protocols = conf.getList("source.include.protocols", null);
-		List exclude_protocols = conf.getList("source.exclude.protocols", null);
-
-		if (null == include_protocols)
-			include_all = true;
-		else
-			_include_protocols.addAll(include_protocols);
-
-		if (null == exclude_protocols)
-			exclude_none = true;
-		else
-			_exclude_protocols.addAll(exclude_protocols);
-
-		if (_include_protocols.contains("*"))
-			include_all = true;
+	 /**
+	 * @param  filter  Commons configuration for reading properties files
+	 * @param  key Key in a JSON mesage where the protocol field is located
+	 */
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public BroMessageFilter(Configuration conf, String key) {
+		_key = key;
+		_known_protocols = new HashSet<String>();
+		List known_protocols = conf.getList("source.known.protocols");
+		_known_protocols.addAll(known_protocols);
 	}
 
+	 /**
+	 * @param  message  JSON representation of a message with a protocol field
+	 * @return      False if message if filtered and True if message is not filtered
+	 */
+	
 	public boolean emitTuple(JSONObject message) {
-		if (include_all)
-			return true;
-
-		if (_include_protocols.contains(message.get(_key)))
-			return true;
-
-		if (exclude_none)
-			return true;
-
-		if (_exclude_protocols.contains(message.get(_key)))
-			return false;
-
-		return false;
-
+		return _known_protocols.contains(message.get(_key));
 	}
 }

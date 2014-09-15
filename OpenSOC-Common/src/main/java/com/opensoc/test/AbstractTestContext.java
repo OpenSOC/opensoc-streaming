@@ -33,9 +33,8 @@ import junit.framework.TestCase;
  * test properties. The <code>setup</code> method will attempt to
  * load a properties from a file, located in src/test/resources,
  * with the same name as the class.</li>
- * <li>Created: Aug 7, 2014 by: spiddapa</li>
+ * <li>Created: Aug 7, 2014</li>
  * </ul>
- * @author $Author: spiddapa $
  * @version $Revision: 1.1 $
  */
 public class AbstractTestContext  extends TestCase{
@@ -48,6 +47,14 @@ public class AbstractTestContext  extends TestCase{
          * The properties loaded for test.
          */
         protected Properties testProperties=new Properties();
+        
+        /**
+         * Any Object for mavenMode
+         * @parameter
+         *   expression="${mode}"
+         *   default-value="local"
+         */
+         private Object mode="local";        
 
         /**
          * Constructs a new <code>AbstractTestContext</code> instance.
@@ -62,6 +69,16 @@ public class AbstractTestContext  extends TestCase{
          */
         public AbstractTestContext(String name) {
             super(name);
+            try{
+                if(System.getProperty("mode")!=null){
+                    setMode(System.getProperty("mode") );                
+                }else
+                {
+                    setMode("local");
+                }
+            }catch(Exception ex){
+                setMode("local");
+            }            
         }
 
         /*
@@ -135,7 +152,38 @@ public class AbstractTestContext  extends TestCase{
        public void setTestPropFile(File testPropFile) {
        
            this.testPropFile = testPropFile;
-       }        
+       }     
+       
+       /**
+        * Skip Tests
+        */
+       public boolean skipTests(Object mode){
+           if(mode.toString().equals("local")){
+               return true;
+           }else {
+               return false;
+           }
+       }
+       
+       /**
+        * Returns the mode.
+        * @return the mode.
+        */
+       
+       public Object getMode() {
+           return mode;
+       }
+
+       /**
+        * Sets the mode.
+        * @param mode the mode.
+        */
+       
+       public void setMode(Object mode) {
+       
+           this.mode = mode;
+       }
+     
     }
 
 

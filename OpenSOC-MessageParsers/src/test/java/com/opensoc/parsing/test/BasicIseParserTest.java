@@ -32,9 +32,8 @@ import junit.framework.TestCase;
  * <ul>
  * <li>Title: Basic ISE Parser </li>
  * <li>Description: Junit Test Case for BasicISE Parser</li>
- * <li>Created: AUG 25, 2014 by: spiddapa</li>
+ * <li>Created: AUG 25, 2014</li>
  * </ul>
- * @author $Author: spiddapa $
  * @version $Revision: 1.1 $
  */
 public class BasicIseParserTest extends TestCase {

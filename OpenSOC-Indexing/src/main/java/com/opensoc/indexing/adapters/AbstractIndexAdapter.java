@@ -16,8 +16,6 @@ public abstract class AbstractIndexAdapter implements IndexAdapter, Serializable
 			.getLogger(AbstractIndexingBolt.class);
 
 
-	public abstract boolean bulkIndex(JSONObject raw_message);
-	public abstract boolean bulkIndex(String raw_message);
 	
 
 	abstract public boolean initializeConnection(String ip, int port,

@@ -28,9 +28,8 @@ import com.opensoc.test.AbstractTestContext;
  * <ul>
  * <li>Title: </li>
  * <li>Description: </li>
- * <li>Created: Aug 25, 2014 by: spiddapa</li>
+ * <li>Created: Aug 25, 2014 </li>
  * </ul>
- * @author $Author: spiddapa $
  * @version $Revision: 1.1 $
  */
 public class WhoisHBaseAdapterTest extends AbstractTestContext {
@@ -69,10 +68,13 @@ public class WhoisHBaseAdapterTest extends AbstractTestContext {
         super.setUp();
         Properties prop = super.getTestProperties();
         assertNotNull(prop);   
-
-        whoisHbaseAdapter=new WhoisHBaseAdapter((String)prop.get("bolt.enrichment.whois.hbase.table.name"),(String)prop.get("kafka.zk.list"),(String)prop.get("kafka.zk.port"));
-        connected =whoisHbaseAdapter.initializeAdapter();
-        assertTrue(connected);
+        if(skipTests(this.getMode())){
+            return;//skip tests
+       }else{ 
+            whoisHbaseAdapter=new WhoisHBaseAdapter((String)prop.get("bolt.enrichment.whois.hbase.table.name"),(String)prop.get("kafka.zk.list"),(String)prop.get("kafka.zk.port"));
+            connected =whoisHbaseAdapter.initializeAdapter();
+            assertTrue(connected);
+       }
     }
 
     /* 
@@ -88,28 +90,30 @@ public class WhoisHBaseAdapterTest extends AbstractTestContext {
      * Test method for {@link com.opensoc.enrichment.adapters.whois.WhoisHBaseAdapter#initializeAdapter()}.
      */
     public void testInitializeAdapter() {
-        assertTrue(connected);
+        if(skipTests(this.getMode())){
+            return;//skip tests
+       }else{
+           assertTrue(connected);
+       }
     }
 
     /**
      * Test method for {@link com.opensoc.enrichment.adapters.whois.WhoisHBaseAdapter#enrich(java.lang.String)}.
      */
     public void testEnrich() {
-        JSONObject json = whoisHbaseAdapter.enrich("72.163.4.161");
-        
-        //assert Geo Response is not null
-        assertNotNull(json);
-        
-        //assert LocId is not null
-        assertNotNull(json.get("cisco.com"));
+        if(skipTests(this.getMode())){
+            return;//skip tests
+       }else{
+            JSONObject json = whoisHbaseAdapter.enrich("72.163.4.161");
+            
+            //assert Geo Response is not null
+            assertNotNull(json);
+            
+            //assert LocId is not null
+            assertNotNull(json.get("cisco.com"));
+       }
     }
 
-    /**
-     * Test method for {@link com.opensoc.enrichment.adapters.whois.WhoisHBaseAdapter#WhoisHBaseAdapter(java.lang.String, java.lang.String, java.lang.String)}.
-     */
-    public void testWhoisHBaseAdapter() {
-        fail("Not yet implemented");
-    }
 
     /**
      * Returns the whoisHbaseAdapter.

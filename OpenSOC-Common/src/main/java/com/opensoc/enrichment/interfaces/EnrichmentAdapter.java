@@ -15,26 +15,12 @@
  * limitations under the License.
  */
 
-package com.opensoc.enrichment.host;
-
-import java.io.Serializable;
+package com.opensoc.enrichment.interfaces;
 
 import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import com.opensoc.enrichment.common.EnrichmentAdapter;
-
-public abstract class AbstractHostAdapter implements EnrichmentAdapter,Serializable{
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 8280523289446309728L;
-	protected static final Logger LOG = LoggerFactory
-			.getLogger(AbstractHostAdapter.class);
-	
-	abstract public boolean initializeAdapter();
-	abstract public JSONObject enrich(String metadata);
-
+public interface EnrichmentAdapter
+{
+	JSONObject enrich(String metadata);
+	boolean initializeAdapter();
 }

@@ -31,9 +31,8 @@ import com.opensoc.parsing.parsers.BasicLancopeParser;
  * <ul>
  * <li>Title: Junit for LancopeParserTest</li>
  * <li>Description: </li>
- * <li>Created: Aug 25, 2014 by: spiddapa</li>
+ * <li>Created: Aug 25, 2014</li>
  * </ul>
- * @author $Author: spiddapa $
  * @version $Revision: 1.1 $
  */
 public class BasicLancopeParserTest extends TestCase {

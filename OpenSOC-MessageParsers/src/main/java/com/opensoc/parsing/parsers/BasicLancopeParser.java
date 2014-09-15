@@ -17,14 +17,11 @@
 
 package com.opensoc.parsing.parsers;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
-
-import com.esotericsoftware.minlog.Log;
 
 @SuppressWarnings("serial")
 public class BasicLancopeParser extends AbstractParser {

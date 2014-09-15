@@ -21,15 +21,15 @@ package com.opensoc.enrichment.adapters.cif;
 import java.util.Properties;
 
 import com.opensoc.test.AbstractTestContext;
+import com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter;
 
 
  /**
  * <ul>
  * <li>Title: CIFHbaseAdapterTest</li>
  * <li>Description: Test Class for CIGFHbaseAdapter</li>
- * <li>Created: Aug 7, 2014 by: spiddapa</li>
+ * <li>Created: Aug 7, 2014</li>
  * </ul>
- * @author $Author: spiddapa $
  * @version $Revision: 1.1 $
  */
 public class CIFHbaseAdapterTest extends AbstractTestContext {
@@ -44,7 +44,10 @@ public class CIFHbaseAdapterTest extends AbstractTestContext {
 
     public CIFHbaseAdapterTest(String name) {
         super(name);
+
     }
+
+
 
     /**
      
@@ -72,8 +75,11 @@ public class CIFHbaseAdapterTest extends AbstractTestContext {
         System.out.println("kafka.zk.list ="+(String) prop.get("kafka.zk.list"));
         System.out.println("kafka.zk.list ="+(String) prop.get("kafka.zk.port"));   
         System.out.println("kafka.zk.list ="+(String) prop.get("bolt.enrichment.cif.tablename"));   
-        
-        cifHbaseAdapter=new CIFHbaseAdapter((String) prop.get("kafka.zk.list"), (String) prop.get("kafka.zk.port"),(String) prop.get("bolt.enrichment.cif.tablename")); 
+        if(skipTests(this.getMode())){
+            System.out.println("Local Mode Skipping tests !! ");
+        }else{
+            cifHbaseAdapter=new CIFHbaseAdapter((String) prop.get("kafka.zk.list"), (String) prop.get("kafka.zk.port"),(String) prop.get("bolt.enrichment.cif.tablename"));
+        }
     }
 
     /* 
@@ -90,46 +96,70 @@ public class CIFHbaseAdapterTest extends AbstractTestContext {
      * Test method for {@link com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter#initializeAdapter()}.
      */
     public void testInitializeAdapter() {
-        assertTrue(cifHbaseAdapter.initializeAdapter());
+        if(skipTests(this.getMode())){
+            return;//skip tests
+       }else{
+            assertTrue(cifHbaseAdapter.initializeAdapter());
+        }
     }
 
     /**
      * Test method for {@link com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter#enrichByIP(java.lang.String)}.
      */
     public void testEnrichByIP() {
-        assertNull(cifHbaseAdapter.enrichByIP("11.1.1"));
+        if(skipTests(this.getMode())){
+             return;//skip tests
+        }else{      
+           assertNull(cifHbaseAdapter.enrichByIP("11.1.1"));
+       }
     }
 
     /**
      * Test method for {@link com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter#enrichByDomain(java.lang.String)}.
      */
     public void testEnrichByDomain() {
-        assertNull(cifHbaseAdapter.enrichByIP("invaliddomain"));
+        if(skipTests(this.getMode())){
+            return;//skip tests
+       }else{       
+           assertNull(cifHbaseAdapter.enrichByIP("invaliddomain"));
+       }
     }
 
     /**
      * Test method for {@link com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter#enrichByEmail(java.lang.String)}.
      */
     public void testEnrichByEmail() {
-        assertNull(cifHbaseAdapter.enrichByIP("sample@invalid.com"));
+        if(skipTests(this.getMode())){
+            return;//skip tests
+       }else{
+           assertNull(cifHbaseAdapter.enrichByIP("sample@invalid.com"));
+       }
     }
 
     /**
      * Test method for {@link com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter#CIFHbaseAdapter(java.lang.String, java.lang.String, java.lang.String)}.
      */
     public void testCIFHbaseAdapter() {
-        assertNotNull(cifHbaseAdapter);
+        if(skipTests(this.getMode())){
+            return;//skip tests
+       }else{
+           assertNotNull(cifHbaseAdapter);
+       }
     }
 
     /**
      * Test method for {@link com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter#enrich(java.lang.String)}.
      */
     public void testEnrich() {
-        cifHbaseAdapter.initializeAdapter();
-        assertNotNull(cifHbaseAdapter.enrich("testinvalid.metadata"));
-        
-        assertNotNull(cifHbaseAdapter.enrich("ivalid.ip"));
-        assertNotNull(cifHbaseAdapter.enrich("1.1.1.10"));
+        if(skipTests(this.getMode())){
+            return;//skip tests
+       }else{
+            cifHbaseAdapter.initializeAdapter();
+            assertNotNull(cifHbaseAdapter.enrich("testinvalid.metadata"));
+            
+            assertNotNull(cifHbaseAdapter.enrich("ivalid.ip"));
+            assertNotNull(cifHbaseAdapter.enrich("1.1.1.10"));
+       }
     }
     
 
@@ -137,8 +167,12 @@ public class CIFHbaseAdapterTest extends AbstractTestContext {
      * Test method for {@link com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter#getCIFObject(java.lang.String)}.
      */
     public void testGetCIFObject() {
-        cifHbaseAdapter.initializeAdapter();
-        assertNotNull(cifHbaseAdapter.getCIFObject("testkey"));
+        if(skipTests(this.getMode())){
+            return;//skip tests
+       }else{        
+           cifHbaseAdapter.initializeAdapter();
+           assertNotNull(cifHbaseAdapter.getCIFObject("testkey"));
+       }
     }
     /**
      * Returns the cifHbaseAdapter.
@@ -158,5 +192,6 @@ public class CIFHbaseAdapterTest extends AbstractTestContext {
     
         CIFHbaseAdapterTest.cifHbaseAdapter = cifHbaseAdapter;
     }
+
 }
 

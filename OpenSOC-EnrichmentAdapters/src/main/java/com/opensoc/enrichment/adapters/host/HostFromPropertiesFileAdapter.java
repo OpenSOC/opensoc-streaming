@@ -15,18 +15,17 @@
  * limitations under the License.
  */
 
-package com.opensoc.enrichment.host;
+package com.opensoc.enrichment.adapters.host;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.json.simple.JSONObject;
 
-public class HostAdapter extends AbstractHostAdapter {
+public class HostFromPropertiesFileAdapter extends AbstractHostAdapter {
 	
 	Map<String, JSONObject> _known_hosts;
 	
-	public HostAdapter(Map<String, JSONObject> known_hosts)
+	public HostFromPropertiesFileAdapter(Map<String, JSONObject> known_hosts)
 	{
 		_known_hosts = known_hosts;
 	}

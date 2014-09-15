@@ -49,12 +49,13 @@ import backtype.storm.spout.RawScheme;
 import backtype.storm.spout.SchemeAsMultiScheme;
 import backtype.storm.topology.TopologyBuilder;
 
+import com.opensoc.alerts.interfaces.TaggerAdapter;
 import com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter;
 import com.opensoc.enrichment.adapters.geo.GeoMysqlAdapter;
+import com.opensoc.enrichment.adapters.host.HostFromPropertiesFileAdapter;
 import com.opensoc.enrichment.adapters.whois.WhoisHBaseAdapter;
-import com.opensoc.enrichment.common.EnrichmentAdapter;
 import com.opensoc.enrichment.common.GenericEnrichmentBolt;
-import com.opensoc.enrichment.host.HostAdapter;
+import com.opensoc.enrichment.interfaces.EnrichmentAdapter;
 import com.opensoc.filters.GenericMessageFilter;
 import com.opensoc.indexing.TelemetryIndexingBolt;
 import com.opensoc.indexing.adapters.ESBaseBulkAdapter;
@@ -62,7 +63,6 @@ import com.opensoc.json.serialization.JSONKryoSerializer;
 import com.opensoc.parsing.AbstractParserBolt;
 import com.opensoc.parsing.TelemetryParserBolt;
 import com.opensoc.parsing.parsers.BasicSourcefireParser;
-import com.opensoc.tagger.interfaces.TaggerAdapter;
 import com.opensoc.tagging.TelemetryTaggerBolt;
 import com.opensoc.tagging.adapters.RegexTagger;
 import com.opensoc.test.spouts.GenericInternalTestSpout;
@@ -353,7 +353,7 @@ public class SourcefireEnrichmentTestTopology {
 			Map<String, JSONObject> known_hosts = SettingsLoader
 					.loadKnownHosts(hosts_path);
 
-			HostAdapter host_adapter = new HostAdapter(known_hosts);
+			HostFromPropertiesFileAdapter host_adapter = new HostFromPropertiesFileAdapter(known_hosts);
 
 			GenericEnrichmentBolt host_enrichment = new GenericEnrichmentBolt()
 					.withEnrichmentTag(

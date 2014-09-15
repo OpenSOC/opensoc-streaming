@@ -55,49 +55,59 @@ public class LoginServlet extends HttpServlet
 		} 
 		catch ( UnknownAccountException uae ) 
 		{
-			logger.warn( "Failing login with 405:", uae );
+			logger.warn( "Failing login with 401:", uae );
 			resp.sendError(405);
 			return;
 		} 
 		catch ( IncorrectCredentialsException ice ) 
 		{
-			logger.warn( "Failing login with 405:", ice );
+			logger.warn( "Failing login with 401:", ice );
 			resp.sendError(405);
 			return;
 		} 
 		catch ( LockedAccountException lae ) 
 		{
-			logger.warn( "Failing login with 405:", lae ); 
-			resp.sendError(405);
+			logger.warn( "Failing login with 401:", lae ); 
+			resp.sendError(401);
 			return;
 		} 
 		catch ( ExcessiveAttemptsException eae ) 
 		{
-			logger.warn( "Failing login with 405:", eae );
-			resp.sendError(405);
+			logger.warn( "Failing login with 401:", eae );
+			resp.sendError(401);
 			return;
 		}  
 		catch ( AuthenticationException ae ) 
 		{
-			logger.warn( "Failing login with 405:", ae );
-			resp.sendError(405);
+			logger.warn( "Failing login with 401:", ae );
+			resp.sendError(401);
 			return;
 		}
 		
-		try
-		{
 		
-			Cookie authTokenCookie = new Cookie("authToken", AuthToken.generateToken(configProps));
-			resp.addCookie(authTokenCookie);
-		}
-		catch( Exception e )
+		if( currentUser.hasRole("ShiroUsersRole") )
 		{
-			logger.error( "Failed creating authToken cookie.", e );
-			resp.sendError( 500 );
+			try
+			{
+			
+				Cookie authTokenCookie = new Cookie("authToken", AuthToken.generateToken(configProps));
+				resp.addCookie(authTokenCookie);
+				
+				// resp.setStatus(HttpServletResponse.SC_OK);
+				resp.sendRedirect( "/withsocket.jsp" );
+			}
+			catch( Exception e )
+			{
+				logger.error( "Failed creating authToken cookie.", e );
+				resp.sendError( 500 );
+				return;
+			}
+		}
+		else
+		{
+			logger.error("User does not have required role!");
+			resp.sendError(401);
 			return;
 		}
-		
-		// resp.setStatus(HttpServletResponse.SC_OK);
-		resp.sendRedirect( "/withsocket.jsp" );
 	}	
 }

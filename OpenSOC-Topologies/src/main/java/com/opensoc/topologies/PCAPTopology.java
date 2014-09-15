@@ -19,6 +19,12 @@ package com.opensoc.topologies;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.lang.StringUtils;
+
+import com.opensoc.hbase.HBaseBolt;
+import com.opensoc.hbase.HBaseStreamPartitioner;
+
+import org.apache.storm.hbase.bolt.mapper.SimpleHBaseMapper;
 import org.json.simple.JSONObject;
 
 import storm.kafka.BrokerHosts;
@@ -26,11 +32,20 @@ import storm.kafka.KafkaSpout;
 import storm.kafka.SpoutConfig;
 import storm.kafka.ZkHosts;
 import backtype.storm.Config;
+import backtype.storm.LocalCluster;
+import backtype.storm.StormSubmitter;
+import backtype.storm.generated.Grouping;
+import backtype.storm.spout.RawMultiScheme;
 import backtype.storm.spout.RawScheme;
 import backtype.storm.spout.SchemeAsMultiScheme;
+import backtype.storm.topology.BoltDeclarer;
 import backtype.storm.topology.TopologyBuilder;
+import backtype.storm.tuple.Fields;
 
+import com.opensoc.hbase.TupleTableConfig;
 import com.opensoc.json.serialization.JSONKryoSerializer;
+import com.opensoc.parsing.PcapParserBolt;
+import com.opensoc.test.spouts.PcapSimulatorSpout;
 import com.opensoc.topologyhelpers.SettingsLoader;
 
 public class PCAPTopology {
@@ -39,7 +54,7 @@ public class PCAPTopology {
 	static TopologyBuilder builder;
 	static String component = "Spout";
 	static Config conf;
-	static String subdir = "lancope";
+	static String subdir = "pcap";
 
 	public static void main(String[] args) throws Exception {
 
@@ -87,7 +102,7 @@ public class PCAPTopology {
 		if (config.getBoolean("spout.generator.enabled", false)) {
 			String component_name = config.getString("spout.generator.name",
 					"DefaultTopologySpout");
-			success = initializeGeneratorSpout("SampleInput/PcapExampleOutput",
+			success = initializeSimulatorSpout("SampleInput/PcapExampleOutput",
 					component_name);
 			component = component_name;
 
@@ -98,18 +113,66 @@ public class PCAPTopology {
 		if (config.getBoolean("spout.kafka.enabled", true)) {
 
 			String component_name = config.getString("spout.kafka.name",
-					"KafkaSpout");
+					"DefaultKafkaSpout");
 			success = initializeKafkaSpout(component_name);
 			component = component_name;
-			
-			System.out.println("[OpenSOC] Component " + component
+
+			System.out.println("[OpenSOC] Component " + component_name
 					+ " initialized");
 
 		}
 
+		if (config.getBoolean("bolt.parser.enabled", true)) {
+
+			String component_name = config.getString("bolt.parser.name",
+					"DefaultParserBolt");
+			success = initializeParserBolt(component_name);
+			component = component_name;
+
+			System.out.println("[OpenSOC] Component " + component_name
+					+ " initialized");
+
+		}
+
+		if (config.getBoolean("bolt.hdfs.enabled", true)) {
+
+			String component_name = config.getString("bolt.hdfs.name",
+					"DefaultHDFSBolt");
+			
+			String shuffleType = config.getString("bolt.hdfs.shuffle.type",
+					"direct");
+			success = initializeHdfsBolt(component_name, shuffleType);
+
+			System.out.println("[OpenSOC] Component " + component_name
+					+ " initialized");
+
+		}
+
+		if (config.getBoolean("local.mode")) {
+			conf.setNumWorkers(config.getInt("num.workers"));
+			conf.setMaxTaskParallelism(1);
+			LocalCluster cluster = new LocalCluster();
+			cluster.submitTopology(topology_name, conf,
+					builder.createTopology());
+		} else {
+
+			conf.setNumWorkers(config.getInt("num.workers"));
+			StormSubmitter.submitTopology(topology_name, conf,
+					builder.createTopology());
+		}
 	}
 
-	public static boolean initializeGeneratorSpout(String file_path, String name) {
+	public static boolean initializeSimulatorSpout(String file_path, String name) {
+
+		try {
+			builder.setSpout(name, new PcapSimulatorSpout(),
+					config.getInt("spout.generator.parallelism.hint"))
+					.setNumTasks(config.getInt("spout.generator.num.tasks"));
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.exit(0);
+		}
 
 		return true;
 	}
@@ -137,7 +200,9 @@ public class PCAPTopology {
 			kafkaConfig.socketTimeoutMs = config
 					.getInt("spout.kafka.socket.timeout.ms");
 
-			// kafkaConfig.scheme = new RawMultiScheme();
+			kafkaConfig.scheme = new RawMultiScheme();
+			
+			kafkaConfig.forceFromStart = true;
 
 			builder.setSpout(name, new KafkaSpout(kafkaConfig),
 					config.getInt("spout.kafka.parallelism.hint")).setNumTasks(
@@ -151,4 +216,78 @@ public class PCAPTopology {
 		return true;
 	}
 
+	public static boolean initializeParserBolt(String name) {
+		try {
+			builder.setBolt(name, new PcapParserBolt(),
+					config.getInt("bolt.parser.parallelism.hint"))
+					.setNumTasks(config.getInt("bolt.parser.num.tasks"))
+					.shuffleGrouping(component);
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.exit(0);
+		}
+
+		return true;
+	}
+
+	public static boolean initializeHdfsBolt(String name, String shuffleType) {
+
+		try {
+
+			String tableName = config.getString(
+					"bolt.hbase.table.name").toString();
+			TupleTableConfig hbaseBoltConfig = new TupleTableConfig(
+					tableName,
+					config.getString(
+							"bolt.hbase.table.key.tuple.field.name")
+							.toString(),
+							config.getString(
+							"bolt.hbase.table.key.tuple.field.name")
+							.toString());
+
+			String allColumnFamiliesColumnQualifiers = config.getString(
+					"bolt.hbase.table.fields").toString();
+			// This is expected in the form
+			// "<cf1>:<cq11>,<cq12>,<cq13>|<cf2>:<cq21>,<cq22>|......."
+			String[] tokenizedColumnFamiliesWithColumnQualifiers = StringUtils
+					.split(allColumnFamiliesColumnQualifiers, "\\|");
+			for (String tokenizedColumnFamilyWithColumnQualifiers : tokenizedColumnFamiliesWithColumnQualifiers) {
+				String[] cfCqTokens = StringUtils.split(
+						tokenizedColumnFamilyWithColumnQualifiers, ":");
+				String columnFamily = cfCqTokens[0];
+				String[] columnQualifiers = StringUtils.split(cfCqTokens[1],
+						",");
+				for (String columnQualifier : columnQualifiers) {
+					hbaseBoltConfig.addColumn(columnFamily, columnQualifier);
+				}
+
+				//hbaseBoltConfig.setDurability(Durability.valueOf(conf.get( "storm.topology.pcap.bolt.hbase.durability").toString()));
+			    
+				
+				hbaseBoltConfig.setBatch(Boolean.valueOf(config.getString("bolt.hbase.enable.batching").toString()));
+				
+				 BoltDeclarer declarer = builder.setBolt(name, new HBaseBolt(hbaseBoltConfig), config.getInt("bolt.hbase.parallelism.hint")).setNumTasks(
+							config.getInt("bolt.hbase.num.tasks")); 
+				 
+				if (Grouping._Fields.CUSTOM_OBJECT.toString().equalsIgnoreCase(shuffleType)) {
+			        declarer.customGrouping(
+			            component,
+			            "pcap_data_stream",
+			            new HBaseStreamPartitioner(hbaseBoltConfig.getTableName(), 0, Integer.parseInt(conf.get(
+			                "bolt.hbase.partitioner.region.info.refresh.interval.mins").toString())));
+			      } else if (Grouping._Fields.DIRECT.toString().equalsIgnoreCase(shuffleType)) {
+			        declarer.fieldsGrouping(component, "pcap_data_stream", new Fields("region"));
+			      }
+				
+				
+
+				
+
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.exit(0);
+		}
+		return true;
+	}
 }

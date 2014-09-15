@@ -136,7 +136,7 @@ public class PacketInfo {
    * @param udpPacket
    *          the udp packet
    */
-  PacketInfo(GlobalHeader globalHeader, PacketHeader packetHeader, PcapPacket packet, Ipv4Packet ipv4Packet, TcpPacket tcpPacket,
+  public PacketInfo(GlobalHeader globalHeader, PacketHeader packetHeader, PcapPacket packet, Ipv4Packet ipv4Packet, TcpPacket tcpPacket,
       UdpPacket udpPacket) {
     this.packetHeader = packetHeader;
     this.packet = packet;

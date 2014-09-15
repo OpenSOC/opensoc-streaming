@@ -1,4 +1,4 @@
-package com.opensoc.tagger.interfaces;
+package com.opensoc.alerts.interfaces;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;

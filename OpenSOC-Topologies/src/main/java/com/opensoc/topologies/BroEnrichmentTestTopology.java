@@ -141,7 +141,7 @@ public class BroEnrichmentTestTopology {
 		if (config.getBoolean("parser.bolt.enabled", true)) {
 			String component_name = config.getString("parser.bolt.name",
 					"DefaultTopologyParserBot");
-			success = initializeParsingBolt(topology_name, component_name);
+			success = initializeParsingBolt(config, topology_name, component_name);
 			component = component_name;
 
 			System.out.println("[OpenSOC] Component " + component

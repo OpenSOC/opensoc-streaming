@@ -17,11 +17,15 @@
 
 package com.opensoc.json.serialization;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -65,16 +69,23 @@ public class JSONKafkaSerializer implements Encoder<JSONObject>,
 		// Do Nothing. constructor needed by Storm
 	}
 
-	public static void main(String args[]) {
-		String jsonString = "{\"dns\":{\"ts\":[14.0,12,\"kiran\"],\"uid\":\"abullis@mail.csuchico.edu\",\"id.orig_h\":\"10.122.196.204\", \"endval\":null}}";
-
+	public static void main(String args[]) throws IOException {
+		
+		String Input = "/home/kiran/git/opensoc-streaming/OpenSOC-Common/BroExampleOutput";
+		
+		BufferedReader reader = new BufferedReader( new FileReader(Input));
+		
+		//String jsonString = "{\"dns\":{\"ts\":[14.0,12,\"kiran\"],\"uid\":\"abullis@mail.csuchico.edu\",\"id.orig_h\":\"10.122.196.204\", \"endval\":null}}";
+		String jsonString = reader.readLine();
 		JSONParser p = new JSONParser();
 		JSONObject json = null;
 		int count = 1;
 
 		if (args.length > 0)
 			count = Integer.parseInt(args[0]);
-
+		
+while((jsonString = reader.readLine())!=null)
+{
 		try {
 			json = (JSONObject) p.parse(jsonString);
 			System.out.println(json);
@@ -94,6 +105,7 @@ public class JSONKafkaSerializer implements Encoder<JSONObject>,
 		}
 		System.out.println((jsonString2));
 		System.out.println(jsonString2.equalsIgnoreCase(json.toJSONString()));
+}
 
 	}
 

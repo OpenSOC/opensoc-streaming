@@ -24,8 +24,8 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.opensoc.enrichment.common.EnrichmentAdapter;
 import com.opensoc.enrichment.common.GenericEnrichmentBolt;
+import com.opensoc.enrichment.interfaces.EnrichmentAdapter;
 
 @SuppressWarnings("serial")
 public abstract class AbstractGeoAdapter implements EnrichmentAdapter,

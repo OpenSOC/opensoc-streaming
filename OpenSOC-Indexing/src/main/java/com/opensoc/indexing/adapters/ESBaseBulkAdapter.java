@@ -17,7 +17,6 @@ public class ESBaseBulkAdapter extends AbstractIndexAdapter {
 	private int _bulk_size;
 	private String _index_name;
 	private String _document_name;
-	private int element_count;
 
 	@Override
 	public boolean initializeConnection(String ip, int port,
@@ -31,9 +30,9 @@ public class ESBaseBulkAdapter extends AbstractIndexAdapter {
 			_index_name = index_name;
 			_document_name = document_name;
 
-			_bulk_size = bulk_size - 1;
+			_bulk_size = bulk_size;
 
-			element_count = 0;
+			System.out.println("Bulk indexing is set to: " + _bulk_size);
 
 			Settings settings = ImmutableSettings.settingsBuilder()
 					.put("cluster.name", cluster_name).build();
@@ -50,62 +49,68 @@ public class ESBaseBulkAdapter extends AbstractIndexAdapter {
 		}
 	}
 
+
+	/**
+	 * @param raw_message message to bulk index in Elastic Search 
+	 * @return integer (0) loaded into a bulk queue, (1) bulk indexing executed, (2) error
+	 */
 	@SuppressWarnings("unchecked")
-	@Override
-	public boolean bulkIndex(JSONObject raw_message) {
+	public int bulkIndex(JSONObject raw_message) {
 
+		boolean success = true;
+		
 		try {
 
-			bulkRequest.add(client.prepareIndex(_index_name, _document_name)
-					.setSource(raw_message));
+			synchronized(bulkRequest)
+			{
 
-			return doIndex();
+				bulkRequest.add(client.prepareIndex(_index_name, _document_name).setSource(raw_message));
+				
+				System.out.println("Number of actions is: " + bulkRequest.numberOfActions());
+				
+				if(bulkRequest.numberOfActions() == _bulk_size)
+				{
+					 success = doIndex();
+					 bulkRequest = client.prepareBulk();
+					 
+					 if(success)
+						 return 1;
+					 else
+						 return 2;
+				}
+
+			}
+			
+			return 0;
+			
 		} catch (Exception e) {
 			e.printStackTrace();
-			return false;
+			return 2;
 		}
 	}
 
-	@Override
-	public boolean bulkIndex(String raw_message) {
-
-		try {
-
-			bulkRequest.add(client.prepareIndex(_index_name, _document_name)
-					.setSource(raw_message));
-
-			return doIndex();
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
-	}
 
 	public boolean doIndex() {
 		try {
-			_LOG.trace("Adding to bulk load: element " + element_count
-					+ " of bulk size " + _bulk_size);
 
-			element_count++;
-			
-			_LOG.trace("[OpenSOC] COUNT + BULK SIZE: " + element_count + " " + _bulk_size);
+			System.out.println("Performing bulk load of size: " + bulkRequest.numberOfActions());
 
-			if (element_count == _bulk_size) {
-				_LOG.trace("[OpenSOC] Starting bulk load of size: " + _bulk_size);
 				BulkResponse resp = bulkRequest.execute().actionGet();
-				element_count = 0;
+				
 				_LOG.trace("[OpenSOC] Received bulk response: " + resp.toString());
 				
-				_LOG.trace("[OpenSOC] SENDING BULK INGEST: " + element_count);
+
 
 				if (resp.hasFailures()) {
 					_LOG.error("[OpenSOC] Bulk update failed");
-					throw new Exception("Bulk update failed at element_count: " + element_count);
+					throw new Exception("Bulk update failed at element_count: " + bulkRequest.numberOfActions() + " and response is: " + resp.toString());
 				}
-			}
-
+					
+	
 			return true;
-		} catch (Exception e) {
+		}
+				
+		 catch (Exception e) {
 			e.printStackTrace();
 			return false;
 		}

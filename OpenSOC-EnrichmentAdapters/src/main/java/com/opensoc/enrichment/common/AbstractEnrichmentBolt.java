@@ -34,6 +34,7 @@ import com.codahale.metrics.Counter;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.opensoc.enrichment.interfaces.EnrichmentAdapter;
 import com.opensoc.metrics.MetricReporter;
 
 @SuppressWarnings("rawtypes")

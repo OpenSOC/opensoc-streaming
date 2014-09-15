@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.opensoc.tagging;
+package com.opensoc.alerts;
 
 import java.io.IOException;
 import java.util.Map;
@@ -31,25 +31,31 @@ import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Fields;
 
 import com.codahale.metrics.Counter;
-import com.opensoc.alerts.interfaces.TaggerAdapter;
+import com.opensoc.alerts.interfaces.AlertsAdapter;
 import com.opensoc.metrics.MetricReporter;
 
 @SuppressWarnings("rawtypes")
-public abstract class AbstractTaggerBolt extends BaseRichBolt {
+public abstract class AbstractAlertBolt extends BaseRichBolt {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -6710596708304282838L;
+	
+
 
 	protected static final Logger LOG = LoggerFactory
-			.getLogger(AbstractTaggerBolt.class);
+			.getLogger(AbstractAlertBolt.class);
 
 	protected OutputCollector _collector;
-	protected TaggerAdapter _adapter;
+	protected AlertsAdapter _adapter;
 
 	protected String OutputFieldName;
 	protected JSONObject _identifier;
 	protected MetricReporter _reporter;
+	
+	protected int _MAX_CACHE_SIZE = -1;
+	protected int _MAX_TIME_RETAIN = -1;
+	
 	
 	protected Counter ackCounter, emitCounter, failCounter;
 
@@ -72,19 +78,40 @@ public abstract class AbstractTaggerBolt extends BaseRichBolt {
 		_collector = collector;
 		
 		if (this._adapter == null)
-			throw new IllegalStateException("Tagging must be specified");
+			throw new IllegalStateException("Alerts adapter must be specified");
 		if(this._identifier == null)
 			throw new IllegalStateException("Identifier must be specified");
+
+		if (this._MAX_CACHE_SIZE == -1)
+			throw new IllegalStateException("MAX_CACHE_SIZE must be specified");
+		if (this._MAX_TIME_RETAIN == -1)
+			throw new IllegalStateException("MAX_TIME_RETAIN must be specified");
+
+		
 		try {
 			doPrepare(conf, topologyContext, collector);
 		} catch (IOException e) {
 			LOG.error("Counld not initialize...");
 			e.printStackTrace();
 		}
+		
+		boolean success = _adapter.initialize();
+		try {
+		if(!success)
+			
+				throw new Exception("Could not initialize adapter");
+			} catch (Exception e) {
+				
+				e.printStackTrace();
+			}
 	}
+	
+
 
 	public void declareOutputFields(OutputFieldsDeclarer declearer) {
 		declearer.declare(new Fields(this.OutputFieldName));
+		declearer.declareStream("alert", new Fields("alert"));
+		declearer.declareStream("error", new Fields("Alerts"));
 	}
 
 	abstract void doPrepare(Map conf, TopologyContext topologyContext,

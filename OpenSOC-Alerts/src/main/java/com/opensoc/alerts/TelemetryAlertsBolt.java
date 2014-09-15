@@ -15,11 +15,13 @@
  * limitations under the License.
  */
 
-package com.opensoc.tagging;
+package com.opensoc.alerts;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import org.apache.commons.configuration.Configuration;
 import org.json.simple.JSONArray;
@@ -27,17 +29,17 @@ import org.json.simple.JSONObject;
 
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
-import backtype.storm.topology.OutputFieldsDeclarer;
-import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
-import com.opensoc.alerts.interfaces.TaggerAdapter;
+import com.opensoc.alerts.adapters.AlertsCache;
+import com.opensoc.alerts.interfaces.AlertsAdapter;
 import com.opensoc.json.serialization.JSONEncoderHelper;
 import com.opensoc.metrics.MetricReporter;
+import com.opensoc.topologyhelpers.ErrorGenerator;
 
 @SuppressWarnings("rawtypes")
-public class TelemetryTaggerBolt extends AbstractTaggerBolt {
+public class TelemetryAlertsBolt extends AbstractAlertBolt {
 
 	/**
 	 * Use an adapter to tag existing telemetry messages with alerts. The list
@@ -56,6 +58,8 @@ public class TelemetryTaggerBolt extends AbstractTaggerBolt {
 	private static final long serialVersionUID = -2647123143398352020L;
 	private Properties metricProperties;
 	private JSONObject metricConfiguration;
+	private AlertsCache suppressed_alerts; 
+	
 
 	/**
 	 * 
@@ -63,7 +67,7 @@ public class TelemetryTaggerBolt extends AbstractTaggerBolt {
 	 *            - tagger adapter for generating alert tags
 	 * @return instance of bolt
 	 */
-	public TelemetryTaggerBolt withMessageTagger(TaggerAdapter tagger) {
+	public TelemetryAlertsBolt withAlertsAdapter(AlertsAdapter tagger) {
 		_adapter = tagger;
 		return this;
 	}
@@ -74,7 +78,7 @@ public class TelemetryTaggerBolt extends AbstractTaggerBolt {
 	 *            - output name of the tuple coming out of this bolt
 	 * @return - instance of this bolt
 	 */
-	public TelemetryTaggerBolt withOutputFieldName(String OutputFieldName) {
+	public TelemetryAlertsBolt withOutputFieldName(String OutputFieldName) {
 		this.OutputFieldName = OutputFieldName;
 		return this;
 	}
@@ -85,7 +89,7 @@ public class TelemetryTaggerBolt extends AbstractTaggerBolt {
 	 *            - metric output to graphite
 	 * @return - instance of this bolt
 	 */
-	public TelemetryTaggerBolt withMetricProperties(Properties metricProperties) {
+	public TelemetryAlertsBolt withMetricProperties(Properties metricProperties) {
 		this.metricProperties = metricProperties;
 		return this;
 	}
@@ -98,32 +102,55 @@ public class TelemetryTaggerBolt extends AbstractTaggerBolt {
 	 * @return - instance of this bolt
 	 */
 
-	public TelemetryTaggerBolt withIdentifier(JSONObject identifier) {
+	public TelemetryAlertsBolt withIdentifier(JSONObject identifier) {
 		this._identifier = identifier;
 		return this;
 	}
-	
+
 	/**
 	 * @param config
 	 *            A class for generating custom metrics into graphite
 	 * @return Instance of this class
 	 */
 
-	public TelemetryTaggerBolt withMetricConfiguration(Configuration config) {
+	public TelemetryAlertsBolt withMetricConfiguration(Configuration config) {
 		this.metricConfiguration = JSONEncoderHelper.getJSON(config
 				.subset("com.opensoc.metrics"));
+		return this;
+	}
+	/**
+	 * @param MAX_CACHE_SIZE
+	 *            Maximum size of cache before flushing
+	 * @return Instance of this class
+	 */
+
+	public TelemetryAlertsBolt withMaxCacheSize(int MAX_CACHE_SIZE) {
+		_MAX_CACHE_SIZE = MAX_CACHE_SIZE;
+		return this;
+	}
+
+	/**
+	 * @param MAX_TIME_RETAIN
+	 *            Maximum time to retain cached entry before expiring
+	 * @return Instance of this class
+	 */
+
+	public TelemetryAlertsBolt withMaxTimeRetain(int MAX_TIME_RETAIN) {
+		_MAX_TIME_RETAIN = MAX_TIME_RETAIN;
 		return this;
 	}
 
 	@Override
 	void doPrepare(Map conf, TopologyContext topologyContext,
 			OutputCollector collector) throws IOException {
+		
+		suppressed_alerts = new AlertsCache<String, String>(_MAX_TIME_RETAIN, 60, _MAX_CACHE_SIZE);
 
-		LOG.info("[OpenSOC] Preparing TelemetryParser Bolt...");
+		LOG.info("[OpenSOC] Preparing TelemetryAlert Bolt...");
 
 		try {
 			_reporter = new MetricReporter();
-			_reporter.initialize(metricProperties, TelemetryTaggerBolt.class);
+			_reporter.initialize(metricProperties, TelemetryAlertsBolt.class);
 			LOG.info("[OpenSOC] Initialized metrics");
 		} catch (Exception e) {
 			LOG.info("[OpenSOC] Could not initialize metrics");
@@ -146,54 +173,81 @@ public class TelemetryTaggerBolt extends AbstractTaggerBolt {
 			LOG.trace("[OpenSOC] Received tuple: " + original_message);
 
 			JSONObject alerts_tag = new JSONObject();
-			JSONArray alerts_list = _adapter.tag(original_message);
+			Map<String, JSONObject> alerts_list = _adapter
+					.alert(original_message);
+			JSONArray uuid_list = new JSONArray();
 
-			LOG.trace("[OpenSOC] Tagged message: " + alerts_list);
-
-			if (alerts_list.size() != 0) {
-				if (original_message.containsKey("alerts")) {
-					JSONObject tag = (JSONObject) original_message
-							.get("alerts");
-					JSONArray already_triggered = (JSONArray) tag
-							.get("triggered");
-					alerts_list.addAll(already_triggered);
-					LOG.trace("[OpenSOC] Created a new string of alerts");
-				}
-
-				alerts_tag.put("identifier", _identifier);
-				alerts_tag.put("triggered", alerts_list);
-				original_message.put("alerts", alerts_tag);
-				
-				LOG.debug("[OpenSOC] Detected alerts: " + alerts_tag);
+			if (alerts_list == null || alerts_list.isEmpty()) {
+				LOG.trace("[OpenSOC] No alerts detected in: " + original_message);
+				_collector.ack(tuple);
+				_collector.emit(new Values(original_message));
 			}
 			else
 			{
-				LOG.debug("[OpenSOC] The following messages did not contain alerts: " + original_message);
+				for (String alert : alerts_list.keySet()) {
+					uuid_list.add(alert);
+					
+					System.out.println("CHECKING CACHE: " + alert);
+					
+					if(!suppressed_alerts.containsKey(alert)) 
+					{
+						System.out.println(" CACHE NOT FOUND: " + alert);
+						
+					JSONObject global_alert = new JSONObject();
+					global_alert.putAll(_identifier);
+					global_alert.put("triggered", alerts_list.get(alert));
+					_collector.emit("alert", new Values(global_alert));
+					
+					suppressed_alerts.put(alert, null);
+					
+					}
+					else
+						System.out.println("LOCATED CACHE: " + alert);
+
+					
+				
+
+				LOG.trace("[OpenSOC] Alerts are: " + alerts_list);
+
+		
+					if (original_message.containsKey("alerts")) {
+						JSONArray already_triggered = (JSONArray) original_message
+								.get("alerts");
+
+						uuid_list.addAll(already_triggered);
+						LOG.trace("[OpenSOC] Messages already had alerts...tagging more");
+					}
+
+
+					original_message.put("alerts", uuid_list);
+
+					LOG.debug("[OpenSOC] Detected alerts: " + alerts_tag);
+
+					_collector.ack(tuple);
+					_collector.emit(new Values(original_message));
+				
+
 			}
 
-			_collector.ack(tuple);
-			_collector.emit(new Values(original_message));
-			
-			/*if (metricConfiguration != null) {
-				emitCounter.inc();
-				ackCounter.inc();
-			}*/
+			/*
+			 * if (metricConfiguration != null) { emitCounter.inc();
+			 * ackCounter.inc(); }
+			 */
+			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
 			LOG.error("Failed to tag message :" + original_message);
 			e.printStackTrace();
 			_collector.fail(tuple);
-			
+
 			/*
-			if (metricConfiguration != null) {
-				failCounter.inc();
-			}*/
+			 * if (metricConfiguration != null) { failCounter.inc(); }
+			 */
+			
+			JSONObject error = ErrorGenerator.generateErrorMessage("Alerts problem: " + original_message, e.toString());
+			_collector.emit("error", new Values(error));
 		}
 	}
 
-	public void declareOutputFields(OutputFieldsDeclarer declearer) {
-		declearer.declare(new Fields(this.OutputFieldName));
-
-	}
 }

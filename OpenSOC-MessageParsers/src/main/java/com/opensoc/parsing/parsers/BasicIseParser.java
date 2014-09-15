@@ -42,6 +42,10 @@ public class BasicIseParser extends AbstractParser {
 
 			raw_message = new String(msg, "UTF-8");
 			_LOG.debug("Received message: " + raw_message);
+			
+			/*
+			 * Reinitialize Parser. It has the effect of calling the constructor again. 
+			 */
 			_parser.ReInit(new StringReader("header=" + raw_message.trim()));
 
 			JSONObject payload = _parser.parseObject();
@@ -50,6 +54,10 @@ public class BasicIseParser extends AbstractParser {
 			String ip_src_port = (String) payload.get("Device Port");
 			String ip_dst_addr = (String) payload.get("DestinationIPAddress");
 			String ip_dst_port = (String) payload.get("DestinationPort");
+			
+			/*
+			 * Standard Fields for OpenSoc.
+			 */
 
 			payload.put("ip_src_addr", ip_src_addr);
 			payload.put("ip_src_port", ip_src_port);

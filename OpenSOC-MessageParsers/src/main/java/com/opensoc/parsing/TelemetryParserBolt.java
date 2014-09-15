@@ -34,6 +34,7 @@ import com.opensoc.json.serialization.JSONEncoderHelper;
 import com.opensoc.metrics.MetricReporter;
 import com.opensoc.parser.interfaces.MessageFilter;
 import com.opensoc.parser.interfaces.MessageParser;
+import com.opensoc.topologyhelpers.ErrorGenerator;
 
 /**
  * Uses an adapter to parse a telemetry message from its native format into a
@@ -205,11 +206,15 @@ public class TelemetryParserBolt extends AbstractParserBolt {
 
 			if (metricConfiguration != null)
 				failCounter.inc();
+			
+			JSONObject error = ErrorGenerator.generateErrorMessage("Parsing problem: " + new String(original_message), e.toString());
+			_collector.emit("error", new Values(error));
 		}
 	}
 
 	public void declareOutputFields(OutputFieldsDeclarer declearer) {
 		declearer.declare(new Fields(this.OutputFieldName));
+		declearer.declareStream("error", new Fields(this.OutputFieldName));
 
 	}
 }

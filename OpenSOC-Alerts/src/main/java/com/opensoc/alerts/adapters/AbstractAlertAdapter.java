@@ -16,19 +16,23 @@
  * limitations under the License.
  */
 
-package com.opensoc.tagging.adapters;
+package com.opensoc.alerts.adapters;
 
 import java.io.Serializable;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.opensoc.alerts.interfaces.TaggerAdapter;
+import com.opensoc.alerts.interfaces.AlertsAdapter;
 
 @SuppressWarnings("serial")
-public abstract class AbstractTaggerAdapter implements TaggerAdapter, Serializable{
+public abstract class AbstractAlertAdapter implements AlertsAdapter, Serializable{
 	
 	protected static final Logger _LOG = LoggerFactory
-			.getLogger(AbstractTaggerAdapter.class);
+			.getLogger(AbstractAlertAdapter.class);
 
+
+	
 }

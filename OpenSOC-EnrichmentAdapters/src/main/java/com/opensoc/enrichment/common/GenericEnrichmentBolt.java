@@ -33,8 +33,10 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
+import com.opensoc.enrichment.interfaces.EnrichmentAdapter;
 import com.opensoc.json.serialization.JSONEncoderHelper;
 import com.opensoc.metrics.MetricReporter;
+import com.opensoc.topologyhelpers.ErrorGenerator;
 
 /**
  * Uses an adapter to enrich telemetry messages with additional metadata
@@ -231,12 +233,18 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 			if (_reporter != null) {
 				failCounter.inc();
 			}
+			
+			JSONObject error = ErrorGenerator.generateErrorMessage("Enrichment problem: " + in_json, e.toString());
+			_collector.emit("error", new Values(error));
 		}
+		
+		
 
 	}
 
-	public void declareOutputFields(OutputFieldsDeclarer declarer) {
-		declarer.declare(new Fields("message"));
+	public void declareOutputFields(OutputFieldsDeclarer declearer) {
+		declearer.declare(new Fields("message"));
+		declearer.declareStream("error", new Fields("Enrichment"));
 	}
 
 	@Override

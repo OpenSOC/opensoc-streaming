@@ -21,7 +21,6 @@
 	<description>OpenSOC Topologies</description>
 
 	<properties>
-
 		<storm.hdfs.version>0.9.1.2.1.1.0-385</storm.hdfs.version>
 		<cli.version>20040117.000000</cli.version>
 		<commons.config.version>1.10</commons.config.version>

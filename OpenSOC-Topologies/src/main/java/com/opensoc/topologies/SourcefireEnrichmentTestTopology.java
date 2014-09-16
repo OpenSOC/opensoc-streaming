@@ -19,8 +19,10 @@ package com.opensoc.topologies;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -47,8 +49,13 @@ import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
 import backtype.storm.spout.RawScheme;
 import backtype.storm.spout.SchemeAsMultiScheme;
+import backtype.storm.topology.BoltDeclarer;
 import backtype.storm.topology.TopologyBuilder;
 
+import com.opensoc.alerts.TelemetryAlertsBolt;
+import com.opensoc.alerts.adapters.AllAlertAdapter;
+import com.opensoc.alerts.adapters.HbaseWhiteAndBlacklistAdapter;
+import com.opensoc.alerts.interfaces.AlertsAdapter;
 import com.opensoc.alerts.interfaces.TaggerAdapter;
 import com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter;
 import com.opensoc.enrichment.adapters.geo.GeoMysqlAdapter;
@@ -78,6 +85,7 @@ public class SourcefireEnrichmentTestTopology {
 	static String component = "Spout";
 	static Config conf;
 	static String subdir = "sourcefire";
+	static Set<String> activeComponents = new HashSet<String>();
 
 	public static void main(String[] args) throws Exception {
 
@@ -140,6 +148,7 @@ public class SourcefireEnrichmentTestTopology {
 		if (config.getBoolean("parser.bolt.enabled", true)) {
 			String component_name = config.getString("parser.bolt.name",
 					"DefaultTopologyParserBot");
+			activeComponents.add(component_name);
 			success = initializeParsingBolt(topology_name, component_name);
 			component = component_name;
 
@@ -150,6 +159,7 @@ public class SourcefireEnrichmentTestTopology {
 		if (config.getBoolean("bolt.enrichment.geo.enabled", false)) {
 			String component_name = config.getString(
 					"bolt.enrichment.geo.name", "DefaultGeoEnrichmentBolt");
+			activeComponents.add(component_name);
 			success = initializeGeoEnrichment(topology_name, component_name);
 			component = component_name;
 
@@ -160,6 +170,7 @@ public class SourcefireEnrichmentTestTopology {
 		if (config.getBoolean("bolt.enrichment.host.enabled", false)) {
 			String component_name = config.getString(
 					"bolt.enrichment.host.name", "DefaultHostEnrichmentBolt");
+			activeComponents.add(component_name);
 			success = initializeHostsEnrichment(topology_name, component_name,
 					"OpenSOC_Configs/etc/whitelists/known_hosts.conf");
 			component = component_name;
@@ -181,6 +192,7 @@ public class SourcefireEnrichmentTestTopology {
 		if (config.getBoolean("bolt.enrichment.cif.enabled", false)) {
 			String component_name = config.getString(
 					"bolt.enrichment.cif.name", "DefaultCIFEnrichmentBolt");
+			activeComponents.add(component_name);
 			success = initializeCIFEnrichment(topology_name, component_name);
 			component = component_name;
 
@@ -191,6 +203,8 @@ public class SourcefireEnrichmentTestTopology {
 		if (config.getBoolean("bolt.alerts.enabled", false)) {
 			String component_name = config.getString("bolt.alerts.name",
 					"DefaultAlertsBolt");
+			activeComponents.add(component_name);
+			
 			success = initializeAlerts(topology_name, component_name,
 					config_path + "/topologies/" + subdir + "/alerts.xml",
 					environment_identifier, topology_identifier);
@@ -212,6 +226,7 @@ public class SourcefireEnrichmentTestTopology {
 		if (config.getBoolean("bolt.indexing.enabled", true)) {
 			String component_name = config.getString("bolt.indexing.name",
 					"DefaultIndexingBolt");
+			activeComponents.add(component_name);
 			success = initializeIndexingBolt(component_name);
 
 			System.out.println("[OpenSOC] Component " + component_name
@@ -222,6 +237,16 @@ public class SourcefireEnrichmentTestTopology {
 			String component_name = config.getString("bolt.hdfs.name",
 					"DefaultHDFSBolt");
 			success = initializeHDFSBolt(topology_name, component_name);
+
+			System.out.println("[OpenSOC] Component " + component_name
+					+ " initialized");
+		}
+		
+		if (config.getBoolean("bolt.error.indexing.enabled")) {
+			String component_name = config.getString(
+					"bolt.error.indexing.name", "DefaultErrorIndexingBolt");
+
+			success = initializeErrorIndexBolt(component_name);
 
 			System.out.println("[OpenSOC] Component " + component_name
 					+ " initialized");
@@ -388,20 +413,46 @@ public class SourcefireEnrichmentTestTopology {
 			JSONObject alerts_identifier = SettingsLoader
 					.generateAlertsIdentifier(environment_identifier,
 							topology_identifier);
-			Map<String, JSONObject> rules = SettingsLoader
-					.loadRegexAlerts(alerts_path);
 
-			TaggerAdapter tagger_adapter = new RegexTagger(rules);
+			AlertsAdapter alerts_adapter = new AllAlertAdapter(
+					"ip_whitelist", "ip_blacklist",
+					config.getString("kafka.zk.list"),
+					config.getString("kafka.zk.port"), 3600, 1000);
 
-			TelemetryTaggerBolt alerts_bolt = new TelemetryTaggerBolt()
-					.withIdentifier(alerts_identifier)
-					.withMessageTagger(tagger_adapter)
-					.withOutputFieldName("message");
+			TelemetryAlertsBolt alerts_bolt = new TelemetryAlertsBolt()
+					.withIdentifier(alerts_identifier).withMaxCacheSize(1000)
+					.withMaxTimeRetain(3600).withAlertsAdapter(alerts_adapter)
+					.withOutputFieldName("message")
+					.withMetricConfiguration(config);
 
 			builder.setBolt(name, alerts_bolt,
 					config.getInt("bolt.alerts.parallelism.hint"))
 					.shuffleGrouping(component)
 					.setNumTasks(config.getInt("bolt.alerts.num.tasks"));
+
+			TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
+					.withIndexIP(config.getString("es.ip"))
+					.withIndexPort(config.getInt("es.port"))
+					.withClusterName(config.getString("es.clustername"))
+					.withIndexName(
+							config.getString("bolt.alerts.indexing.indexname"))
+					.withDocumentName(
+							config.getString("bolt.alerts.indexing.documentname"))
+					.withBulk(config.getInt("bolt.alerts.indexing.bulk"))
+					.withIndexAdapter(new ESBaseBulkAdapter())
+					.withMetricConfiguration(config);
+
+			if (config.getBoolean("bolt.alerts.indexing.enabled")) {
+
+				String alerts_name = config
+						.getString("bolt.alerts.indexing.name");
+				builder.setBolt(alerts_name, indexing_bolt,
+						config.getInt("bolt.indexing.parallelism.hint"))
+						.shuffleGrouping(name, "alert")
+						.setNumTasks(config.getInt("bolt.indexing.num.tasks"));
+
+				activeComponents.add(alerts_name);
+			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -409,6 +460,7 @@ public class SourcefireEnrichmentTestTopology {
 		}
 		return true;
 	}
+
 
 	public static boolean initializeKafkaBolt(String name) {
 		try {
@@ -605,224 +657,37 @@ public class SourcefireEnrichmentTestTopology {
 
 		return true;
 	}
-}
-
-
-/*package com.opensoc.topologies;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.regex.Pattern;
-
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.PropertiesConfiguration;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-
-import backtype.storm.Config;
-import backtype.storm.LocalCluster;
-import backtype.storm.StormSubmitter;
-import backtype.storm.topology.TopologyBuilder;
-
-import com.opensoc.enrichment.adapters.geo.GeoMysqlAdapter;
-import com.opensoc.enrichment.adapters.whois.WhoisHBaseAdapter;
-import com.opensoc.enrichment.common.EnrichmentAdapter;
-import com.opensoc.enrichment.common.GenericEnrichmentBolt;
-import com.opensoc.enrichment.host.HostAdapter;
-import com.opensoc.indexing.TelemetryIndexingBolt;
-import com.opensoc.indexing.adapters.ESBaseBulkAdapter;
-import com.opensoc.parsing.TelemetryParserBolt;
-import com.opensoc.parsing.parsers.BasicSourcefireParser;
-import com.opensoc.test.spouts.*;
-import com.opensoc.tagger.interfaces.TaggerAdapter;
-import com.opensoc.tagging.TelemetryTaggerBolt;
-import com.opensoc.tagging.adapters.StaticAllTagger;
-import com.opensoc.test.spouts.GenericInternalTestSpout;
-
-
-public class SourcefireEnrichmentTestTopology {
-
-	@SuppressWarnings("unchecked")
-	public static void main(String[] args) throws Exception {
-
-		String config_path = "";
-
+	
+	public static boolean initializeErrorIndexBolt(String component_name) {
 		try {
-			config_path = args[0];
+
+			TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
+					.withIndexIP(config.getString("es.ip"))
+					.withIndexPort(config.getInt("es.port"))
+					.withClusterName(config.getString("es.clustername"))
+					.withIndexName(
+							config.getString("bolt.error.indexing.indexname"))
+					.withDocumentName(
+							config.getString("bolt.error.indexing.documentname"))
+					.withBulk(config.getInt("bolt.error.indexing.bulk"))
+					.withIndexAdapter(new ESBaseBulkAdapter())
+					.withMetricConfiguration(config);
+
+			BoltDeclarer declarer = builder
+					.setBolt(
+							component_name,
+							indexing_bolt,
+							config.getInt("bolt.error.indexing.parallelism.hint"))
+					.setNumTasks(config.getInt("bolt.error.indexing.num.tasks"));
+
+			for (String component : activeComponents)
+				declarer.shuffleGrouping(component, "error");
+
+			return true;
 		} catch (Exception e) {
-			config_path = "TopologyConfigs/sourcefire.conf";
-		}
-
-		Configuration config = new PropertiesConfiguration(config_path);
-
-		String topology_name = config.getString("topology.name");
-
-		TopologyBuilder builder = new TopologyBuilder();
-
-		Config conf = new Config();
-		conf.setDebug(config.getBoolean("debug.mode"));
-
-		GenericInternalTestSpout testSpout = new GenericInternalTestSpout()
-				.withFilename("SampleInput/SourcefireExampleOutput")
-				.withRepeating(false);
-
-		builder.setSpout("EnrichmentSpout", testSpout,
-				config.getInt("spout.test.parallelism.hint")).setNumTasks(
-				config.getInt("spout.test.num.tasks"));
-
-		// ------------Parser Bolt Configuration
-
-		TelemetryParserBolt parser_bolt = new TelemetryParserBolt()
-				.withMetricConfig(config)
-				.withMessageParser(new BasicSourcefireParser())
-				.withOutputFieldName(topology_name);
-
-		builder.setBolt("ParserBolt", parser_bolt,
-				config.getInt("bolt.parser.parallelism.hint"))
-				.shuffleGrouping("EnrichmentSpout")
-				.setNumTasks(config.getInt("bolt.parser.num.tasks"));
-
-		// -------------Alerts Bolt
-
-		JSONObject static_alerts_message = new JSONObject();
-		static_alerts_message.put("source",
-				config.getString("bolt.alerts.staticsource"));
-		static_alerts_message.put("priority",
-				config.getString("bolt.alerts.staticpriority"));
-		static_alerts_message.put("cluster",
-				config.getString("bolt.alerts.cluster"));
-
-		TaggerAdapter tagger = new StaticAllTagger(static_alerts_message);
-
-		TelemetryTaggerBolt alerts_bolt = new TelemetryTaggerBolt()
-				.withMessageTagger(tagger).withOutputFieldName(topology_name);
-
-		builder.setBolt("AlertsBolt", alerts_bolt,
-				config.getInt("bolt.alerts.parallelism.hint"))
-				.shuffleGrouping("ParserBolt")
-				.setNumTasks(config.getInt("bolt.alerts.num.tasks"));
-
-		// ------------Geo Enrichment Bolt Configuration
-
-		List<String> geo_keys = new ArrayList<String>();
-		geo_keys.add(config.getString("bolt.enrichment.geo.source_ip"));
-		geo_keys.add(config.getString("bolt.enrichment.geo.resp_ip"));
-
-		GeoMysqlAdapter geo_adapter = new GeoMysqlAdapter(
-				config.getString("bolt.enrichment.geo.adapter.ip"),
-				config.getInt("bolt.enrichment.geo.adapter.port"),
-				config.getString("bolt.enrichment.geo.adapter.username"),
-				config.getString("bolt.enrichment.geo.adapter.password"),
-				config.getString("bolt.enrichment.geo.adapter.table"));
-
-		GenericEnrichmentBolt geo_enrichment = new GenericEnrichmentBolt()
-				.withEnrichmentTag(
-						config.getString("bolt.enrichment.geo.enrichment_tag"))
-				.withOutputFieldName(topology_name)
-				.withAdapter(geo_adapter)
-				.withMaxTimeRetain(
-						config.getInt("bolt.enrichment.geo.MAX_TIME_RETAIN"))
-				.withMaxCacheSize(
-						config.getInt("bolt.enrichment.geo.MAX_CACHE_SIZE"))
-				.withKeys(geo_keys).withMetricConfiguration(config);
-
-		builder.setBolt("GeoEnrichBolt", geo_enrichment,
-				config.getInt("bolt.enrichment.geo.parallelism.hint"))
-				.shuffleGrouping("AlertsBolt")
-				.setNumTasks(config.getInt("bolt.enrichment.geo.num.tasks"));
-		
-		// ------------Hosts Enrichment Bolt Configuration
-		
-		Configuration hosts = new PropertiesConfiguration("TopologyConfigs/known_hosts/known_hosts.conf");
-		
-		Iterator<String> keys = hosts.getKeys();
-		Map<String, JSONObject> known_hosts = new HashMap<String, JSONObject>();
-		JSONParser parser = new JSONParser();
-		 
-		    while(keys.hasNext())
-		    {
-		    	String key = keys.next().trim();
-		    	JSONArray value = (JSONArray) parser.parse(hosts.getProperty(key).toString());
-		    	known_hosts.put(key, (JSONObject) value.get(0));
-		    }
-		
-		
-		System.out.println("---------------READ IN HOSTS" + known_hosts);
-		
-		HostAdapter host_adapter = new HostAdapter(known_hosts);
-		
-		GenericEnrichmentBolt host_enrichment = new GenericEnrichmentBolt().withEnrichmentTag(config.getString("bolt.enrichment.host.enrichment_tag")).
-				withAdapter(host_adapter).withMaxTimeRetain(
-						config.getInt("bolt.enrichment.host.MAX_TIME_RETAIN"))
-				.withMaxCacheSize(
-						config.getInt("bolt.enrichment.host.MAX_CACHE_SIZE")).withOutputFieldName(topology_name)
-						.withKeys(geo_keys).withMetricConfiguration(config);
-
-		builder.setBolt("HostEnrichBolt", host_enrichment,
-				config.getInt("bolt.enrichment.host.parallelism.hint"))
-				.shuffleGrouping("GeoEnrichBolt")
-				.setNumTasks(config.getInt("bolt.enrichment.host.num.tasks"));
- 
-		// ------------Indexing BOLT configuration
-
-		TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
-				.withIndexIP(config.getString("bolt.indexing.indexIP"))
-				.withIndexPort(config.getInt("bolt.indexing.port"))
-				.withClusterName(config.getString("bolt.indexing.clustername"))
-				.withIndexName(config.getString("bolt.indexing.indexname"))
-				.withDocumentName(
-						config.getString("bolt.indexing.documentname"))
-				.withBulk(config.getInt("bolt.indexing.bulk"))
-				.withIndexAdapter(new ESBaseBulkAdapter())
-				.withMetricConfiguration(config);
-
-		builder.setBolt("IndexingBolt", indexing_bolt,
-				config.getInt("bolt.indexing.parallelism.hint"))
-				.shuffleGrouping("AlertsBolt")
-				.setNumTasks(config.getInt("bolt.indexing.num.tasks"));
-
-		// ------------HDFS BOLT configuration
-		/*
-		 * FileNameFormat fileNameFormat = new DefaultFileNameFormat()
-		 * .withPath("/" + topology_name + "/"); RecordFormat format = new
-		 * DelimitedRecordFormat() .withFieldDelimiter("|");
-		 * 
-		 * SyncPolicy syncPolicy = new CountSyncPolicy(
-		 * config.getInt("bolt.hdfs.size.sink.policy")); FileRotationPolicy
-		 * rotationPolicy = new FileSizeRotationPolicy(
-		 * config.getLong("bolt.hdfs.size.rotation.policy"), Units.KB);
-		 * 
-		 * HdfsBolt hdfsBolt = new HdfsBolt().withFsUrl("hdfs://" +
-		 * config.getString("bolt.hdfs.IP"))
-		 * .withFileNameFormat(fileNameFormat).withRecordFormat(format)
-		 * .withRotationPolicy(rotationPolicy).withSyncPolicy(syncPolicy);
-		 * 
-		 * 
-		 * 
-		 * builder.setBolt("HDFSBolt", hdfsBolt,
-		 * config.getInt("bolt.hdfs.parallelism.hint"))
-		 * .shuffleGrouping("ParserBolt")
-		 * .setNumTasks(config.getInt("bolt.hdfs.num.tasks"));
-		 
-
-		if (config.getBoolean("local.mode")) {
-			conf.setNumWorkers(config.getInt("num.workers"));
-			conf.setMaxTaskParallelism(1);
-			LocalCluster cluster = new LocalCluster();
-			cluster.submitTopology(topology_name, conf,
-					builder.createTopology());
-		} else {
-
-			conf.setNumWorkers(config.getInt("num.workers"));
-			StormSubmitter.submitTopology(topology_name, conf,
-					builder.createTopology());
-
+			e.printStackTrace();
+			return false;
 		}
 
 	}
-}*/
+}

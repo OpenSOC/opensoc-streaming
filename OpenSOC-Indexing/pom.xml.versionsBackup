@@ -15,32 +15,23 @@
 	<parent>
 		<groupId>com.opensoc</groupId>
 		<artifactId>OpenSOC-Streaming</artifactId>
-		<version>0.2BETA-SNAPSHOT</version>
+		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-	<artifactId>OpenSOC-Alerts</artifactId>
-	<name>OpenSOC-Alerts</name>
-	<description>Taggers for alerts</description>
+	<artifactId>OpenSOC-Indexing</artifactId>
 	<properties>
-		<json.simple.version>1.1.1</json.simple.version>
-
-		<storm.version>0.9.2-incubating</storm.version>
-		<kafka.version>0.8.0</kafka.version>
-		<metrics.version>3.0.2</metrics.version>
-		<commons.config.version>1.10</commons.config.version>
 		<opensoc.common.version>0.0.1-SNAPSHOT</opensoc.common.version>
+		<storm.version>0.9.1-incubating</storm.version>
+		<elastic.search.version>1.2.1</elastic.search.version>
+		<http.client.version>4.3.4</http.client.version>
+		<jsonsimple.version>1.1.1</jsonsimple.version>
 	</properties>
 	<dependencies>
+
 		<dependency>
 			<groupId>com.opensoc</groupId>
 			<artifactId>OpenSOC-Common</artifactId>
 			<version>${opensoc.common.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>com.googlecode.json-simple</groupId>
-			<artifactId>json-simple</artifactId>
-			<version>${json.simple.version}</version>
-		</dependency>
-
 		<dependency>
 			<groupId>org.apache.storm</groupId>
 			<artifactId>storm-core</artifactId>
@@ -48,52 +39,53 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.kafka</groupId>
-			<artifactId>kafka_2.9.2</artifactId>
-			<version>0.8.0</version>
-			<scope>provided</scope>
-			<exclusions>
-				<exclusion>
-					<groupId>com.sun.jmx</groupId>
-					<artifactId>jmxri</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.sun.jdmk</groupId>
-					<artifactId>jmxtools</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>javax.jms</groupId>
-					<artifactId>jms</artifactId>
-				</exclusion>
-			</exclusions>
+			<groupId>org.elasticsearch</groupId>
+			<artifactId>elasticsearch</artifactId>
+			<version>${elastic.search.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.codahale.metrics</groupId>
-			<artifactId>metrics-core</artifactId>
-			<version>${metrics.version}</version>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>${http.client.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.codahale.metrics</groupId>
-			<artifactId>metrics-graphite</artifactId>
-			<version>${metrics.version}</version>
+			<groupId>com.googlecode.json-simple</groupId>
+			<artifactId>json-simple</artifactId>
+			<version>${jsonsimple.version}</version>
 		</dependency>
+		
 		<dependency>
 			<groupId>commons-configuration</groupId>
 			<artifactId>commons-configuration</artifactId>
-			<version>${commons.config.version}</version>
+			<version>1.9</version>
+			<scope>provided</scope>
 		</dependency>
-		<dependency>
-    <groupId>commons-validator</groupId>
-    <artifactId>commons-validator</artifactId>
-    <version>1.4.0</version>
-    </dependency>
+  		<dependency>
+  			<groupId>junit</groupId>
+  			<artifactId>junit</artifactId>
+  			<version>3.8.2</version>
+  		</dependency>	
 
 	</dependencies>
-		<build>
-		<resources>
-			<resource>
-				<directory>src/main/resources</directory>
-			</resource>
-		</resources>
-	</build>
+<reporting>
+    <plugins>
+	<!-- Normally, dependency report takes time, skip it -->
+      <plugin>
+		<groupId>org.apache.maven.plugins</groupId>
+		<artifactId>maven-project-info-reports-plugin</artifactId>
+		<version>2.7</version>
+	 
+		<configuration>
+	          <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
+		</configuration>
+      </plugin>
+ 
+      <plugin>
+		<groupId>org.codehaus.mojo</groupId>
+		<artifactId>emma-maven-plugin</artifactId>
+		<version>1.0-alpha-3</version>
+		<inherited>true</inherited>
+      </plugin>
+    </plugins>
+  </reporting>  	
 </project>

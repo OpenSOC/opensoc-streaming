@@ -20,7 +20,6 @@
 	<artifactId>OpenSOC-EnrichmentAdapters</artifactId>
 
 	<properties>
-		<opensoc.common.version>${version}</opensoc.common.version>
 		<mysql.version>5.1.31</mysql.version>
 		<slf4j.version>1.7.7</slf4j.version>
 		<hbase.client.version>0.96.1-hadoop2</hbase.client.version>
@@ -33,7 +32,7 @@
 		<dependency>
 			<groupId>com.opensoc</groupId>
 			<artifactId>OpenSOC-Common</artifactId>
-			<version>${opensoc.common.version}</version>
+			<version>${parent.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>

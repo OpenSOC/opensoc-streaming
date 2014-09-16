@@ -21,47 +21,39 @@
 	<description>OpenSOC Topologies</description>
 
 	<properties>
-		<opensoc.common.version>0.0.1-SNAPSHOT</opensoc.common.version>
-		<opensoc.alerts.version>0.0.1-SNAPSHOT</opensoc.alerts.version>
-		<enrichment.geo.version>0.0.1-SNAPSHOT</enrichment.geo.version>
-		<enrichment.whois.version>0.0.1-SNAPSHOT</enrichment.whois.version>
-		<geo.enrichment.version>0.0.1-SNAPSHOT</geo.enrichment.version>
-		<parsers.version>0.0.1-SNAPSHOT</parsers.version>
-		<indexing.version>0.0.1-SNAPSHOT</indexing.version>
+
 		<storm.version>0.9.2-incubating</storm.version>
 		<storm.hdfs.version>0.9.1.2.1.1.0-385</storm.hdfs.version>
 		<hadoop.version>2.2.0</hadoop.version>
 		<cli.version>20040117.000000</cli.version>
 		<kafka.storm.version>0.9.2-incubating</kafka.storm.version>
-		<cif.enrichment.version>0.0.1-SNAPSHOT</cif.enrichment.version>
-		<lancope.enrichment.version>0.0.1-SNAPSHOT</lancope.enrichment.version>
 		<commons.config.version>1.10</commons.config.version>
 	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>com.opensoc</groupId>
 			<artifactId>OpenSOC-Common</artifactId>
-			<version>${opensoc.common.version}</version>
+			<version>${parent.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.opensoc</groupId>
 			<artifactId>OpenSOC-Alerts</artifactId>
-			<version>${opensoc.alerts.version}</version>
+			<version>${parent.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.opensoc</groupId>
 			<artifactId>OpenSOC-EnrichmentAdapters</artifactId>
-			<version>${enrichment.geo.version}</version>
+			<version>${parent.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.opensoc</groupId>
 			<artifactId>OpenSOC-MessageParsers</artifactId>
-			<version>${parsers.version}</version>
+			<version>${parent.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.opensoc</groupId>
 			<artifactId>OpenSOC-Indexing</artifactId>
-			<version>${indexing.version}</version>
+			<version>${parent.version}</version>
 		</dependency>
 
 		<dependency>

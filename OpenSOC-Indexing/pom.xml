@@ -19,7 +19,6 @@
 	</parent>
 	<artifactId>OpenSOC-Indexing</artifactId>
 	<properties>
-		<opensoc.common.version>0.0.1-SNAPSHOT</opensoc.common.version>
 		<storm.version>0.9.1-incubating</storm.version>
 		<elastic.search.version>1.2.1</elastic.search.version>
 		<http.client.version>4.3.4</http.client.version>
@@ -30,7 +29,7 @@
 		<dependency>
 			<groupId>com.opensoc</groupId>
 			<artifactId>OpenSOC-Common</artifactId>
-			<version>${opensoc.common.version}</version>
+			<version>${parent.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.storm</groupId>

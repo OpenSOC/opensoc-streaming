@@ -22,7 +22,6 @@
 
 	<properties>
 
-		<storm.version>0.9.2-incubating</storm.version>
 		<storm.hdfs.version>0.9.1.2.1.1.0-385</storm.hdfs.version>
 		<hadoop.version>2.2.0</hadoop.version>
 		<cli.version>20040117.000000</cli.version>
@@ -94,19 +93,19 @@
 		<dependency>
 			<groupId>org.apache.storm</groupId>
 			<artifactId>storm-core</artifactId>
-			<version>${storm.version}</version>
+			<version>${global_storm_version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.storm</groupId>
 			<artifactId>storm-kafka</artifactId>
-			<version>${storm.version}</version>
+			<version>${global_storm_version}</version>
 
 		</dependency>
 		<dependency>
 			<groupId>org.apache.storm</groupId>
 			<artifactId>storm</artifactId>
-			<version>${storm.version}</version>
+			<version>${global_storm_version}</version>
 			<type>pom</type>
 			<scope>provided</scope>
 		</dependency>

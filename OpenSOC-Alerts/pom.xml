@@ -22,10 +22,8 @@
 	<description>Taggers for alerts</description>
 	<properties>
 		<json.simple.version>1.1.1</json.simple.version>
-
-		
 		<metrics.version>3.0.2</metrics.version>
-		<commons.config.version>1.10</commons.config.version>
+		<commons.validator.version>1.4.0</commons.validator.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -38,7 +36,6 @@
 			<artifactId>json-simple</artifactId>
 			<version>${json.simple.version}</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.apache.storm</groupId>
 			<artifactId>storm-core</artifactId>
@@ -71,23 +68,12 @@
 			<version>${metrics.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.codahale.metrics</groupId>
-			<artifactId>metrics-graphite</artifactId>
-			<version>${metrics.version}</version>
+			<groupId>commons-validator</groupId>
+			<artifactId>commons-validator</artifactId>
+			<version>${commons.validator.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>commons-configuration</groupId>
-			<artifactId>commons-configuration</artifactId>
-			<version>${commons.config.version}</version>
-		</dependency>
-		<dependency>
-    <groupId>commons-validator</groupId>
-    <artifactId>commons-validator</artifactId>
-    <version>1.4.0</version>
-    </dependency>
-
 	</dependencies>
-		<build>
+	<build>
 		<resources>
 			<resource>
 				<directory>src/main/resources</directory>

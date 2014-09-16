@@ -15,11 +15,11 @@
 	<parent>
 		<groupId>com.opensoc</groupId>
 		<artifactId>OpenSOC-Streaming</artifactId>
-		<version>0.2BETA-SNAPSHOT</version>
+		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-	<artifactId>OpenSOC-Alerts</artifactId>
-	<name>OpenSOC-Alerts</name>
-	<description>Taggers for alerts</description>
+	<artifactId>OpenSOC-Common</artifactId>
+	<name>OpenSOC-Common</name>
+	<description>Components common to all enrichments</description>
 	<properties>
 		<json.simple.version>1.1.1</json.simple.version>
 
@@ -27,14 +27,16 @@
 		<kafka.version>0.8.0</kafka.version>
 		<metrics.version>3.0.2</metrics.version>
 		<commons.config.version>1.10</commons.config.version>
-		<opensoc.common.version>0.0.1-SNAPSHOT</opensoc.common.version>
+		<hbase.version>0.98.5-hadoop2</hbase.version>
 	</properties>
+	<repositories>
+		<repository>
+			<id>Kraken-Repo</id>
+			<name>Kraken Repository</name>
+			<url>http://download.krakenapps.org</url>
+		</repository>
+	</repositories>
 	<dependencies>
-		<dependency>
-			<groupId>com.opensoc</groupId>
-			<artifactId>OpenSOC-Common</artifactId>
-			<version>${opensoc.common.version}</version>
-		</dependency>
 		<dependency>
 			<groupId>com.googlecode.json-simple</groupId>
 			<artifactId>json-simple</artifactId>
@@ -83,17 +85,47 @@
 			<version>${commons.config.version}</version>
 		</dependency>
 		<dependency>
-    <groupId>commons-validator</groupId>
-    <artifactId>commons-validator</artifactId>
-    <version>1.4.0</version>
-    </dependency>
-
+			<groupId>org.krakenapps</groupId>
+			<artifactId>kraken-pcap</artifactId>
+			<version>1.5.0</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>3.8.2</version>
+		</dependency>
+			<dependency>
+			<groupId>org.apache.hbase</groupId>
+			<artifactId>hbase-client</artifactId>
+			<version>${hbase.version}</version>
+		</dependency>
 	</dependencies>
-		<build>
-		<resources>
-			<resource>
-				<directory>src/main/resources</directory>
-			</resource>
-		</resources>
-	</build>
+
+	<reporting>
+		<plugins>
+			<!-- Normally, dependency report takes time, skip it -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-project-info-reports-plugin</artifactId>
+				<version>2.7</version>
+
+				<configuration>
+					<dependencyLocationsEnabled>false</dependencyLocationsEnabled>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>emma-maven-plugin</artifactId>
+				<version>1.0-alpha-3</version>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<configuration>
+					<targetJdk>1.7</targetJdk>
+				</configuration>
+			</plugin>
+		</plugins>
+	</reporting>
+
 </project>

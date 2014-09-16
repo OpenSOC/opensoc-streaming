@@ -27,13 +27,12 @@
 		<kafka.version>0.8.0</kafka.version>
 		<metrics.version>3.0.2</metrics.version>
 		<commons.config.version>1.10</commons.config.version>
-		<opensoc.common.version>0.0.1-SNAPSHOT</opensoc.common.version>
 	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>com.opensoc</groupId>
 			<artifactId>OpenSOC-Common</artifactId>
-			<version>${opensoc.common.version}</version>
+			<version>${parent.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.googlecode.json-simple</groupId>

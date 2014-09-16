@@ -93,7 +93,6 @@ public class BroAlertTest {
 			config_path = args[0];
 		} catch (Exception e) {
 			config_path = "OpenSOC_Configs";
-			System.exit(0);
 		}
 
 		String topology_conf_path = config_path + "/topologies/" + subdir

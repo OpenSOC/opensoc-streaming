@@ -23,6 +23,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
+import org.apache.commons.validator.routines.InetAddressValidator;
 import org.json.simple.JSONObject;
 
 @SuppressWarnings("serial")
@@ -34,6 +35,7 @@ public class GeoMysqlAdapter extends AbstractGeoAdapter {
 	private String _username;
 	private String _password;
 	private String _tablename;
+	InetAddressValidator ipvalidator = new InetAddressValidator();
 
 	public GeoMysqlAdapter(String ip, int port, String username,
 			String password, String tablename) {
@@ -70,7 +72,8 @@ public class GeoMysqlAdapter extends AbstractGeoAdapter {
 			InetAddress addr = InetAddress.getByName(metadata);
 
 			if (addr.isAnyLocalAddress() || addr.isLoopbackAddress()
-					|| addr.isSiteLocalAddress() || addr.isMulticastAddress()) {
+					|| addr.isSiteLocalAddress() || addr.isMulticastAddress()
+					|| !ipvalidator.isValidInet4Address(metadata)) {
 				_LOG.trace("[OpenSOC] Not a remote IP: " + metadata);
 				_LOG.trace("[OpenSOC] Returning enrichment: " + "{}");
 

@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.configuration.Configuration;
 import org.json.simple.JSONArray;
@@ -32,6 +33,8 @@ import backtype.storm.task.TopologyContext;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
 import com.opensoc.alerts.adapters.AlertsCache;
 import com.opensoc.alerts.interfaces.AlertsAdapter;
 import com.opensoc.json.serialization.JSONEncoderHelper;
@@ -58,8 +61,7 @@ public class TelemetryAlertsBolt extends AbstractAlertBolt {
 	private static final long serialVersionUID = -2647123143398352020L;
 	private Properties metricProperties;
 	private JSONObject metricConfiguration;
-	private AlertsCache suppressed_alerts; 
-	
+	//private AlertsCache suppressed_alerts;
 
 	/**
 	 * 
@@ -118,6 +120,7 @@ public class TelemetryAlertsBolt extends AbstractAlertBolt {
 				.subset("com.opensoc.metrics"));
 		return this;
 	}
+
 	/**
 	 * @param MAX_CACHE_SIZE
 	 *            Maximum size of cache before flushing
@@ -143,8 +146,12 @@ public class TelemetryAlertsBolt extends AbstractAlertBolt {
 	@Override
 	void doPrepare(Map conf, TopologyContext topologyContext,
 			OutputCollector collector) throws IOException {
+
+		 cache = CacheBuilder.newBuilder().maximumSize(_MAX_CACHE_SIZE)
+					.expireAfterWrite(_MAX_TIME_RETAIN, TimeUnit.MINUTES).build();
 		
-		suppressed_alerts = new AlertsCache<String, String>(_MAX_TIME_RETAIN, 60, _MAX_CACHE_SIZE);
+
+		
 
 		LOG.info("[OpenSOC] Preparing TelemetryAlert Bolt...");
 
@@ -173,43 +180,35 @@ public class TelemetryAlertsBolt extends AbstractAlertBolt {
 			LOG.trace("[OpenSOC] Received tuple: " + original_message);
 
 			JSONObject alerts_tag = new JSONObject();
-			Map<String, JSONObject> alerts_list = _adapter
-					.alert(original_message);
+			Map<String, JSONObject> alerts_list = _adapter.alert(original_message);
 			JSONArray uuid_list = new JSONArray();
 
 			if (alerts_list == null || alerts_list.isEmpty()) {
-				LOG.trace("[OpenSOC] No alerts detected in: " + original_message);
+				LOG.trace("[OpenSOC] No alerts detected in: "
+						+ original_message);
 				_collector.ack(tuple);
 				_collector.emit(new Values(original_message));
-			}
-			else
-			{
+			} else {
 				for (String alert : alerts_list.keySet()) {
 					uuid_list.add(alert);
-					
+
 					System.out.println("CHECKING CACHE: " + alert);
-					
-					if(!suppressed_alerts.containsKey(alert)) 
-					{
+
+					if (cache.getIfPresent(alert) == null) {
 						System.out.println(" CACHE NOT FOUND: " + alert);
-						
-					JSONObject global_alert = new JSONObject();
-					global_alert.putAll(_identifier);
-					global_alert.put("triggered", alerts_list.get(alert));
-					_collector.emit("alert", new Values(global_alert));
-					
-					suppressed_alerts.put(alert, null);
-					
-					}
-					else
+
+						JSONObject global_alert = new JSONObject();
+						global_alert.putAll(_identifier);
+						global_alert.put("triggered", alerts_list.get(alert));
+						_collector.emit("alert", new Values(global_alert));
+
+						cache.put(alert, "");
+
+					} else
 						System.out.println("LOCATED CACHE: " + alert);
 
-					
-				
+					LOG.trace("[OpenSOC] Alerts are: " + alerts_list);
 
-				LOG.trace("[OpenSOC] Alerts are: " + alerts_list);
-
-		
 					if (original_message.containsKey("alerts")) {
 						JSONArray already_triggered = (JSONArray) original_message
 								.get("alerts");
@@ -218,21 +217,19 @@ public class TelemetryAlertsBolt extends AbstractAlertBolt {
 						LOG.trace("[OpenSOC] Messages already had alerts...tagging more");
 					}
 
-
 					original_message.put("alerts", uuid_list);
 
 					LOG.debug("[OpenSOC] Detected alerts: " + alerts_tag);
 
 					_collector.ack(tuple);
 					_collector.emit(new Values(original_message));
-				
 
-			}
+				}
 
-			/*
-			 * if (metricConfiguration != null) { emitCounter.inc();
-			 * ackCounter.inc(); }
-			 */
+				/*
+				 * if (metricConfiguration != null) { emitCounter.inc();
+				 * ackCounter.inc(); }
+				 */
 			}
 
 		} catch (Exception e) {
@@ -245,7 +242,10 @@ public class TelemetryAlertsBolt extends AbstractAlertBolt {
 			 * if (metricConfiguration != null) { failCounter.inc(); }
 			 */
 			
-			JSONObject error = ErrorGenerator.generateErrorMessage("Alerts problem: " + original_message, e.toString());
+			String error_as_string = org.apache.commons.lang.exception.ExceptionUtils.getStackTrace(e);
+
+			JSONObject error = ErrorGenerator.generateErrorMessage(				
+					"Alerts problem: " + original_message, error_as_string);
 			_collector.emit("error", new Values(error));
 		}
 	}

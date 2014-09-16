@@ -19,6 +19,7 @@ package com.opensoc.indexing;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -157,20 +158,23 @@ public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 	void doPrepare(Map conf, TopologyContext topologyContext,
 			OutputCollector collector) throws IOException {
 
-		boolean success = _adapter.initializeConnection(_IndexIP, _IndexPort,
-				_ClusterName, _IndexName, _DocumentName, _BulkIndexNumber);
-
-		if (!success)
-			throw new IllegalStateException(
-					"Could not initialize index adapter");
-
 		try {
+			
+			_adapter.initializeConnection(_IndexIP, _IndexPort,
+					_ClusterName, _IndexName, _DocumentName, _BulkIndexNumber);
+			
 			_reporter = new MetricReporter();
 			_reporter.initialize(metricConfiguration,
 					TelemetryIndexingBolt.class);
 			this.registerCounters();
 		} catch (Exception e) {
-			LOG.trace("[OpenSOC] Unable to initialize metrics reporter");
+			
+			e.printStackTrace();
+			
+			String error_as_string = org.apache.commons.lang.exception.ExceptionUtils.getStackTrace(e);
+			
+			JSONObject error = ErrorGenerator.generateErrorMessage(new String("bulk index problem"), error_as_string);
+			_collector.emit("error", new Values(error));
 		}
 
 	}
@@ -193,26 +197,39 @@ public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 			if (result_code == 0) {
 				tuple_queue.add(tuple);
 			} else if (result_code == 1) {
-				for (Tuple t : tuple_queue) {
-					_collector.ack(t);
+				tuple_queue.add(tuple);
+				
+				Iterator<Tuple> iterator = tuple_queue.iterator();
+				while(iterator.hasNext())
+				{
+					Tuple setElement = iterator.next();
+					_collector.ack(setElement);
 					ackCounter.inc();
 				}
 				tuple_queue.clear();
 			} else if (result_code == 2) {
-				throw new Exception("Failed to index elements");
+				throw new Exception("Failed to index elements with client");
 			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
-
-			for (Tuple t : tuple_queue) {
-				_collector.fail(t);
+			
+			
+			Iterator<Tuple> iterator = tuple_queue.iterator();
+			while(iterator.hasNext())
+			{
+				Tuple setElement = iterator.next();
+				_collector.fail(setElement);
 				failCounter.inc();
-				tuple_queue.clear();
 				
-				JSONObject error = ErrorGenerator.generateErrorMessage(new String("bulk index problem"), e.toString());
+				String error_as_string = org.apache.commons.lang.exception.ExceptionUtils.getStackTrace(e);
+				
+				JSONObject error = ErrorGenerator.generateErrorMessage(new String("bulk index problem"), error_as_string);
 				_collector.emit("error", new Values(error));
 			}
+			tuple_queue.clear();
+
+			
 		}
 	}
 

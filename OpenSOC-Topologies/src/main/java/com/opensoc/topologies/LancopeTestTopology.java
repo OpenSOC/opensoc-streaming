@@ -19,8 +19,10 @@ package com.opensoc.topologies;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -47,8 +49,12 @@ import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
 import backtype.storm.spout.RawScheme;
 import backtype.storm.spout.SchemeAsMultiScheme;
+import backtype.storm.topology.BoltDeclarer;
 import backtype.storm.topology.TopologyBuilder;
 
+import com.opensoc.alerts.TelemetryAlertsBolt;
+import com.opensoc.alerts.adapters.AllAlertAdapter;
+import com.opensoc.alerts.interfaces.AlertsAdapter;
 import com.opensoc.alerts.interfaces.TaggerAdapter;
 import com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter;
 import com.opensoc.enrichment.adapters.geo.GeoMysqlAdapter;
@@ -78,6 +84,7 @@ public class LancopeTestTopology {
 	static String component = "Spout";
 	static Config conf;
 	static String subdir = "lancope";
+	static Set<String> activeComponents = new HashSet<String>();
 
 	public static void main(String[] args) throws Exception {
 
@@ -140,6 +147,7 @@ public class LancopeTestTopology {
 		if (config.getBoolean("parser.bolt.enabled", true)) {
 			String component_name = config.getString("parser.bolt.name",
 					"DefaultTopologyParserBot");
+			activeComponents.add(component_name);
 			success = initializeParsingBolt(topology_name, component_name);
 			component = component_name;
 
@@ -150,6 +158,7 @@ public class LancopeTestTopology {
 		if (config.getBoolean("bolt.enrichment.geo.enabled", false)) {
 			String component_name = config.getString(
 					"bolt.enrichment.geo.name", "DefaultGeoEnrichmentBolt");
+			activeComponents.add(component_name);
 			success = initializeGeoEnrichment(topology_name, component_name);
 			component = component_name;
 
@@ -160,6 +169,7 @@ public class LancopeTestTopology {
 		if (config.getBoolean("bolt.enrichment.host.enabled", false)) {
 			String component_name = config.getString(
 					"bolt.enrichment.host.name", "DefaultHostEnrichmentBolt");
+			activeComponents.add(component_name);
 			success = initializeHostsEnrichment(topology_name, component_name,
 					"OpenSOC_Configs/etc/whitelists/known_hosts.conf");
 			component = component_name;
@@ -171,6 +181,7 @@ public class LancopeTestTopology {
 		if (config.getBoolean("bolt.enrichment.whois.enabled", false)) {
 			String component_name = config.getString(
 					"bolt.enrichment.whois.name", "DefaultWhoisEnrichmentBolt");
+			activeComponents.add(component_name);
 			success = initializeWhoisEnrichment(topology_name, component_name);
 			component = component_name;
 
@@ -181,6 +192,7 @@ public class LancopeTestTopology {
 		if (config.getBoolean("bolt.enrichment.cif.enabled", false)) {
 			String component_name = config.getString(
 					"bolt.enrichment.cif.name", "DefaultCIFEnrichmentBolt");
+			activeComponents.add(component_name);
 			success = initializeCIFEnrichment(topology_name, component_name);
 			component = component_name;
 
@@ -191,6 +203,8 @@ public class LancopeTestTopology {
 		if (config.getBoolean("bolt.alerts.enabled", false)) {
 			String component_name = config.getString("bolt.alerts.name",
 					"DefaultAlertsBolt");
+			activeComponents.add(component_name);
+			
 			success = initializeAlerts(topology_name, component_name,
 					config_path + "/topologies/" + subdir + "/alerts.xml",
 					environment_identifier, topology_identifier);
@@ -212,6 +226,7 @@ public class LancopeTestTopology {
 		if (config.getBoolean("bolt.indexing.enabled", true)) {
 			String component_name = config.getString("bolt.indexing.name",
 					"DefaultIndexingBolt");
+			activeComponents.add(component_name);
 			success = initializeIndexingBolt(component_name);
 
 			System.out.println("[OpenSOC] Component " + component_name
@@ -222,6 +237,16 @@ public class LancopeTestTopology {
 			String component_name = config.getString("bolt.hdfs.name",
 					"DefaultHDFSBolt");
 			success = initializeHDFSBolt(topology_name, component_name);
+
+			System.out.println("[OpenSOC] Component " + component_name
+					+ " initialized");
+		}
+		
+		if (config.getBoolean("bolt.error.indexing.enabled")) {
+			String component_name = config.getString(
+					"bolt.error.indexing.name", "DefaultErrorIndexingBolt");
+
+			success = initializeErrorIndexBolt(component_name);
 
 			System.out.println("[OpenSOC] Component " + component_name
 					+ " initialized");
@@ -388,20 +413,46 @@ public class LancopeTestTopology {
 			JSONObject alerts_identifier = SettingsLoader
 					.generateAlertsIdentifier(environment_identifier,
 							topology_identifier);
-			Map<String, JSONObject> rules = SettingsLoader
-					.loadRegexAlerts(alerts_path);
 
-			TaggerAdapter tagger_adapter = new RegexTagger(rules);
+			AlertsAdapter alerts_adapter = new AllAlertAdapter(
+					"ip_whitelist", "ip_blacklist",
+					config.getString("kafka.zk.list"),
+					config.getString("kafka.zk.port"), 3600, 1000);
 
-			TelemetryTaggerBolt alerts_bolt = new TelemetryTaggerBolt()
-					.withIdentifier(alerts_identifier)
-					.withMessageTagger(tagger_adapter)
-					.withOutputFieldName("message");
+			TelemetryAlertsBolt alerts_bolt = new TelemetryAlertsBolt()
+					.withIdentifier(alerts_identifier).withMaxCacheSize(1000)
+					.withMaxTimeRetain(3600).withAlertsAdapter(alerts_adapter)
+					.withOutputFieldName("message")
+					.withMetricConfiguration(config);
 
 			builder.setBolt(name, alerts_bolt,
 					config.getInt("bolt.alerts.parallelism.hint"))
 					.shuffleGrouping(component)
 					.setNumTasks(config.getInt("bolt.alerts.num.tasks"));
+
+			TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
+					.withIndexIP(config.getString("es.ip"))
+					.withIndexPort(config.getInt("es.port"))
+					.withClusterName(config.getString("es.clustername"))
+					.withIndexName(
+							config.getString("bolt.alerts.indexing.indexname"))
+					.withDocumentName(
+							config.getString("bolt.alerts.indexing.documentname"))
+					.withBulk(config.getInt("bolt.alerts.indexing.bulk"))
+					.withIndexAdapter(new ESBaseBulkAdapter())
+					.withMetricConfiguration(config);
+
+			if (config.getBoolean("bolt.alerts.indexing.enabled")) {
+
+				String alerts_name = config
+						.getString("bolt.alerts.indexing.name");
+				builder.setBolt(alerts_name, indexing_bolt,
+						config.getInt("bolt.indexing.parallelism.hint"))
+						.shuffleGrouping(name, "alert")
+						.setNumTasks(config.getInt("bolt.indexing.num.tasks"));
+
+				activeComponents.add(alerts_name);
+			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -409,6 +460,7 @@ public class LancopeTestTopology {
 		}
 		return true;
 	}
+
 
 	public static boolean initializeKafkaBolt(String name) {
 		try {
@@ -579,6 +631,39 @@ public class LancopeTestTopology {
 		}
 
 		return true;
+	}
+	
+	public static boolean initializeErrorIndexBolt(String component_name) {
+		try {
+
+			TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
+					.withIndexIP(config.getString("es.ip"))
+					.withIndexPort(config.getInt("es.port"))
+					.withClusterName(config.getString("es.clustername"))
+					.withIndexName(
+							config.getString("bolt.error.indexing.indexname"))
+					.withDocumentName(
+							config.getString("bolt.error.indexing.documentname"))
+					.withBulk(config.getInt("bolt.error.indexing.bulk"))
+					.withIndexAdapter(new ESBaseBulkAdapter())
+					.withMetricConfiguration(config);
+
+			BoltDeclarer declarer = builder
+					.setBolt(
+							component_name,
+							indexing_bolt,
+							config.getInt("bolt.error.indexing.parallelism.hint"))
+					.setNumTasks(config.getInt("bolt.error.indexing.num.tasks"));
+
+			for (String component : activeComponents)
+				declarer.shuffleGrouping(component, "error");
+
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+
 	}
 }
 

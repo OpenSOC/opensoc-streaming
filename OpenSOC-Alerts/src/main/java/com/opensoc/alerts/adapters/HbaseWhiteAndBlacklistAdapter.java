@@ -3,8 +3,11 @@ package com.opensoc.alerts.adapters;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.validator.routines.InetAddressValidator;
 import org.apache.hadoop.conf.Configuration;
@@ -16,10 +19,15 @@ import org.apache.hadoop.hbase.client.HConnectionManager;
 import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.client.ResultScanner;
+import org.apache.hadoop.hbase.client.Scan;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.opensoc.alerts.interfaces.AlertsAdapter;
 
 public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
@@ -35,8 +43,11 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 	String _topologyname;
 	Configuration conf = null;
 
-	AlertsCache<String, String> alerts_cache;
+	Cache<String, String>cache;
 	String _topology_name;
+	
+	Set<String> loaded_whitelist = new HashSet<String>();
+	Set<String> loaded_blacklist = new HashSet<String>();
 
 	protected static final Logger LOG = LoggerFactory
 			.getLogger(HbaseWhiteAndBlacklistAdapter.class);
@@ -50,23 +61,12 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 		_quorum = quorum;
 		_port = port;
 
-		alerts_cache = new AlertsCache<String, String>(_MAX_TIME_RETAIN, 60,
-				_MAX_CACHE_SIZE);
+		cache = CacheBuilder.newBuilder().maximumSize(_MAX_CACHE_SIZE)
+				.expireAfterWrite(_MAX_TIME_RETAIN, TimeUnit.MINUTES).build();
 
 	}
 	
 
-
-	public boolean containsAlertId(String key) {
-
-			
-			System.out.println("LOOKING FOR VALUE: " + key + " in cache " + alerts_cache.toString());
-			
-
-			
-			return alerts_cache.containsValue(key);
-		
-	}
 
 	public boolean initialize() {
 
@@ -111,6 +111,43 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 			if (connection == null || whitelist_table == null
 					|| blacklist_table == null)
 				throw new Exception("Unable to initialize hbase connection");
+			
+			Scan scan = new Scan();
+
+
+			ResultScanner rs = whitelist_table.getScanner(scan);
+			try {
+				for (Result r = rs.next(); r != null; r = rs.next()) {
+					loaded_whitelist.add(Bytes.toString(r.getRow()));
+				}
+			} catch (Exception e) {
+				System.out.println("COULD NOT READ FROM HBASE");
+				e.printStackTrace();
+			} finally {
+				rs.close(); // always close the ResultScanner!
+			}
+			whitelist_table.close();
+
+			System.out.println("READ IN WHITELIST: " + loaded_whitelist.size());
+			
+			
+			 scan = new Scan();
+
+
+			 rs = blacklist_table.getScanner(scan);
+			try {
+				for (Result r = rs.next(); r != null; r = rs.next()) {
+					loaded_blacklist.add(Bytes.toString(r.getRow()));
+				}
+			} catch (Exception e) {
+				System.out.println("COULD NOT READ FROM HBASE");
+				e.printStackTrace();
+			} finally {
+				rs.close(); // always close the ResultScanner!
+			}
+			blacklist_table.close();
+
+			System.out.println("READ IN WHITELIST: " + loaded_whitelist.size());
 
 			return true;
 		} catch (Exception e) {
@@ -127,46 +164,19 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 
 		String key = makeKey(source_ip, dst_ip, alert_type);
 
-		if (alerts_cache.containsKey(key))
-			return alerts_cache.get(key);
+		if (cache.getIfPresent(key) != null)
+			return cache.getIfPresent(key);
 
 		String new_UUID = System.currentTimeMillis() + "-" + UUID.randomUUID();
 
-		alerts_cache.put(key, new_UUID);
+		cache.put(key, new_UUID);
 		key = makeKey(dst_ip, source_ip, alert_type);
-		alerts_cache.put(key, new_UUID);
+		cache.put(key, new_UUID);
 
 		return new_UUID;
 
 	}
 
-	public boolean getByKey(String metadata, HTableInterface table) {
-
-		LOG.debug("=======Pinging HBase For:" + metadata);
-
-		System.out.println("--------HBASE LIST LOOKUP: " + metadata);
-
-		System.out.println(table);
-
-		Get get = new Get(metadata.getBytes());
-		Result rs;
-
-		try {
-			rs = table.get(get);
-
-			if (rs.size() > 0)
-				return true;
-			else
-				return false;
-
-		} catch (IOException e) {
-
-			e.printStackTrace();
-		}
-
-		return false;
-
-	}
 
 	public boolean refresh() throws Exception {
 		// TODO Auto-generated method stub
@@ -183,6 +193,31 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 		Map<String, JSONObject> alerts = new HashMap<String, JSONObject>();
 
 		JSONObject content = (JSONObject) raw_message.get("message");
+		
+		if (!content.containsKey("ip_src_addr") || !content.containsKey("ip_src_addr") ) {
+
+			int alert_type = 0;
+
+			JSONObject alert = new JSONObject();
+
+			alert.put("title", "IP Check Error Type: : " + alert_type);
+			alert.put("priority", "1");
+			alert.put("type", "error");
+			alert.put("designated_host", "Uknown");
+			alert.put("source", "NA");
+			alert.put("dest", "NA");
+			alert.put(
+					"body",
+					"Source or destination IP is missing");
+
+			String alert_id = UUID.randomUUID().toString();
+
+			alert.put("reference_id", alert_id);
+			alerts.put(alert_id, alert);
+
+			return alerts;
+
+		}
 
 		String source_ip = content.get("ip_src_addr").toString();
 		String dst_ip = content.get("ip_dst_addr").toString();
@@ -196,7 +231,9 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 			alert.put("title", "IP Check Error Type: : " + alert_type);
 			alert.put("priority", "1");
 			alert.put("type", "error");
-			alert.put("source", "Uknown");
+			alert.put("designated_host", "Uknown");
+			alert.put("source", source_ip);
+			alert.put("dest", dst_ip);
 			alert.put(
 					"body",
 					"This communication does not contain a source or destination IP string. Communication between two IPs: "
@@ -220,7 +257,9 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 			alert.put("title", "IP Check Error Type: : " + alert_type);
 			alert.put("priority", "1");
 			alert.put("type", "error");
-			alert.put("source", "Uknown");
+			alert.put("designated_host", "Uknown");
+			alert.put("source", source_ip);
+			alert.put("dest", dst_ip);
 			alert.put(
 					"content",
 					"This communication contains souce and destination IP strings, but these strings are not valid. Communication between two IPs: "
@@ -235,28 +274,13 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 
 		}
 
-		boolean source_in_white_list = false;
-		boolean dest_in_white_list = false;
-		boolean source_in_black_list = true;
-		boolean dest_in_black_list = true;
-
 		String designated_host = null;
 
-		if (ipvalidator.isValidInet4Address(source_ip)) {
-			source_in_white_list = getByKey(source_ip, whitelist_table);
-			source_in_black_list = getByKey(source_ip, blacklist_table);
-		}
-
-		if (ipvalidator.isValidInet4Address(dst_ip)) {
-			dest_in_white_list = getByKey(dst_ip, whitelist_table);
-			dest_in_black_list = getByKey(dst_ip, blacklist_table);
-		}
-
-		if (source_in_white_list)
+		if (loaded_whitelist.contains(source_ip))
 			designated_host = source_ip;
-
-		else if (dest_in_white_list)
+		else if (loaded_whitelist.contains(dst_ip))
 			designated_host = dst_ip;
+		
 
 		if (designated_host == null) {
 			int alert_type = 3;
@@ -266,7 +290,9 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 			alert.put("title", "IP Check Error Type: : " + alert_type);
 			alert.put("priority", "1");
 			alert.put("type", "error");
-			alert.put("source", "Uknown");
+			alert.put("designated_host", "Uknown");
+			alert.put("source", source_ip);
+			alert.put("dest", dst_ip);
 			alert.put(
 					"content",
 					"This communication does not contain a source or a destination IP that is in the white list. Communication between two IPs: "
@@ -290,7 +316,9 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 			alert.put("title", "IP Check Error Type: : " + alert_type);
 			alert.put("priority", "1");
 			alert.put("type", "error");
-			alert.put("source", designated_host);
+			alert.put("designated_host", designated_host);
+			alert.put("source", source_ip);
+			alert.put("dest", dst_ip);
 			alert.put(
 					"content",
 					"This communication contains an IP that is not valid. Communication between two IPs: "
@@ -312,7 +340,9 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 			alert.put("title", "IP Check Error Type: : " + alert_type);
 			alert.put("priority", "1");
 			alert.put("type", "error");
-			alert.put("source", designated_host);
+			alert.put("designated_host", designated_host);
+			alert.put("source", source_ip);
+			alert.put("dest", dst_ip);
 			alert.put(
 					"content",
 					"This communication contains IP that is not valid. Communication between two IPs: "
@@ -325,7 +355,7 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 
 		}
 
-		if (source_in_black_list == true) {
+		if (loaded_blacklist.contains(source_ip)) {
 			int alert_type = 6;
 
 			JSONObject alert = new JSONObject();
@@ -333,7 +363,9 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 			alert.put("title", "IP Check Error Type: : " + alert_type);
 			alert.put("priority", "1");
 			alert.put("type", "error");
-			alert.put("source", designated_host);
+			alert.put("designated_host", designated_host);
+			alert.put("source", source_ip);
+			alert.put("dest", dst_ip);
 			alert.put(
 					"content",
 					"This communication contains IP that is black listed. Communication between two IPs: "
@@ -346,7 +378,7 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 
 		}
 
-		if (dest_in_black_list == true) {
+		if (loaded_blacklist.contains(dst_ip)) {
 			int alert_type = 7;
 
 			JSONObject alert = new JSONObject();
@@ -354,7 +386,9 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 			alert.put("title", "IP Check Error Type: : " + alert_type);
 			alert.put("priority", "1");
 			alert.put("type", "error");
-			alert.put("source", designated_host);
+			alert.put("designated_host", designated_host);
+			alert.put("source", source_ip);
+			alert.put("dest", dst_ip);
 			alert.put(
 					"content",
 					"This communication contains IP that is black listed. Communication between two IPs: "
@@ -371,6 +405,13 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 			return null;
 		else
 			return alerts;
+	}
+
+
+
+	public boolean containsAlertId(String alert) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }

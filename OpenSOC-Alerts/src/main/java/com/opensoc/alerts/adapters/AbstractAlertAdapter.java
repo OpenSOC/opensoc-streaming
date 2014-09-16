@@ -21,10 +21,14 @@ package com.opensoc.alerts.adapters;
 import java.io.Serializable;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.opensoc.alerts.interfaces.AlertsAdapter;
 
 @SuppressWarnings("serial")
@@ -34,5 +38,33 @@ public abstract class AbstractAlertAdapter implements AlertsAdapter, Serializabl
 			.getLogger(AbstractAlertAdapter.class);
 
 
+	protected Cache<String, String> cache;
 	
+	protected String generateAlertId(String source_ip, String dst_ip,
+			int alert_type) {
+
+		String key = makeKey(source_ip, dst_ip, alert_type);
+
+		if (cache.getIfPresent(key) != null)
+			return cache.getIfPresent(key);
+
+		String new_UUID = System.currentTimeMillis() + "-" + UUID.randomUUID();
+
+		cache.put(key, new_UUID);
+		key = makeKey(dst_ip, source_ip, alert_type);
+		cache.put(key, new_UUID);
+
+		return new_UUID;
+
+	}
+	
+	private String makeKey(String ip1, String ip2, int alert_type) {
+		return (ip1 + "-" + ip2 + "-" + alert_type);
+	}
+	
+	private void generateCache(int _MAX_CACHE_SIZE, int _MAX_TIME_RETAIN)
+	{
+		cache = CacheBuilder.newBuilder().maximumSize(_MAX_CACHE_SIZE)
+				.expireAfterWrite(_MAX_TIME_RETAIN, TimeUnit.MINUTES).build();
+	}
 }

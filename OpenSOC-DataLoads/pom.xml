@@ -24,9 +24,8 @@
   </parent>
   <artifactId>OpenSOC-DataLoads</artifactId>
   	<properties>
-		<opensoc.common.version>0.0.1-SNAPSHOT</opensoc.common.version>
-		<storm.version>0.9.1-incubating</storm.version>
-			<hbase.version>0.98.0-hadoop2</hbase.version>
+		<storm.version>0.9.2-incubating</storm.version>
+		<hbase.version>0.98.0-hadoop2</hbase.version>
 	</properties>
   <dependencies>
   		<dependency>

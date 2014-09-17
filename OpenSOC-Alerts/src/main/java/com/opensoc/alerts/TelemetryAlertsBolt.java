@@ -18,10 +18,8 @@
 package com.opensoc.alerts;
 
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.configuration.Configuration;
@@ -34,8 +32,6 @@ import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.opensoc.alerts.adapters.AlertsCache;
 import com.opensoc.alerts.interfaces.AlertsAdapter;
 import com.opensoc.json.serialization.JSONEncoderHelper;
 import com.opensoc.metrics.MetricReporter;
@@ -61,7 +57,8 @@ public class TelemetryAlertsBolt extends AbstractAlertBolt {
 	private static final long serialVersionUID = -2647123143398352020L;
 	private Properties metricProperties;
 	private JSONObject metricConfiguration;
-	//private AlertsCache suppressed_alerts;
+
+	// private AlertsCache suppressed_alerts;
 
 	/**
 	 * 
@@ -147,11 +144,8 @@ public class TelemetryAlertsBolt extends AbstractAlertBolt {
 	void doPrepare(Map conf, TopologyContext topologyContext,
 			OutputCollector collector) throws IOException {
 
-		 cache = CacheBuilder.newBuilder().maximumSize(_MAX_CACHE_SIZE)
-					.expireAfterWrite(_MAX_TIME_RETAIN, TimeUnit.MINUTES).build();
-		
-
-		
+		cache = CacheBuilder.newBuilder().maximumSize(_MAX_CACHE_SIZE)
+				.expireAfterWrite(_MAX_TIME_RETAIN, TimeUnit.MINUTES).build();
 
 		LOG.info("[OpenSOC] Preparing TelemetryAlert Bolt...");
 
@@ -180,7 +174,8 @@ public class TelemetryAlertsBolt extends AbstractAlertBolt {
 			LOG.trace("[OpenSOC] Received tuple: " + original_message);
 
 			JSONObject alerts_tag = new JSONObject();
-			Map<String, JSONObject> alerts_list = _adapter.alert(original_message);
+			Map<String, JSONObject> alerts_list = _adapter
+					.alert(original_message);
 			JSONArray uuid_list = new JSONArray();
 
 			if (alerts_list == null || alerts_list.isEmpty()) {
@@ -241,10 +236,11 @@ public class TelemetryAlertsBolt extends AbstractAlertBolt {
 			/*
 			 * if (metricConfiguration != null) { failCounter.inc(); }
 			 */
-			
-			String error_as_string = org.apache.commons.lang.exception.ExceptionUtils.getStackTrace(e);
 
-			JSONObject error = ErrorGenerator.generateErrorMessage(				
+			String error_as_string = org.apache.commons.lang.exception.ExceptionUtils
+					.getStackTrace(e);
+
+			JSONObject error = ErrorGenerator.generateErrorMessage(
 					"Alerts problem: " + original_message, error_as_string);
 			_collector.emit("error", new Values(error));
 		}

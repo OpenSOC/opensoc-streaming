@@ -141,8 +141,5 @@
       <scope>compile</scope>
     </dependency>
   </dependencies>
-  <properties>
-    <hbase.version>0.98.0-hadoop2</hbase.version>
-  </properties>
 </project>
 

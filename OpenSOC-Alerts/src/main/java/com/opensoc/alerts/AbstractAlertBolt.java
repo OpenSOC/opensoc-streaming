@@ -19,7 +19,6 @@ package com.opensoc.alerts;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -33,7 +32,6 @@ import backtype.storm.tuple.Fields;
 
 import com.codahale.metrics.Counter;
 import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import com.opensoc.alerts.interfaces.AlertsAdapter;
 import com.opensoc.metrics.MetricReporter;
 
@@ -43,8 +41,8 @@ public abstract class AbstractAlertBolt extends BaseRichBolt {
 	 * 
 	 */
 	private static final long serialVersionUID = -6710596708304282838L;
-	
-transient Cache<String, String> cache;
+
+	transient Cache<String, String> cache;
 
 	protected static final Logger LOG = LoggerFactory
 			.getLogger(AbstractAlertBolt.class);
@@ -55,11 +53,10 @@ transient Cache<String, String> cache;
 	protected String OutputFieldName;
 	protected JSONObject _identifier;
 	protected MetricReporter _reporter;
-	
+
 	protected int _MAX_CACHE_SIZE = -1;
 	protected int _MAX_TIME_RETAIN = -1;
-	
-	
+
 	protected Counter ackCounter, emitCounter, failCounter;
 
 	protected void registerCounters() {
@@ -79,10 +76,10 @@ transient Cache<String, String> cache;
 	public final void prepare(Map conf, TopologyContext topologyContext,
 			OutputCollector collector) {
 		_collector = collector;
-		
+
 		if (this._adapter == null)
 			throw new IllegalStateException("Alerts adapter must be specified");
-		if(this._identifier == null)
+		if (this._identifier == null)
 			throw new IllegalStateException("Identifier must be specified");
 
 		if (this._MAX_CACHE_SIZE == -1)
@@ -90,28 +87,23 @@ transient Cache<String, String> cache;
 		if (this._MAX_TIME_RETAIN == -1)
 			throw new IllegalStateException("MAX_TIME_RETAIN must be specified");
 
-		
 		try {
 			doPrepare(conf, topologyContext, collector);
 		} catch (IOException e) {
 			LOG.error("Counld not initialize...");
 			e.printStackTrace();
 		}
-		
-		
-		
+
 		boolean success = _adapter.initialize();
 		try {
-		if(!success)
-			
-				throw new Exception("Could not initialize adapter");
-			} catch (Exception e) {
-				
-				e.printStackTrace();
-			}
-	}
-	
+			if (!success)
 
+				throw new Exception("Could not initialize adapter");
+		} catch (Exception e) {
+
+			e.printStackTrace();
+		}
+	}
 
 	public void declareOutputFields(OutputFieldsDeclarer declearer) {
 		declearer.declare(new Fields(this.OutputFieldName));

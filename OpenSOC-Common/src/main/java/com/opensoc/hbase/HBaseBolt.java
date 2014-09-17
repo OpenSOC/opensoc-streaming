@@ -5,14 +5,23 @@ package com.opensoc.hbase;
 import java.io.IOException;
 import java.util.Map;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.HColumnDescriptor;
+import org.apache.hadoop.hbase.HTableDescriptor;
+import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.log4j.Logger;
+import org.json.simple.JSONObject;
 
+import com.opensoc.topologyhelpers.ErrorGenerator;
 
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.IRichBolt;
 import backtype.storm.topology.OutputFieldsDeclarer;
+import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
+import backtype.storm.tuple.Values;
 
 /**
  * A Storm bolt for putting data into HBase.
@@ -46,6 +55,8 @@ public class HBaseBolt implements IRichBolt {
 
     try {
       this.connector = new HTableConnector(conf);
+
+		
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -59,6 +70,14 @@ public class HBaseBolt implements IRichBolt {
     try {
       this.connector.getTable().put(conf.getPutFromTuple(input));
     } catch (IOException ex) {
+    	
+        String error_as_string = org.apache.commons.lang.exception.ExceptionUtils
+  				.getStackTrace(ex);
+
+  		JSONObject error = ErrorGenerator.generateErrorMessage(
+  				"Alerts problem: " + input.getBinary(0), error_as_string);
+  		collector.emit("error", new Values(error));
+  		
       throw new RuntimeException(ex);
     }
 
@@ -76,6 +95,7 @@ public class HBaseBolt implements IRichBolt {
   /** {@inheritDoc} */
   
   public void declareOutputFields(OutputFieldsDeclarer declarer) {
+	  declarer.declareStream("error", new Fields("HBase"));
   }
 
   /** {@inheritDoc} */

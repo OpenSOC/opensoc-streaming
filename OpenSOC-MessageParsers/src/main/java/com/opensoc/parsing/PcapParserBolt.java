@@ -4,9 +4,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.json.simple.JSONObject;
 
 import com.opensoc.parsing.parsers.PcapParser;
 import com.opensoc.pcap.PacketInfo;
+import com.opensoc.topologyhelpers.ErrorGenerator;
 
 import backtype.storm.generated.Grouping;
 import backtype.storm.task.OutputCollector;
@@ -66,12 +68,12 @@ public class PcapParserBolt implements IRichBolt {
    * .topology.OutputFieldsDeclarer)
    */
   public void declareOutputFields(OutputFieldsDeclarer declarer) {
-    declarer.declareStream("pcap_index_stream", new Fields("index_json", "pcap_id"));
+	  declarer.declareStream("pcap_index_stream", new Fields("index_json")); 
+    //declarer.declareStream("pcap_index_stream", new Fields("index_json", "pcap_id"));
     declarer.declareStream("pcap_header_stream", new Fields("header_json", "pcap_id"));
     declarer.declareStream("pcap_data_stream", new Fields("pcap_id", "timestamp", "pcap"));
-    // declarer.declare(new Fields("header_json", "group_key", "pcap_id",
-    // "timestamp",
-    // "pcap"));
+    declarer.declareStream("error", new Fields("error"));
+
   }
 
   /*
@@ -166,7 +168,16 @@ public class PcapParserBolt implements IRichBolt {
           // int regionIndex =
           // hBaseStreamPartitioner.getRegionIndex(packetInfo.getKey()) ;
 
-          collector.emit("pcap_index_stream", new Values(packetInfo.getJsonIndexDoc(), packetInfo.getKey()));
+         // collector.emit("pcap_index_stream", new Values(packetInfo.getJsonIndexDoc(), packetInfo.getKey()));
+        	
+        	JSONObject message = new JSONObject();
+        	message.put("key", packetInfo.getKey());
+        	message.put("message", packetInfo.getJsonIndexDoc());
+        	
+        	collector.emit("pcap_index_stream", new Values(message));
+        	
+        	//collector.emit("pcap_index_stream", new Values(packetInfo.getJsonIndexDoc(), packetInfo.getKey()));
+        	
           collector.emit("pcap_header_stream", new Values(packetInfo.getJsonDoc(), packetInfo.getKey()));
           collector.emit("pcap_data_stream", new Values(packetInfo.getKey(),
               (packetInfo.getPacketHeader().getTsSec() * secMultiplier + packetInfo.getPacketHeader().getTsUsec() * microSecMultiplier),
@@ -184,6 +195,14 @@ public class PcapParserBolt implements IRichBolt {
       collector.fail(input);
       e.printStackTrace();
       LOG.error("Exception while processing tuple", e);
+      
+      String error_as_string = org.apache.commons.lang.exception.ExceptionUtils
+				.getStackTrace(e);
+
+		JSONObject error = ErrorGenerator.generateErrorMessage(
+				"Alerts problem: " + input.getBinary(0), error_as_string);
+		collector.emit("error", new Values(error));
+		
       return;
     }
     collector.ack(input);

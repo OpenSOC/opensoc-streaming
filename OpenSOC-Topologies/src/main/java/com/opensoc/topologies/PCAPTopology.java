@@ -17,6 +17,9 @@
 
 package com.opensoc.topologies;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang.StringUtils;
@@ -43,6 +46,8 @@ import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.tuple.Fields;
 
 import com.opensoc.hbase.TupleTableConfig;
+import com.opensoc.indexing.TelemetryIndexingBolt;
+import com.opensoc.indexing.adapters.ESBaseBulkAdapter;
 import com.opensoc.json.serialization.JSONKryoSerializer;
 import com.opensoc.parsing.PcapParserBolt;
 import com.opensoc.test.spouts.PcapSimulatorSpout;
@@ -55,6 +60,7 @@ public class PCAPTopology {
 	static String component = "Spout";
 	static Config conf;
 	static String subdir = "pcap";
+	static Set<String> activeComponents = new HashSet<String>();
 
 	public static void main(String[] args) throws Exception {
 
@@ -126,6 +132,9 @@ public class PCAPTopology {
 
 			String component_name = config.getString("bolt.parser.name",
 					"DefaultParserBolt");
+			
+			activeComponents.add(component_name);
+			
 			success = initializeParserBolt(component_name);
 			component = component_name;
 
@@ -134,18 +143,43 @@ public class PCAPTopology {
 
 		}
 
-		if (config.getBoolean("bolt.hdfs.enabled", true)) {
 
-			String component_name = config.getString("bolt.hdfs.name",
-					"DefaultHDFSBolt");
+		if (config.getBoolean("bolt.hbase.enabled")) {
+
+			String component_name = config.getString("bolt.hbase.name",
+					"DefaultHbaseBolt");
 			
-			String shuffleType = config.getString("bolt.hdfs.shuffle.type",
+			activeComponents.add(component_name);
+			
+			String shuffleType = config.getString("bolt.hbase.shuffle.type",
 					"direct");
-			success = initializeHdfsBolt(component_name, shuffleType);
+			success = initializeHbaseBolt(component_name, shuffleType);
+			
+			
 
 			System.out.println("[OpenSOC] Component " + component_name
 					+ " initialized");
 
+		}
+		
+		if (config.getBoolean("bolt.indexing.enabled", true)) {
+			String component_name = config.getString("bolt.indexing.name",
+					"DefaultIndexingBolt");
+			activeComponents.add(component_name);
+			success = initializeIndexingBolt(component_name);
+
+			System.out.println("[OpenSOC] Component " + component_name
+					+ " initialized");
+		}
+		
+		if (config.getBoolean("bolt.error.indexing.enabled")) {
+			String component_name = config.getString(
+					"bolt.error.indexing.name", "DefaultErrorIndexingBolt");
+
+			success = initializeErrorIndexBolt(component_name);
+
+			System.out.println("[OpenSOC] Component " + component_name
+					+ " initialized");
 		}
 
 		if (config.getBoolean("local.mode")) {
@@ -230,7 +264,7 @@ public class PCAPTopology {
 		return true;
 	}
 
-	public static boolean initializeHdfsBolt(String name, String shuffleType) {
+	public static boolean initializeHbaseBolt(String name, String shuffleType) {
 
 		try {
 
@@ -242,7 +276,7 @@ public class PCAPTopology {
 							"bolt.hbase.table.key.tuple.field.name")
 							.toString(),
 							config.getString(
-							"bolt.hbase.table.key.tuple.field.name")
+							"bolt.hbase.table.timestamp.tuple.field.name")
 							.toString());
 
 			String allColumnFamiliesColumnQualifiers = config.getString(
@@ -276,7 +310,7 @@ public class PCAPTopology {
 			            new HBaseStreamPartitioner(hbaseBoltConfig.getTableName(), 0, Integer.parseInt(conf.get(
 			                "bolt.hbase.partitioner.region.info.refresh.interval.mins").toString())));
 			      } else if (Grouping._Fields.DIRECT.toString().equalsIgnoreCase(shuffleType)) {
-			        declarer.fieldsGrouping(component, "pcap_data_stream", new Fields("region"));
+			        declarer.fieldsGrouping(component, "pcap_data_stream", new Fields("pcap_id"));
 			      }
 				
 				
@@ -289,5 +323,65 @@ public class PCAPTopology {
 			System.exit(0);
 		}
 		return true;
+	}
+	
+	public static boolean initializeIndexingBolt(String name) {
+		try {
+
+			TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
+					.withIndexIP(config.getString("es.ip"))
+					.withIndexPort(config.getInt("es.port"))
+					.withClusterName(config.getString("es.clustername"))
+					.withIndexName(config.getString("bolt.indexing.indexname"))
+					.withDocumentName(
+							config.getString("bolt.indexing.documentname"))
+					.withBulk(config.getInt("bolt.indexing.bulk"))
+					.withIndexAdapter(new ESBaseBulkAdapter())
+					.withMetricConfiguration(config);
+
+			builder.setBolt(name, indexing_bolt,
+					config.getInt("bolt.indexing.parallelism.hint"))
+					.shuffleGrouping(component, "pcap_index_stream")
+					.setNumTasks(config.getInt("bolt.indexing.num.tasks"));
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.exit(0);
+		}
+
+		return true;
+	}
+	
+	public static boolean initializeErrorIndexBolt(String component_name) {
+		try {
+
+			TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
+					.withIndexIP(config.getString("es.ip"))
+					.withIndexPort(config.getInt("es.port"))
+					.withClusterName(config.getString("es.clustername"))
+					.withIndexName(
+							config.getString("bolt.error.indexing.indexname"))
+					.withDocumentName(
+							config.getString("bolt.error.indexing.documentname"))
+					.withBulk(config.getInt("bolt.error.indexing.bulk"))
+					.withIndexAdapter(new ESBaseBulkAdapter())
+					.withMetricConfiguration(config);
+
+			BoltDeclarer declarer = builder
+					.setBolt(
+							component_name,
+							indexing_bolt,
+							config.getInt("bolt.error.indexing.parallelism.hint"))
+					.setNumTasks(config.getInt("bolt.error.indexing.num.tasks"));
+
+			for (String component : activeComponents)
+				declarer.shuffleGrouping(component, "error");
+
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+
 	}
 }

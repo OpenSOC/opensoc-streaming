@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-package com.opensoc.topologies;
+package com.opensoc.topologies_old;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -54,21 +54,22 @@ import backtype.storm.topology.TopologyBuilder;
 
 import com.opensoc.alerts.TelemetryAlertsBolt;
 import com.opensoc.alerts.adapters.AllAlertAdapter;
+import com.opensoc.alerts.adapters.HbaseWhiteAndBlacklistAdapter;
 import com.opensoc.alerts.interfaces.AlertsAdapter;
 import com.opensoc.alerts.interfaces.TaggerAdapter;
 import com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter;
+import com.opensoc.enrichment.adapters.geo.GeoMysqlAdapter;
+import com.opensoc.enrichment.adapters.host.HostFromPropertiesFileAdapter;
 import com.opensoc.enrichment.adapters.whois.WhoisHBaseAdapter;
 import com.opensoc.enrichment.common.GenericEnrichmentBolt;
 import com.opensoc.enrichment.interfaces.EnrichmentAdapter;
-import com.opensoc.enrichment.adapters.geo.GeoMysqlAdapter;
-import com.opensoc.enrichment.adapters.host.HostFromPropertiesFileAdapter;
 import com.opensoc.filters.GenericMessageFilter;
 import com.opensoc.indexing.TelemetryIndexingBolt;
 import com.opensoc.indexing.adapters.ESBaseBulkAdapter;
 import com.opensoc.json.serialization.JSONKryoSerializer;
 import com.opensoc.parsing.AbstractParserBolt;
 import com.opensoc.parsing.TelemetryParserBolt;
-import com.opensoc.parsing.parsers.BasicIseParser;
+import com.opensoc.parsing.parsers.BasicSourcefireParser;
 import com.opensoc.tagging.TelemetryTaggerBolt;
 import com.opensoc.tagging.adapters.RegexTagger;
 import com.opensoc.test.spouts.GenericInternalTestSpout;
@@ -78,12 +79,12 @@ import com.opensoc.topologyhelpers.SettingsLoader;
  * This is a basic example of a Storm topology.
  */
 
-public class IseEnrichmentTestTopology {
+public class SourcefireEnrichmentTestTopology {
 	static Configuration config;
 	static TopologyBuilder builder;
 	static String component = "Spout";
 	static Config conf;
-	static String subdir = "ise";
+	static String subdir = "sourcefire";
 	static Set<String> activeComponents = new HashSet<String>();
 
 	public static void main(String[] args) throws Exception {
@@ -126,7 +127,7 @@ public class IseEnrichmentTestTopology {
 		if (config.getBoolean("spout.test.enabled", false)) {
 			String component_name = config.getString("spout.test.name",
 					"DefaultTopologySpout");
-			success = initializeTestingSpout("SampleInput/ISESampleOutput",
+			success = initializeTestingSpout("SampleInput/SourcefireExampleOutput",
 					component_name);
 			component = component_name;
 
@@ -181,7 +182,6 @@ public class IseEnrichmentTestTopology {
 		if (config.getBoolean("bolt.enrichment.whois.enabled", false)) {
 			String component_name = config.getString(
 					"bolt.enrichment.whois.name", "DefaultWhoisEnrichmentBolt");
-			activeComponents.add(component_name);
 			success = initializeWhoisEnrichment(topology_name, component_name);
 			component = component_name;
 
@@ -311,7 +311,7 @@ public class IseEnrichmentTestTopology {
 		try {
 
 			AbstractParserBolt parser_bolt = new TelemetryParserBolt()
-					.withMessageParser(new BasicIseParser())
+					.withMessageParser(new BasicSourcefireParser())
 					.withOutputFieldName(topology_name)
 					.withMessageFilter(new GenericMessageFilter())
 					.withMetricConfig(config);
@@ -460,6 +460,7 @@ public class IseEnrichmentTestTopology {
 		}
 		return true;
 	}
+
 
 	public static boolean initializeKafkaBolt(String name) {
 		try {
@@ -625,9 +626,11 @@ public class IseEnrichmentTestTopology {
 			 */
 
 			// * ------------HDFS BOLT For Enriched Data configuration
-
+			String path = config.getString("bolt.hdfs.path","/") + "/"+ topology_name + "_enriched/";
+			
+			System.out.println("Initializing HDFS Path:" + path);
 			FileNameFormat fileNameFormat_enriched = new DefaultFileNameFormat()
-					.withPath(config.getString("bolt.hdfs.path","/") + "/" +  topology_name + "_enriched/");
+					.withPath(path);
 			RecordFormat format_enriched = new DelimitedRecordFormat()
 					.withFieldDelimiter("|");
 

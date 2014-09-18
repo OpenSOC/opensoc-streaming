@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-package com.opensoc.topologies;
+package com.opensoc.topologies_old;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -41,6 +41,7 @@ import org.json.simple.JSONObject;
 import storm.kafka.BrokerHosts;
 import storm.kafka.KafkaSpout;
 import storm.kafka.SpoutConfig;
+import storm.kafka.StringScheme;
 import storm.kafka.ZkHosts;
 import storm.kafka.bolt.KafkaBolt;
 import backtype.storm.Config;
@@ -52,23 +53,24 @@ import backtype.storm.topology.BoltDeclarer;
 import backtype.storm.topology.TopologyBuilder;
 
 import com.opensoc.alerts.TelemetryAlertsBolt;
-import com.opensoc.alerts.adapters.HbaseWhiteAndBlacklistAdapter;
+import com.opensoc.alerts.adapters.AllAlertAdapter;
 import com.opensoc.alerts.interfaces.AlertsAdapter;
+import com.opensoc.alerts.interfaces.TaggerAdapter;
 import com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter;
-import com.opensoc.enrichment.adapters.geo.GeoMysqlAdapter;
-import com.opensoc.enrichment.adapters.host.HostFromPropertiesFileAdapter;
 import com.opensoc.enrichment.adapters.whois.WhoisHBaseAdapter;
 import com.opensoc.enrichment.common.GenericEnrichmentBolt;
 import com.opensoc.enrichment.interfaces.EnrichmentAdapter;
-import com.opensoc.filters.BroMessageFilter;
+import com.opensoc.enrichment.adapters.geo.GeoMysqlAdapter;
+import com.opensoc.enrichment.adapters.host.HostFromPropertiesFileAdapter;
 import com.opensoc.filters.GenericMessageFilter;
 import com.opensoc.indexing.TelemetryIndexingBolt;
 import com.opensoc.indexing.adapters.ESBaseBulkAdapter;
 import com.opensoc.json.serialization.JSONKryoSerializer;
-import com.opensoc.parser.interfaces.MessageFilter;
 import com.opensoc.parsing.AbstractParserBolt;
 import com.opensoc.parsing.TelemetryParserBolt;
-import com.opensoc.parsing.parsers.BasicBroParser;
+import com.opensoc.parsing.parsers.BasicIseParser;
+import com.opensoc.tagging.TelemetryTaggerBolt;
+import com.opensoc.tagging.adapters.RegexTagger;
 import com.opensoc.test.spouts.GenericInternalTestSpout;
 import com.opensoc.topologyhelpers.SettingsLoader;
 
@@ -76,12 +78,12 @@ import com.opensoc.topologyhelpers.SettingsLoader;
  * This is a basic example of a Storm topology.
  */
 
-public class BroAlertTest {
+public class IseEnrichmentTestTopology {
 	static Configuration config;
 	static TopologyBuilder builder;
 	static String component = "Spout";
 	static Config conf;
-	static String subdir = "bro";
+	static String subdir = "ise";
 	static Set<String> activeComponents = new HashSet<String>();
 
 	public static void main(String[] args) throws Exception {
@@ -95,21 +97,14 @@ public class BroAlertTest {
 			config_path = "OpenSOC_Configs";
 		}
 
-		String topology_conf_path = config_path + "/topologies/" + subdir
-				+ "/topology.conf";
-
-		String environment_identifier_path = config_path
-				+ "/topologies/environment_identifier.conf";
-		String topology_identifier_path = config_path + "/topologies/" + subdir
-				+ "/topology_identifier.conf";
-
-		System.out.println("[OpenSOC] Looking for environment identifier: "
-				+ environment_identifier_path);
-		System.out.println("[OpenSOC] Looking for topology identifier: "
-				+ topology_identifier_path);
-		System.out.println("[OpenSOC] Looking for topology config: "
-				+ topology_conf_path);
-
+		String topology_conf_path = config_path + "/topologies/" + subdir + "/topology.conf";
+		String environment_identifier_path = config_path + "/topologies/environment_identifier.conf";
+		String topology_identifier_path =  config_path + "/topologies/" + subdir + "/topology_identifier.conf";
+		
+		System.out.println("[OpenSOC] Looking for environment identifier: " + environment_identifier_path);
+		System.out.println("[OpenSOC] Looking for topology identifier: " + topology_identifier_path);
+		System.out.println("[OpenSOC] Looking for topology config: " + topology_conf_path);
+		
 		config = new PropertiesConfiguration(topology_conf_path);
 
 		JSONObject environment_identifier = SettingsLoader
@@ -131,7 +126,7 @@ public class BroAlertTest {
 		if (config.getBoolean("spout.test.enabled", false)) {
 			String component_name = config.getString("spout.test.name",
 					"DefaultTopologySpout");
-			success = initializeTestingSpout("SampleInput/BroExampleOutput",
+			success = initializeTestingSpout("SampleInput/ISESampleOutput",
 					component_name);
 			component = component_name;
 
@@ -142,7 +137,6 @@ public class BroAlertTest {
 		if (config.getBoolean("spout.kafka.enabled", true)) {
 			String component_name = config.getString("spout.kafka.name",
 					"DefaultTopologyKafkaSpout");
-			// activeComponents.add(component_name);
 			success = initializeKafkaSpout(component_name);
 			component = component_name;
 
@@ -210,6 +204,7 @@ public class BroAlertTest {
 			String component_name = config.getString("bolt.alerts.name",
 					"DefaultAlertsBolt");
 			activeComponents.add(component_name);
+			
 			success = initializeAlerts(topology_name, component_name,
 					config_path + "/topologies/" + subdir + "/alerts.xml",
 					environment_identifier, topology_identifier);
@@ -222,7 +217,6 @@ public class BroAlertTest {
 		if (config.getBoolean("bolt.kafka.enabled", false)) {
 			String component_name = config.getString("bolt.kafka.name",
 					"DefaultKafkaBolt");
-			// activeComponents.add(component_name);
 			success = initializeKafkaBolt(component_name);
 
 			System.out.println("[OpenSOC] Component " + component_name
@@ -242,13 +236,12 @@ public class BroAlertTest {
 		if (config.getBoolean("bolt.hdfs.enabled", false)) {
 			String component_name = config.getString("bolt.hdfs.name",
 					"DefaultHDFSBolt");
-			// activeComponents.add(component_name);
 			success = initializeHDFSBolt(topology_name, component_name);
 
 			System.out.println("[OpenSOC] Component " + component_name
 					+ " initialized");
 		}
-
+		
 		if (config.getBoolean("bolt.error.indexing.enabled")) {
 			String component_name = config.getString(
 					"bolt.error.indexing.name", "DefaultErrorIndexingBolt");
@@ -271,39 +264,6 @@ public class BroAlertTest {
 			StormSubmitter.submitTopology(topology_name, conf,
 					builder.createTopology());
 		}
-	}
-
-	public static boolean initializeErrorIndexBolt(String component_name) {
-		try {
-
-			TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
-					.withIndexIP(config.getString("es.ip"))
-					.withIndexPort(config.getInt("es.port"))
-					.withClusterName(config.getString("es.clustername"))
-					.withIndexName(
-							config.getString("bolt.error.indexing.indexname"))
-					.withDocumentName(
-							config.getString("bolt.error.indexing.documentname"))
-					.withBulk(config.getInt("bolt.error.indexing.bulk"))
-					.withIndexAdapter(new ESBaseBulkAdapter())
-					.withMetricConfiguration(config);
-
-			BoltDeclarer declarer = builder
-					.setBolt(
-							component_name,
-							indexing_bolt,
-							config.getInt("bolt.error.indexing.parallelism.hint"))
-					.setNumTasks(config.getInt("bolt.error.indexing.num.tasks"));
-
-			for (String component : activeComponents)
-				declarer.shuffleGrouping(component, "error");
-
-			return true;
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
-
 	}
 
 	public static boolean initializeKafkaSpout(String name) {
@@ -332,17 +292,8 @@ public class BroAlertTest {
 	public static boolean initializeTestingSpout(String file_path, String name) {
 		try {
 
-			System.out.println("[OpenSOC] Initializing Test Spout");
-			System.out.println("[OpenSOC] spout.test.parallelism.repeat: "
-					+ config.getBoolean("spout.test.parallelism.repeat"));
-			System.out.println("[OpenSOC] spout.test.parallelism.hint: "
-					+ config.getInt("spout.test.parallelism.hint"));
-			System.out.println("[OpenSOC] spout.test.num.tasks: "
-					+ config.getInt("spout.test.num.tasks"));
-
 			GenericInternalTestSpout testSpout = new GenericInternalTestSpout()
-					.withFilename(file_path).withRepeating(
-							config.getBoolean("spout.test.parallelism.repeat"));
+					.withFilename(file_path).withRepeating(config.getBoolean("spout.test.parallelism.repeat", false));
 
 			builder.setSpout(name, testSpout,
 					config.getInt("spout.test.parallelism.hint")).setNumTasks(
@@ -360,33 +311,10 @@ public class BroAlertTest {
 		try {
 
 			AbstractParserBolt parser_bolt = new TelemetryParserBolt()
-					.withMessageParser(new BasicBroParser())
+					.withMessageParser(new BasicIseParser())
 					.withOutputFieldName(topology_name)
 					.withMessageFilter(new GenericMessageFilter())
 					.withMetricConfig(config);
-
-			builder.setBolt(name, parser_bolt,
-					config.getInt("bolt.parser.parallelism.hint"))
-					.shuffleGrouping(component)
-					.setNumTasks(config.getInt("bolt.parser.num.tasks"));
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			System.exit(0);
-		}
-
-		return true;
-	}
-
-	public static boolean initializeParsingBolt(Configuration config,
-			String topology_name, String name) {
-		try {
-
-			MessageFilter filter = new BroMessageFilter(config, "protocol");
-			AbstractParserBolt parser_bolt = new TelemetryParserBolt()
-					.withMessageParser(new BasicBroParser())
-					.withOutputFieldName(topology_name)
-					.withMessageFilter(filter).withMetricConfig(config);
 
 			builder.setBolt(name, parser_bolt,
 					config.getInt("bolt.parser.parallelism.hint"))
@@ -450,8 +378,7 @@ public class BroAlertTest {
 			Map<String, JSONObject> known_hosts = SettingsLoader
 					.loadKnownHosts(hosts_path);
 
-			HostFromPropertiesFileAdapter host_adapter = new HostFromPropertiesFileAdapter(
-					known_hosts);
+			HostFromPropertiesFileAdapter host_adapter = new HostFromPropertiesFileAdapter(known_hosts);
 
 			GenericEnrichmentBolt host_enrichment = new GenericEnrichmentBolt()
 					.withEnrichmentTag(
@@ -487,7 +414,7 @@ public class BroAlertTest {
 					.generateAlertsIdentifier(environment_identifier,
 							topology_identifier);
 
-			AlertsAdapter alerts_adapter = new HbaseWhiteAndBlacklistAdapter(
+			AlertsAdapter alerts_adapter = new AllAlertAdapter(
 					"ip_whitelist", "ip_blacklist",
 					config.getString("kafka.zk.list"),
 					config.getString("kafka.zk.port"), 3600, 1000);
@@ -700,8 +627,7 @@ public class BroAlertTest {
 			// * ------------HDFS BOLT For Enriched Data configuration
 
 			FileNameFormat fileNameFormat_enriched = new DefaultFileNameFormat()
-					.withPath(config.getString("bolt.hdfs.path", "/") + "/"
-							+ topology_name + "_enriched/");
+					.withPath(config.getString("bolt.hdfs.path","/") + "/" +  topology_name + "_enriched/");
 			RecordFormat format_enriched = new DelimitedRecordFormat()
 					.withFieldDelimiter("|");
 
@@ -727,5 +653,38 @@ public class BroAlertTest {
 		}
 
 		return true;
+	}
+	
+	public static boolean initializeErrorIndexBolt(String component_name) {
+		try {
+
+			TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
+					.withIndexIP(config.getString("es.ip"))
+					.withIndexPort(config.getInt("es.port"))
+					.withClusterName(config.getString("es.clustername"))
+					.withIndexName(
+							config.getString("bolt.error.indexing.indexname"))
+					.withDocumentName(
+							config.getString("bolt.error.indexing.documentname"))
+					.withBulk(config.getInt("bolt.error.indexing.bulk"))
+					.withIndexAdapter(new ESBaseBulkAdapter())
+					.withMetricConfiguration(config);
+
+			BoltDeclarer declarer = builder
+					.setBolt(
+							component_name,
+							indexing_bolt,
+							config.getInt("bolt.error.indexing.parallelism.hint"))
+					.setNumTasks(config.getInt("bolt.error.indexing.num.tasks"));
+
+			for (String component : activeComponents)
+				declarer.shuffleGrouping(component, "error");
+
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+
 	}
 }

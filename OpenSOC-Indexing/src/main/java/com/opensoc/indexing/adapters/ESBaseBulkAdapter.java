@@ -5,6 +5,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import org.apache.commons.collections.Bag;
+import org.apache.commons.collections.HashBag;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequestBuilder;
@@ -26,7 +28,7 @@ public class ESBaseBulkAdapter extends AbstractIndexAdapter implements
 	private String _ip;
 	public transient TransportClient client;
 
-	private Set<JSONObject> bulk_set;
+	private Bag bulk_set;
 
 	private Settings settings;
 
@@ -35,7 +37,7 @@ public class ESBaseBulkAdapter extends AbstractIndexAdapter implements
 			String cluster_name, String index_name, String document_name,
 			int bulk_size) throws Exception {
 
-		bulk_set = new HashSet<JSONObject>();
+		bulk_set = new HashBag();
 
 		_LOG.trace("[OpenSOC] Initializing ESBulkAdapter...");
 
@@ -77,6 +79,8 @@ public class ESBaseBulkAdapter extends AbstractIndexAdapter implements
 		synchronized (bulk_set) {
 			bulk_set.add(raw_message);
 			set_size = bulk_set.size();
+			
+			System.out.println("Bulk size is now: " + bulk_set.size());
 		}
 
 		try {

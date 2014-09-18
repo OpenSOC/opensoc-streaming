@@ -99,4 +99,20 @@ public class SettingsLoader {
 		return known_hosts;
 	}
 
+	public static void printConfigOptions(PropertiesConfiguration config, String path_fragment)
+	{
+		Iterator<String> itr = config.getKeys();
+		
+		while(itr.hasNext())
+		{
+			String key = itr.next();
+			
+			if(key.contains(path_fragment))
+			{
+				
+				System.out.println("[OpenSOC] Key: " + key + " -> " + config.getString(key));
+			}
+		}
+
+	}
 }

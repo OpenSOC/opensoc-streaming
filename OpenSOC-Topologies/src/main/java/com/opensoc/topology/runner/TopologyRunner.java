@@ -1,21 +1,4 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-package com.opensoc.topologies;
+package com.opensoc.topology.runner;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.storm.hdfs.bolt.HdfsBolt;
 import org.apache.storm.hdfs.bolt.format.DefaultFileNameFormat;
@@ -41,71 +25,94 @@ import org.json.simple.JSONObject;
 import storm.kafka.BrokerHosts;
 import storm.kafka.KafkaSpout;
 import storm.kafka.SpoutConfig;
-import storm.kafka.StringScheme;
 import storm.kafka.ZkHosts;
 import storm.kafka.bolt.KafkaBolt;
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
+import backtype.storm.generated.AlreadyAliveException;
+import backtype.storm.generated.InvalidTopologyException;
 import backtype.storm.spout.RawScheme;
 import backtype.storm.spout.SchemeAsMultiScheme;
 import backtype.storm.topology.BoltDeclarer;
 import backtype.storm.topology.TopologyBuilder;
 
 import com.opensoc.alerts.TelemetryAlertsBolt;
-import com.opensoc.alerts.adapters.AllAlertAdapter;
 import com.opensoc.alerts.adapters.HbaseWhiteAndBlacklistAdapter;
 import com.opensoc.alerts.interfaces.AlertsAdapter;
-import com.opensoc.alerts.interfaces.TaggerAdapter;
 import com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter;
 import com.opensoc.enrichment.adapters.geo.GeoMysqlAdapter;
 import com.opensoc.enrichment.adapters.host.HostFromPropertiesFileAdapter;
 import com.opensoc.enrichment.adapters.whois.WhoisHBaseAdapter;
 import com.opensoc.enrichment.common.GenericEnrichmentBolt;
 import com.opensoc.enrichment.interfaces.EnrichmentAdapter;
+import com.opensoc.filters.BroMessageFilter;
 import com.opensoc.filters.GenericMessageFilter;
 import com.opensoc.indexing.TelemetryIndexingBolt;
 import com.opensoc.indexing.adapters.ESBaseBulkAdapter;
 import com.opensoc.json.serialization.JSONKryoSerializer;
+import com.opensoc.parser.interfaces.MessageFilter;
 import com.opensoc.parsing.AbstractParserBolt;
 import com.opensoc.parsing.TelemetryParserBolt;
-import com.opensoc.parsing.parsers.BasicSourcefireParser;
-import com.opensoc.tagging.TelemetryTaggerBolt;
-import com.opensoc.tagging.adapters.RegexTagger;
+import com.opensoc.parsing.parsers.BasicBroParser;
 import com.opensoc.test.spouts.GenericInternalTestSpout;
+import com.opensoc.topologyhelpers.Cli;
 import com.opensoc.topologyhelpers.SettingsLoader;
 
-/**
- * This is a basic example of a Storm topology.
- */
+public abstract class TopologyRunner {
 
-public class SourcefireEnrichmentTestTopology {
-	static Configuration config;
-	static TopologyBuilder builder;
-	static String component = "Spout";
-	static Config conf;
-	static String subdir = "sourcefire";
-	static Set<String> activeComponents = new HashSet<String>();
+	protected Configuration config;
+	protected TopologyBuilder builder;
+	protected Config conf;
+	protected boolean local_mode = true;
+	protected boolean debug = true;
+	protected String config_path = null;
+	protected String default_config_path = "OpenSOC_Configs";
+	protected boolean success = false;
+	protected Set<String> activeComponents = new HashSet<String>();
+	protected String component = null;
 
-	public static void main(String[] args) throws Exception {
+	public void initTopology(String args[], String subdir)
+			throws ConfigurationException, AlreadyAliveException,
+			InvalidTopologyException {
+		Cli command_line = new Cli(args);
+		command_line.parse();
 
-		String config_path = ".";
-		boolean success = true;
+		System.out.println("[OpenSOC] Starting topology deployment...");
 
-		try {
-			config_path = args[0];
-		} catch (Exception e) {
-			config_path = "OpenSOC_Configs";
+		debug = command_line.isDebug();
+		System.out.println("[OpenSOC] Debug mode set to: " + debug);
+
+		local_mode = command_line.isLocal_mode();
+		System.out.println("[OpenSOC] Local mode set to: " + local_mode);
+
+		if (command_line.getPath() != null) {
+			config_path = command_line.getPath();
+			System.out
+					.println("[OpenSOC] Setting config path to external config path: "
+							+ config_path);
+		} else {
+			config_path = default_config_path;
+			System.out
+					.println("[OpenSOC] Initializing from default internal config path: "
+							+ config_path);
 		}
 
-		String topology_conf_path = config_path + "/topologies/" + subdir + "/topology.conf";
-		String environment_identifier_path = config_path + "/topologies/environment_identifier.conf";
-		String topology_identifier_path =  config_path + "/topologies/" + subdir + "/topology_identifier.conf";
-		
-		System.out.println("[OpenSOC] Looking for environment identifier: " + environment_identifier_path);
-		System.out.println("[OpenSOC] Looking for topology identifier: " + topology_identifier_path);
-		System.out.println("[OpenSOC] Looking for topology config: " + topology_conf_path);
-		
+		String topology_conf_path = config_path + "/topologies/" + subdir
+				+ "/topology.conf";
+
+		String environment_identifier_path = config_path
+				+ "/topologies/environment_identifier.conf";
+		String topology_identifier_path = config_path + "/topologies/" + subdir
+				+ "/topology_identifier.conf";
+
+		System.out.println("[OpenSOC] Looking for environment identifier: "
+				+ environment_identifier_path);
+		System.out.println("[OpenSOC] Looking for topology identifier: "
+				+ topology_identifier_path);
+		System.out.println("[OpenSOC] Looking for topology config: "
+				+ topology_conf_path);
+
 		config = new PropertiesConfiguration(topology_conf_path);
 
 		JSONObject environment_identifier = SettingsLoader
@@ -122,27 +129,35 @@ public class SourcefireEnrichmentTestTopology {
 
 		conf = new Config();
 		conf.registerSerialization(JSONObject.class, JSONKryoSerializer.class);
-		conf.setDebug(config.getBoolean("debug.mode"));
+		conf.setDebug(debug);
 
-		if (config.getBoolean("spout.test.enabled", false)) {
+		System.out.println("[OpenSOC] Initializing Spout: " + topology_name);
+
+		if (command_line.isGenerator_spout()) {
 			String component_name = config.getString("spout.test.name",
 					"DefaultTopologySpout");
-			success = initializeTestingSpout("SampleInput/SourcefireExampleOutput",
-					component_name);
+			success = initializeTestingSpout(component_name);
 			component = component_name;
 
-			System.out.println("[OpenSOC] Component " + component
-					+ " initialized");
+			System.out.println("[OpenSOC] ------Component " + component_name
+					+ " initialized with the following settings:");
+
+			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
+					"spout.test");
 		}
 
-		if (config.getBoolean("spout.kafka.enabled", true)) {
+		if (!command_line.isGenerator_spout()) {
 			String component_name = config.getString("spout.kafka.name",
 					"DefaultTopologyKafkaSpout");
+			// activeComponents.add(component_name);
 			success = initializeKafkaSpout(component_name);
 			component = component_name;
 
-			System.out.println("[OpenSOC] Component " + component
-					+ " initialized");
+			System.out.println("[OpenSOC] ------Component " + component_name
+					+ " initialized with the following settings:");
+
+			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
+					"spout.kafka");
 		}
 
 		if (config.getBoolean("parser.bolt.enabled", true)) {
@@ -152,8 +167,11 @@ public class SourcefireEnrichmentTestTopology {
 			success = initializeParsingBolt(topology_name, component_name);
 			component = component_name;
 
-			System.out.println("[OpenSOC] Component " + component
-					+ " initialized");
+			System.out.println("[OpenSOC] ------Component " + component_name
+					+ " initialized with the following settings:");
+
+			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
+					"parser.bolt");
 		}
 
 		if (config.getBoolean("bolt.enrichment.geo.enabled", false)) {
@@ -163,8 +181,13 @@ public class SourcefireEnrichmentTestTopology {
 			success = initializeGeoEnrichment(topology_name, component_name);
 			component = component_name;
 
-			System.out.println("[OpenSOC] Component " + component
-					+ " initialized");
+			System.out.println("[OpenSOC] ------Component " + component_name
+					+ " initialized with the following settings:");
+
+			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
+					"bolt.enrichment.geo");
+			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
+					"mysql");
 		}
 
 		if (config.getBoolean("bolt.enrichment.host.enabled", false)) {
@@ -175,18 +198,25 @@ public class SourcefireEnrichmentTestTopology {
 					"OpenSOC_Configs/etc/whitelists/known_hosts.conf");
 			component = component_name;
 
-			System.out.println("[OpenSOC] Component " + component
-					+ " initialized");
+			System.out.println("[OpenSOC] ------Component " + component_name
+					+ " initialized with the following settings:");
+
+			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
+					"bolt.enrichment.host");
 		}
 
 		if (config.getBoolean("bolt.enrichment.whois.enabled", false)) {
 			String component_name = config.getString(
 					"bolt.enrichment.whois.name", "DefaultWhoisEnrichmentBolt");
+			activeComponents.add(component_name);
 			success = initializeWhoisEnrichment(topology_name, component_name);
 			component = component_name;
 
-			System.out.println("[OpenSOC] Component " + component
-					+ " initialized");
+			System.out.println("[OpenSOC] ------Component " + component_name
+					+ " initialized with the following settings:");
+
+			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
+					"bolt.enrichment.whois");
 		}
 
 		if (config.getBoolean("bolt.enrichment.cif.enabled", false)) {
@@ -196,31 +226,43 @@ public class SourcefireEnrichmentTestTopology {
 			success = initializeCIFEnrichment(topology_name, component_name);
 			component = component_name;
 
-			System.out.println("[OpenSOC] Component " + component
-					+ " initialized");
+			System.out.println("[OpenSOC] ------Component " + component_name
+					+ " initialized with the following settings:");
+
+			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
+					"bolt.enrichment.cif");
 		}
 
 		if (config.getBoolean("bolt.alerts.enabled", false)) {
 			String component_name = config.getString("bolt.alerts.name",
 					"DefaultAlertsBolt");
 			activeComponents.add(component_name);
-			
 			success = initializeAlerts(topology_name, component_name,
 					config_path + "/topologies/" + subdir + "/alerts.xml",
 					environment_identifier, topology_identifier);
 			component = component_name;
 
-			System.out.println("[OpenSOC] Component " + component
-					+ " initialized");
+			System.out.println("[OpenSOC] ------Component " + component_name
+					+ " initialized with the following settings:");
+
+			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
+					"bolt.alerts");
 		}
 
 		if (config.getBoolean("bolt.kafka.enabled", false)) {
 			String component_name = config.getString("bolt.kafka.name",
 					"DefaultKafkaBolt");
+			// activeComponents.add(component_name);
 			success = initializeKafkaBolt(component_name);
 
 			System.out.println("[OpenSOC] Component " + component_name
 					+ " initialized");
+
+			System.out.println("[OpenSOC] ------Component " + component_name
+					+ " initialized with the following settings:");
+
+			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
+					"bolt.kafka");
 		}
 
 		if (config.getBoolean("bolt.indexing.enabled", true)) {
@@ -229,30 +271,40 @@ public class SourcefireEnrichmentTestTopology {
 			activeComponents.add(component_name);
 			success = initializeIndexingBolt(component_name);
 
-			System.out.println("[OpenSOC] Component " + component_name
-					+ " initialized");
+			System.out.println("[OpenSOC] ------Component " + component_name
+					+ " initialized with the following settings:");
+
+			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
+					"bolt.indexing");
 		}
 
 		if (config.getBoolean("bolt.hdfs.enabled", false)) {
 			String component_name = config.getString("bolt.hdfs.name",
 					"DefaultHDFSBolt");
+			// activeComponents.add(component_name);
 			success = initializeHDFSBolt(topology_name, component_name);
 
-			System.out.println("[OpenSOC] Component " + component_name
-					+ " initialized");
+			System.out.println("[OpenSOC] ------Component " + component_name
+					+ " initialized with the following settings:");
+
+			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
+					"bolt.hdfs");
 		}
-		
+
 		if (config.getBoolean("bolt.error.indexing.enabled")) {
 			String component_name = config.getString(
 					"bolt.error.indexing.name", "DefaultErrorIndexingBolt");
 
 			success = initializeErrorIndexBolt(component_name);
 
-			System.out.println("[OpenSOC] Component " + component_name
-					+ " initialized");
+			System.out.println("[OpenSOC] ------Component " + component_name
+					+ " initialized with the following settings:");
+
+			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
+					"bolt.error");
 		}
 
-		if (config.getBoolean("local.mode")) {
+		if (local_mode) {
 			conf.setNumWorkers(config.getInt("num.workers"));
 			conf.setMaxTaskParallelism(1);
 			LocalCluster cluster = new LocalCluster();
@@ -264,9 +316,43 @@ public class SourcefireEnrichmentTestTopology {
 			StormSubmitter.submitTopology(topology_name, conf,
 					builder.createTopology());
 		}
+
 	}
 
-	public static boolean initializeKafkaSpout(String name) {
+	private boolean initializeErrorIndexBolt(String component_name) {
+		try {
+
+			TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
+					.withIndexIP(config.getString("es.ip"))
+					.withIndexPort(config.getInt("es.port"))
+					.withClusterName(config.getString("es.clustername"))
+					.withIndexName(
+							config.getString("bolt.error.indexing.indexname"))
+					.withDocumentName(
+							config.getString("bolt.error.indexing.documentname"))
+					.withBulk(config.getInt("bolt.error.indexing.bulk"))
+					.withIndexAdapter(new ESBaseBulkAdapter())
+					.withMetricConfiguration(config);
+
+			BoltDeclarer declarer = builder
+					.setBolt(
+							component_name,
+							indexing_bolt,
+							config.getInt("bolt.error.indexing.parallelism.hint"))
+					.setNumTasks(config.getInt("bolt.error.indexing.num.tasks"));
+
+			for (String component : activeComponents)
+				declarer.shuffleGrouping(component, "error");
+
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+
+	}
+
+	private boolean initializeKafkaSpout(String name) {
 		try {
 
 			BrokerHosts zk = new ZkHosts(config.getString("kafka.zk"));
@@ -289,48 +375,11 @@ public class SourcefireEnrichmentTestTopology {
 		return true;
 	}
 
-	public static boolean initializeTestingSpout(String file_path, String name) {
-		try {
+	abstract boolean initializeParsingBolt(String topology_name, String name);
 
-			GenericInternalTestSpout testSpout = new GenericInternalTestSpout()
-					.withFilename(file_path).withRepeating(config.getBoolean("spout.test.parallelism.repeat", false));
+	abstract boolean initializeTestingSpout(String name);
 
-			builder.setSpout(name, testSpout,
-					config.getInt("spout.test.parallelism.hint")).setNumTasks(
-					config.getInt("spout.test.num.tasks"));
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			System.exit(0);
-		}
-		return true;
-	}
-
-	public static boolean initializeParsingBolt(String topology_name,
-			String name) {
-		try {
-
-			AbstractParserBolt parser_bolt = new TelemetryParserBolt()
-					.withMessageParser(new BasicSourcefireParser())
-					.withOutputFieldName(topology_name)
-					.withMessageFilter(new GenericMessageFilter())
-					.withMetricConfig(config);
-
-			builder.setBolt(name, parser_bolt,
-					config.getInt("bolt.parser.parallelism.hint"))
-					.shuffleGrouping(component)
-					.setNumTasks(config.getInt("bolt.parser.num.tasks"));
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			System.exit(0);
-		}
-
-		return true;
-	}
-
-	public static boolean initializeGeoEnrichment(String topology_name,
-			String name) {
+	private boolean initializeGeoEnrichment(String topology_name, String name) {
 
 		try {
 			List<String> geo_keys = new ArrayList<String>();
@@ -367,7 +416,7 @@ public class SourcefireEnrichmentTestTopology {
 		return true;
 	}
 
-	public static boolean initializeHostsEnrichment(String topology_name,
+	private boolean initializeHostsEnrichment(String topology_name,
 			String name, String hosts_path) {
 
 		try {
@@ -378,7 +427,8 @@ public class SourcefireEnrichmentTestTopology {
 			Map<String, JSONObject> known_hosts = SettingsLoader
 					.loadKnownHosts(hosts_path);
 
-			HostFromPropertiesFileAdapter host_adapter = new HostFromPropertiesFileAdapter(known_hosts);
+			HostFromPropertiesFileAdapter host_adapter = new HostFromPropertiesFileAdapter(
+					known_hosts);
 
 			GenericEnrichmentBolt host_enrichment = new GenericEnrichmentBolt()
 					.withEnrichmentTag(
@@ -405,7 +455,7 @@ public class SourcefireEnrichmentTestTopology {
 		return true;
 	}
 
-	public static boolean initializeAlerts(String topology_name, String name,
+	private boolean initializeAlerts(String topology_name, String name,
 			String alerts_path, JSONObject environment_identifier,
 			JSONObject topology_identifier) {
 		try {
@@ -414,7 +464,7 @@ public class SourcefireEnrichmentTestTopology {
 					.generateAlertsIdentifier(environment_identifier,
 							topology_identifier);
 
-			AlertsAdapter alerts_adapter = new AllAlertAdapter(
+			AlertsAdapter alerts_adapter = new HbaseWhiteAndBlacklistAdapter(
 					"ip_whitelist", "ip_blacklist",
 					config.getString("kafka.zk.list"),
 					config.getString("kafka.zk.port"), 3600, 1000);
@@ -461,8 +511,7 @@ public class SourcefireEnrichmentTestTopology {
 		return true;
 	}
 
-
-	public static boolean initializeKafkaBolt(String name) {
+	private boolean initializeKafkaBolt(String name) {
 		try {
 
 			Map<String, String> kafka_broker_properties = new HashMap<String, String>();
@@ -490,8 +539,7 @@ public class SourcefireEnrichmentTestTopology {
 		return true;
 	}
 
-	public static boolean initializeWhoisEnrichment(String topology_name,
-			String name) {
+	private boolean initializeWhoisEnrichment(String topology_name, String name) {
 		try {
 
 			List<String> whois_keys = new ArrayList<String>();
@@ -531,7 +579,7 @@ public class SourcefireEnrichmentTestTopology {
 		return true;
 	}
 
-	public static boolean initializeIndexingBolt(String name) {
+	private boolean initializeIndexingBolt(String name) {
 		try {
 
 			TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
@@ -558,8 +606,7 @@ public class SourcefireEnrichmentTestTopology {
 		return true;
 	}
 
-	public static boolean initializeCIFEnrichment(String topology_name,
-			String name) {
+	private boolean initializeCIFEnrichment(String topology_name, String name) {
 		try {
 
 			List<String> cif_keys = new ArrayList<String>();
@@ -599,7 +646,7 @@ public class SourcefireEnrichmentTestTopology {
 		return true;
 	}
 
-	public static boolean initializeHDFSBolt(String topology_name, String name) {
+	private boolean initializeHDFSBolt(String topology_name, String name) {
 		try {
 
 			// * ------------HDFS BOLT configuration
@@ -626,11 +673,10 @@ public class SourcefireEnrichmentTestTopology {
 			 */
 
 			// * ------------HDFS BOLT For Enriched Data configuration
-			String path = config.getString("bolt.hdfs.path","/") + "/"+ topology_name + "_enriched/";
-			
-			System.out.println("Initializing HDFS Path:" + path);
+
 			FileNameFormat fileNameFormat_enriched = new DefaultFileNameFormat()
-					.withPath(path);
+					.withPath(config.getString("bolt.hdfs.path", "/") + "/"
+							+ topology_name + "_enriched/");
 			RecordFormat format_enriched = new DelimitedRecordFormat()
 					.withFieldDelimiter("|");
 
@@ -656,38 +702,5 @@ public class SourcefireEnrichmentTestTopology {
 		}
 
 		return true;
-	}
-	
-	public static boolean initializeErrorIndexBolt(String component_name) {
-		try {
-
-			TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
-					.withIndexIP(config.getString("es.ip"))
-					.withIndexPort(config.getInt("es.port"))
-					.withClusterName(config.getString("es.clustername"))
-					.withIndexName(
-							config.getString("bolt.error.indexing.indexname"))
-					.withDocumentName(
-							config.getString("bolt.error.indexing.documentname"))
-					.withBulk(config.getInt("bolt.error.indexing.bulk"))
-					.withIndexAdapter(new ESBaseBulkAdapter())
-					.withMetricConfiguration(config);
-
-			BoltDeclarer declarer = builder
-					.setBolt(
-							component_name,
-							indexing_bolt,
-							config.getInt("bolt.error.indexing.parallelism.hint"))
-					.setNumTasks(config.getInt("bolt.error.indexing.num.tasks"));
-
-			for (String component : activeComponents)
-				declarer.shuffleGrouping(component, "error");
-
-			return true;
-		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
-
 	}
 }

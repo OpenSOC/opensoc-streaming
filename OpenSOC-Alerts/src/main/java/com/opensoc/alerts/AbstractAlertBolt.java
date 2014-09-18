@@ -106,9 +106,9 @@ public abstract class AbstractAlertBolt extends BaseRichBolt {
 	}
 
 	public void declareOutputFields(OutputFieldsDeclarer declearer) {
-		declearer.declare(new Fields(this.OutputFieldName));
-		declearer.declareStream("alert", new Fields("alert"));
-		declearer.declareStream("error", new Fields("Alerts"));
+		declearer.declareStream("message", new Fields("key", "message"));
+		declearer.declareStream("alert", new Fields("message"));
+		declearer.declareStream("error", new Fields("message"));
 	}
 
 	abstract void doPrepare(Map conf, TopologyContext topologyContext,

@@ -194,7 +194,7 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 
 		JSONObject content = (JSONObject) raw_message.get("message");
 		
-		if (!content.containsKey("ip_src_addr") || !content.containsKey("ip_src_addr") ) {
+		if (!content.containsKey("ip_src_addr") || !content.containsKey("ip_dst_addr") ) {
 
 			int alert_type = 0;
 
@@ -224,7 +224,7 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 
 		if (source_ip == null && dst_ip == null) {
 
-			int alert_type = 0;
+			int alert_type = 1;
 
 			JSONObject alert = new JSONObject();
 
@@ -250,7 +250,7 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 
 		if (!ipvalidator.isValidInet4Address(source_ip)
 				&& !ipvalidator.isValidInet4Address(dst_ip)) {
-			int alert_type = 1;
+			int alert_type = 2;
 
 			JSONObject alert = new JSONObject();
 

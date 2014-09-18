@@ -186,7 +186,7 @@ public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 		try {
 			LOG.trace("[OpenSOC] Indexing bolt gets:  " + message);
 
-			message = (JSONObject) tuple.getValue(0);
+			message = (JSONObject) tuple.getValueByField("message");
 
 			if (message == null || message.isEmpty())
 				throw new Exception(

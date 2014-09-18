@@ -36,6 +36,7 @@ import backtype.storm.spout.RawScheme;
 import backtype.storm.spout.SchemeAsMultiScheme;
 import backtype.storm.topology.BoltDeclarer;
 import backtype.storm.topology.TopologyBuilder;
+import backtype.storm.tuple.Fields;
 
 import com.opensoc.alerts.TelemetryAlertsBolt;
 import com.opensoc.alerts.adapters.HbaseWhiteAndBlacklistAdapter;
@@ -46,16 +47,9 @@ import com.opensoc.enrichment.adapters.host.HostFromPropertiesFileAdapter;
 import com.opensoc.enrichment.adapters.whois.WhoisHBaseAdapter;
 import com.opensoc.enrichment.common.GenericEnrichmentBolt;
 import com.opensoc.enrichment.interfaces.EnrichmentAdapter;
-import com.opensoc.filters.BroMessageFilter;
-import com.opensoc.filters.GenericMessageFilter;
 import com.opensoc.indexing.TelemetryIndexingBolt;
 import com.opensoc.indexing.adapters.ESBaseBulkAdapter;
 import com.opensoc.json.serialization.JSONKryoSerializer;
-import com.opensoc.parser.interfaces.MessageFilter;
-import com.opensoc.parsing.AbstractParserBolt;
-import com.opensoc.parsing.TelemetryParserBolt;
-import com.opensoc.parsing.parsers.BasicBroParser;
-import com.opensoc.test.spouts.GenericInternalTestSpout;
 import com.opensoc.topologyhelpers.Cli;
 import com.opensoc.topologyhelpers.SettingsLoader;
 
@@ -360,7 +354,7 @@ public abstract class TopologyRunner {
 			SpoutConfig kafkaConfig = new SpoutConfig(zk, input_topic, "",
 					input_topic);
 			kafkaConfig.scheme = new SchemeAsMultiScheme(new RawScheme());
-			// kafkaConfig.forceFromStart = Boolean.valueOf("True");
+			kafkaConfig.forceFromStart = Boolean.valueOf("True");
 			kafkaConfig.startOffsetTime = -1;
 
 			builder.setSpout(name, new KafkaSpout(kafkaConfig),
@@ -405,7 +399,7 @@ public abstract class TopologyRunner {
 
 			builder.setBolt(name, geo_enrichment,
 					config.getInt("bolt.enrichment.geo.parallelism.hint"))
-					.shuffleGrouping(component)
+					.fieldsGrouping(component, "message", new Fields("key"))
 					.setNumTasks(config.getInt("bolt.enrichment.geo.num.tasks"));
 
 		} catch (Exception e) {
@@ -443,7 +437,7 @@ public abstract class TopologyRunner {
 
 			builder.setBolt(name, host_enrichment,
 					config.getInt("bolt.enrichment.host.parallelism.hint"))
-					.shuffleGrouping(component)
+					.fieldsGrouping(component, "message", new Fields("key"))
 					.setNumTasks(
 							config.getInt("bolt.enrichment.host.num.tasks"));
 
@@ -477,7 +471,7 @@ public abstract class TopologyRunner {
 
 			builder.setBolt(name, alerts_bolt,
 					config.getInt("bolt.alerts.parallelism.hint"))
-					.shuffleGrouping(component)
+					.fieldsGrouping(component, "message", new Fields("key"))
 					.setNumTasks(config.getInt("bolt.alerts.num.tasks"));
 
 			TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
@@ -528,9 +522,9 @@ public abstract class TopologyRunner {
 			conf.put("kafka.broker.properties", kafka_broker_properties);
 			conf.put("topic", output_topic);
 
-			builder.setBolt(name, new KafkaBolt<String, String>(),
+			builder.setBolt(name, new KafkaBolt<String, JSONObject>(),
 					config.getInt("bolt.kafka.parallelism.hint"))
-					.shuffleGrouping(component)
+					.shuffleGrouping(component, "message")
 					.setNumTasks(config.getInt("bolt.kafka.num.tasks"));
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -567,7 +561,7 @@ public abstract class TopologyRunner {
 
 			builder.setBolt(name, whois_enrichment,
 					config.getInt("bolt.enrichment.whois.parallelism.hint"))
-					.shuffleGrouping(component)
+					.fieldsGrouping(component, "message", new Fields("key"))
 					.setNumTasks(
 							config.getInt("bolt.enrichment.whois.num.tasks"));
 
@@ -595,7 +589,7 @@ public abstract class TopologyRunner {
 
 			builder.setBolt(name, indexing_bolt,
 					config.getInt("bolt.indexing.parallelism.hint"))
-					.shuffleGrouping(component)
+					.fieldsGrouping(component, "message", new Fields("key"))
 					.setNumTasks(config.getInt("bolt.indexing.num.tasks"));
 
 		} catch (Exception e) {
@@ -635,7 +629,7 @@ public abstract class TopologyRunner {
 
 			builder.setBolt(name, cif_enrichment,
 					config.getInt("bolt.enrichment.cif.parallelism.hint"))
-					.shuffleGrouping(component)
+					.fieldsGrouping(component, "message", new Fields("key"))
 					.setNumTasks(config.getInt("bolt.enrichment.cif.num.tasks"));
 
 		} catch (Exception e) {

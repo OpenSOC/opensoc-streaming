@@ -135,18 +135,8 @@ public class TelemetryParserBolt extends AbstractParserBolt {
 		byte[] original_message = null;
 
 		try {
+
 			original_message = tuple.getBinary(0);
-			LOG.trace("[OpenSOC] Successfully read the incoming tuple");
-		} catch (Exception e) {
-			LOG.error("[OpenSOC] Unable to read the incoming tuple");
-			e.printStackTrace();
-			_collector.fail(tuple);
-
-			if (metricConfiguration != null)
-				failCounter.inc();
-		}
-
-		try {
 
 			LOG.trace("[OpenSOC] Starting the parsing process");
 
@@ -163,40 +153,44 @@ public class TelemetryParserBolt extends AbstractParserBolt {
 			if (transformed_message == null || transformed_message.isEmpty())
 				throw new Exception("Unable to turn binary message into a JSON");
 
-			JSONObject new_message = new JSONObject();
-
 			LOG.trace("[OpenSOC] Checking if the transformed JSON conforms to the right schema");
 
 			if (!checkForSchemaCorrectness(transformed_message)) {
-				_collector.fail(tuple);
-
-				if (metricConfiguration != null)
-					failCounter.inc();
-
 				throw new Exception("Incorrect formatting on message: "
 						+ transformed_message);
 			}
 
-			LOG.trace("[OpenSOC] JSON message has the right schema");
+			else {
+				LOG.trace("[OpenSOC] JSON message has the right schema");
+				boolean filtered = false;
 
-			new_message.put("message", transformed_message);
-			_collector.ack(tuple);
-
-			if (metricConfiguration != null)
-				ackCounter.inc();
-
-			if (_filter != null) {
-				if (_filter.emitTuple(transformed_message)) {
-					LOG.debug("[OpenSOC] Mesage is not filtered: "
-							+ transformed_message);
-					_collector.emit(new Values(new_message));
-
-					if (metricConfiguration != null)
-						emitCounter.inc();
-				} else {
-					LOG.debug("[OpenSOC] Mesage is filtered: "
-							+ transformed_message);
+				if (_filter != null) {
+					if (!_filter.emitTuple(transformed_message)) {
+						filtered = true;
+					}
 				}
+
+				if (!filtered) {
+					String ip1 = null;
+
+					if (transformed_message.containsKey("ip_src_addr"))
+						ip1 = transformed_message.get("ip_src_addr").toString();
+
+					String ip2 = null;
+
+					if (transformed_message.containsKey("ip_dst_addr"))
+						ip2 = transformed_message.get("ip_dst_addr").toString();
+
+					String key = generateTopologyKey(ip1, ip2);
+
+					JSONObject new_message = new JSONObject();
+					new_message.put("message", transformed_message);
+					_collector.emit("message", new Values(key, new_message));
+				}
+
+				_collector.ack(tuple);
+				if (metricConfiguration != null)
+					ackCounter.inc();
 			}
 
 		} catch (Exception e) {
@@ -206,15 +200,18 @@ public class TelemetryParserBolt extends AbstractParserBolt {
 
 			if (metricConfiguration != null)
 				failCounter.inc();
-			
-			JSONObject error = ErrorGenerator.generateErrorMessage("Parsing problem: " + new String(original_message), e.toString());
+
+			JSONObject error = ErrorGenerator.generateErrorMessage(
+					"Parsing problem: " + new String(original_message),
+					e.toString());
 			_collector.emit("error", new Values(error));
 		}
 	}
 
 	public void declareOutputFields(OutputFieldsDeclarer declearer) {
-		declearer.declare(new Fields(this.OutputFieldName));
-		declearer.declareStream("error", new Fields(this.OutputFieldName));
+		declearer.declareStream("message", new Fields("key", "message"));
+		declearer.declareStream("error", new Fields("message"));
 
 	}
+
 }

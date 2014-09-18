@@ -107,7 +107,7 @@ public abstract class AbstractAlertBolt extends BaseRichBolt {
 
 	public void declareOutputFields(OutputFieldsDeclarer declearer) {
 		declearer.declareStream("message", new Fields("key", "message"));
-		declearer.declareStream("alert", new Fields("message"));
+		declearer.declareStream("alert", new Fields( "message"));
 		declearer.declareStream("error", new Fields("message"));
 	}
 

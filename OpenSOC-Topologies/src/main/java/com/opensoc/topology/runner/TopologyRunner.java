@@ -10,6 +10,7 @@ import java.util.Set;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.lang.StringUtils;
 import org.apache.storm.hdfs.bolt.HdfsBolt;
 import org.apache.storm.hdfs.bolt.format.DefaultFileNameFormat;
 import org.apache.storm.hdfs.bolt.format.DelimitedRecordFormat;
@@ -31,6 +32,7 @@ import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
 import backtype.storm.generated.AlreadyAliveException;
+import backtype.storm.generated.Grouping;
 import backtype.storm.generated.InvalidTopologyException;
 import backtype.storm.spout.RawScheme;
 import backtype.storm.spout.SchemeAsMultiScheme;
@@ -47,6 +49,9 @@ import com.opensoc.enrichment.adapters.host.HostFromPropertiesFileAdapter;
 import com.opensoc.enrichment.adapters.whois.WhoisHBaseAdapter;
 import com.opensoc.enrichment.common.GenericEnrichmentBolt;
 import com.opensoc.enrichment.interfaces.EnrichmentAdapter;
+import com.opensoc.hbase.HBaseBolt;
+import com.opensoc.hbase.HBaseStreamPartitioner;
+import com.opensoc.hbase.TupleTableConfig;
 import com.opensoc.indexing.TelemetryIndexingBolt;
 import com.opensoc.indexing.adapters.ESBaseBulkAdapter;
 import com.opensoc.json.serialization.JSONKryoSerializer;
@@ -297,6 +302,21 @@ public abstract class TopologyRunner {
 			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
 					"bolt.error");
 		}
+		
+		if (config.containsKey("bolt.hbase.enabled") && config.getBoolean("bolt.hbase.enabled")) {
+			String component_name = config.getString(
+					"bolt.hbase.name", "DefaultHbaseBolt");
+			
+			String shuffleType = config.getString("bolt.hbase.shuffle.type",
+					"direct");
+			success = initializeHbaseBolt(component_name, shuffleType);
+
+			System.out.println("[OpenSOC] ------Component " + component_name
+					+ " initialized with the following settings:");
+
+			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
+					"bolt.hbase");
+		}
 
 		if (local_mode) {
 			conf.setNumWorkers(config.getInt("num.workers"));
@@ -311,6 +331,67 @@ public abstract class TopologyRunner {
 					builder.createTopology());
 		}
 
+	}
+
+	public boolean initializeHbaseBolt(String name, String shuffleType) {
+
+		try {
+
+			String tableName = config.getString(
+					"bolt.hbase.table.name").toString();
+			TupleTableConfig hbaseBoltConfig = new TupleTableConfig(
+					tableName,
+					config.getString(
+							"bolt.hbase.table.key.tuple.field.name")
+							.toString(),
+							config.getString(
+							"bolt.hbase.table.timestamp.tuple.field.name")
+							.toString());
+
+			String allColumnFamiliesColumnQualifiers = config.getString(
+					"bolt.hbase.table.fields").toString();
+			// This is expected in the form
+			// "<cf1>:<cq11>,<cq12>,<cq13>|<cf2>:<cq21>,<cq22>|......."
+			String[] tokenizedColumnFamiliesWithColumnQualifiers = StringUtils
+					.split(allColumnFamiliesColumnQualifiers, "\\|");
+			for (String tokenizedColumnFamilyWithColumnQualifiers : tokenizedColumnFamiliesWithColumnQualifiers) {
+				String[] cfCqTokens = StringUtils.split(
+						tokenizedColumnFamilyWithColumnQualifiers, ":");
+				String columnFamily = cfCqTokens[0];
+				String[] columnQualifiers = StringUtils.split(cfCqTokens[1],
+						",");
+				for (String columnQualifier : columnQualifiers) {
+					hbaseBoltConfig.addColumn(columnFamily, columnQualifier);
+				}
+
+				//hbaseBoltConfig.setDurability(Durability.valueOf(conf.get( "storm.topology.pcap.bolt.hbase.durability").toString()));
+			    
+				
+				hbaseBoltConfig.setBatch(Boolean.valueOf(config.getString("bolt.hbase.enable.batching").toString()));
+				
+				 BoltDeclarer declarer = builder.setBolt(name, new HBaseBolt(hbaseBoltConfig), config.getInt("bolt.hbase.parallelism.hint")).setNumTasks(
+							config.getInt("bolt.hbase.num.tasks")); 
+				 
+				if (Grouping._Fields.CUSTOM_OBJECT.toString().equalsIgnoreCase(shuffleType)) {
+			        declarer.customGrouping(
+			            component,
+			            "pcap_data_stream",
+			            new HBaseStreamPartitioner(hbaseBoltConfig.getTableName(), 0, Integer.parseInt(conf.get(
+			                "bolt.hbase.partitioner.region.info.refresh.interval.mins").toString())));
+			      } else if (Grouping._Fields.DIRECT.toString().equalsIgnoreCase(shuffleType)) {
+			        declarer.fieldsGrouping(component, "pcap_data_stream", new Fields("pcap_id"));
+			      }
+				
+				
+
+				
+
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.exit(0);
+		}
+		return true;
 	}
 
 	private boolean initializeErrorIndexBolt(String component_name) {

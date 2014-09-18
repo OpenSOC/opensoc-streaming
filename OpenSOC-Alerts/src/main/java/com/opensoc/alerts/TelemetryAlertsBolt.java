@@ -172,7 +172,10 @@ public class TelemetryAlertsBolt extends AbstractAlertBolt {
 
 			if (original_message == null || original_message.isEmpty())
 				throw new Exception("Could not parse message from byte stream");
-
+			
+			if(key == null)
+				throw new Exception("Key is not valid");
+			
 			LOG.trace("[OpenSOC] Received tuple: " + original_message);
 
 			JSONObject alerts_tag = new JSONObject();

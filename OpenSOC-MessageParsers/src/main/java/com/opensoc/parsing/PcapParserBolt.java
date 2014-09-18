@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 
 import com.opensoc.parsing.parsers.PcapParser;
 import com.opensoc.pcap.PacketInfo;
@@ -68,7 +69,7 @@ public class PcapParserBolt implements IRichBolt {
    * .topology.OutputFieldsDeclarer)
    */
   public void declareOutputFields(OutputFieldsDeclarer declarer) {
-	  declarer.declareStream("pcap_index_stream", new Fields("index_json")); 
+	  declarer.declareStream("message", new Fields("key", "message")); 
     //declarer.declareStream("pcap_index_stream", new Fields("index_json", "pcap_id"));
     declarer.declareStream("pcap_header_stream", new Fields("header_json", "pcap_id"));
     declarer.declareStream("pcap_data_stream", new Fields("pcap_id", "timestamp", "pcap"));
@@ -170,11 +171,50 @@ public class PcapParserBolt implements IRichBolt {
 
          // collector.emit("pcap_index_stream", new Values(packetInfo.getJsonIndexDoc(), packetInfo.getKey()));
         	
+        	String string_pcap = packetInfo.getJsonIndexDoc();
+        	Object obj=JSONValue.parse(string_pcap);
+        	  JSONObject header=(JSONObject)obj;
+        	
         	JSONObject message = new JSONObject();
         	message.put("key", packetInfo.getKey());
-        	message.put("message", packetInfo.getJsonIndexDoc());
         	
-        	collector.emit("pcap_index_stream", new Values(message));
+        	if(header.containsKey("src_addr"))
+        	{
+        		String tmp = header.get("src_addr").toString();
+        		header.remove("src_addr");
+        		header.put("ip_src_addr", tmp);
+        	}
+        	
+        	if(header.containsKey("dst_addr"))
+        	{
+        		String tmp = header.get("dst_addr").toString();
+        		header.remove("dst_addr");
+        		header.put("ip_dst_addr", tmp);
+        	}
+        	
+        	if(header.containsKey("src_port"))
+        	{
+        		String tmp = header.get("src_port").toString();
+        		header.remove("src_port");
+        		header.put("ip_src_port", tmp);
+        	}
+        	
+        	if(message.containsKey("dst_port"))
+        	{
+        		String tmp = header.get("dst_port").toString();
+        		header.remove("dst_port");
+        		header.put("ip_dst_port", tmp);
+        	}
+        	if(message.containsKey("ip_protocol"))
+        	{
+        		String tmp = header.get("ip_protocol").toString();
+        		header.remove("ip_protocol");
+        		header.put("protocol", tmp);
+        	}
+        	
+        	message.put("message", header);
+        	
+        	collector.emit("message", new Values(packetInfo.getKey(), message));
         	
         	//collector.emit("pcap_index_stream", new Values(packetInfo.getJsonIndexDoc(), packetInfo.getKey()));
         	

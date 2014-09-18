@@ -70,6 +70,7 @@ public abstract class TopologyRunner {
 	protected boolean success = false;
 	protected Set<String> activeComponents = new HashSet<String>();
 	protected String component = null;
+	protected String parserName;
 
 	public void initTopology(String args[], String subdir)
 			throws ConfigurationException, AlreadyAliveException,
@@ -368,18 +369,20 @@ public abstract class TopologyRunner {
 			    
 				
 				hbaseBoltConfig.setBatch(Boolean.valueOf(config.getString("bolt.hbase.enable.batching").toString()));
-				
-				 BoltDeclarer declarer = builder.setBolt(name, new HBaseBolt(hbaseBoltConfig), config.getInt("bolt.hbase.parallelism.hint")).setNumTasks(
+				HBaseBolt hbase_bolt = new HBaseBolt(hbaseBoltConfig);
+				hbase_bolt.setAutoAck(true);
+			
+				 BoltDeclarer declarer = builder.setBolt(name, hbase_bolt, config.getInt("bolt.hbase.parallelism.hint")).setNumTasks(
 							config.getInt("bolt.hbase.num.tasks")); 
 				 
 				if (Grouping._Fields.CUSTOM_OBJECT.toString().equalsIgnoreCase(shuffleType)) {
 			        declarer.customGrouping(
-			            component,
+			            parserName,
 			            "pcap_data_stream",
 			            new HBaseStreamPartitioner(hbaseBoltConfig.getTableName(), 0, Integer.parseInt(conf.get(
 			                "bolt.hbase.partitioner.region.info.refresh.interval.mins").toString())));
 			      } else if (Grouping._Fields.DIRECT.toString().equalsIgnoreCase(shuffleType)) {
-			        declarer.fieldsGrouping(component, "pcap_data_stream", new Fields("pcap_id"));
+			        declarer.fieldsGrouping(parserName, "pcap_data_stream", new Fields("pcap_id"));
 			      }
 				
 				
@@ -778,4 +781,5 @@ public abstract class TopologyRunner {
 
 		return true;
 	}
+
 }

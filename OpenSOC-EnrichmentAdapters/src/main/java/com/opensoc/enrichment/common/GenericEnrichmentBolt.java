@@ -159,6 +159,9 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 
 			if (in_json == null || in_json.isEmpty())
 				throw new Exception("Could not parse binary stream to JSON");
+			
+			if(key == null)
+				throw new Exception("Key is not valid");
 
 			LOG.trace("[OpenSOC] Received tuple: " + in_json);
 

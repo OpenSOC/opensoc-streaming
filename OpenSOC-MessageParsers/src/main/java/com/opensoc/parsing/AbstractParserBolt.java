@@ -18,7 +18,9 @@
 package com.opensoc.parsing;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.Map;
+import java.util.zip.Deflater;
 
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -51,11 +53,11 @@ public abstract class AbstractParserBolt extends BaseRichBolt {
 	protected MessageFilter _filter;
 
 	protected Counter ackCounter, emitCounter, failCounter;
-	
+
 	/**
 	 * Register counters to be reported to graphite
 	 * */
-	
+
 	protected void registerCounters() {
 
 		String ackString = _parser.getClass().getSimpleName() + ".ack";
@@ -73,7 +75,7 @@ public abstract class AbstractParserBolt extends BaseRichBolt {
 	/**
 	 * Check to make sure all required variables have been initialized
 	 * */
-	 
+
 	public final void prepare(Map conf, TopologyContext topologyContext,
 			OutputCollector collector) {
 		_collector = collector;
@@ -92,55 +94,70 @@ public abstract class AbstractParserBolt extends BaseRichBolt {
 			e.printStackTrace();
 		}
 	}
-	
-	 /**
-	 * @param  parser  The parser class for parsing the incoming raw message byte stream
-	 * @return      Instance of this class
+
+	/**
+	 * @param parser
+	 *            The parser class for parsing the incoming raw message byte
+	 *            stream
+	 * @return Instance of this class
 	 */
-	
-	public boolean checkForSchemaCorrectness(JSONObject message)
-	{
+
+	public boolean checkForSchemaCorrectness(JSONObject message) {
 		int correct = 0;
 
-		if(message.containsKey("ip_src_addr"))
-		{
-			correct ++;
+		if (message.containsKey("ip_src_addr")) {
+			correct++;
 			LOG.trace("[OpenSOC] Message contains ip_src_addr");
 		}
-		if(message.containsKey("ip_dst_addr"))
-		{
-			correct ++;
+		if (message.containsKey("ip_dst_addr")) {
+			correct++;
 			LOG.trace("[OpenSOC] Message contains ip_dst_addr");
 		}
-		if(message.containsKey("ip_src_port"))
-		{
-			correct ++;
+		if (message.containsKey("ip_src_port")) {
+			correct++;
 			LOG.trace("[OpenSOC] Message contains ip_src_port");
 		}
-		if(message.containsKey("ip_dst_port"))
-		{
-			correct ++;
+		if (message.containsKey("ip_dst_port")) {
+			correct++;
 			LOG.trace("[OpenSOC] Message contains ip_dst_port");
 		}
-		if(message.containsKey("protocol"))
-		{
-			correct ++;
+		if (message.containsKey("protocol")) {
+			correct++;
 			LOG.trace("[OpenSOC] Message contains protocol");
 		}
-		
-		if(correct == 0)
-		{
+
+		if (correct == 0) {
 			LOG.trace("[OpenSOC] Message conforms to schema: " + message);
 			return false;
-		}
-		else
-		{
-			LOG.trace("[OpenSOC] Message does not conform to schema: " + message);
+		} else {
+			LOG.trace("[OpenSOC] Message does not conform to schema: "
+					+ message);
 			return true;
 		}
 	}
 
 	abstract void doPrepare(Map conf, TopologyContext topologyContext,
 			OutputCollector collector) throws IOException;
+
+	protected String generateTopologyKey(String src_ip, String dst_ip)
+			throws Exception {
+		try {
+			if (dst_ip == null && src_ip == null)
+				return "0";
+
+			if (src_ip == null || src_ip.length() == 0)
+				return dst_ip;
+
+			if (dst_ip == null || dst_ip.length() == 0)
+				return src_ip;
+
+			double ip1 = Double.parseDouble(src_ip.replace(".", ""));
+			double ip2 = Double.parseDouble(dst_ip.replace(".", ""));
+
+			return String.valueOf(ip1 + ip2);
+		} catch (Exception e) {
+			return "0";
+		}
+	}
 
 }

@@ -150,10 +150,12 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 		LOG.trace("[OpenSOC] Starting enrichment");
 
 		JSONObject in_json = null;
+		String key = null;
 		
 		try {
 
-			in_json = (JSONObject) tuple.getValue(0);
+			key = tuple.getStringByField("key");
+			in_json = (JSONObject) tuple.getValueByField("message");
 
 			if (in_json == null || in_json.isEmpty())
 				throw new Exception("Could not parse binary stream to JSON");
@@ -218,7 +220,7 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 
 			LOG.debug("[OpenSOC] Generated combined enrichment: " + in_json);
 
-			_collector.emit(new Values(in_json));
+			_collector.emit("message", new Values(key, in_json));
 			_collector.ack(tuple);
 
 			if (_reporter != null) {
@@ -243,8 +245,8 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 	}
 
 	public void declareOutputFields(OutputFieldsDeclarer declearer) {
-		declearer.declare(new Fields("message"));
-		declearer.declareStream("error", new Fields("Enrichment"));
+		declearer.declareStream("message", new Fields("key", "message"));
+		declearer.declareStream("error", new Fields("message"));
 	}
 
 	@Override

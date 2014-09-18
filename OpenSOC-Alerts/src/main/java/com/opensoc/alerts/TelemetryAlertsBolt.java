@@ -163,10 +163,12 @@ public class TelemetryAlertsBolt extends AbstractAlertBolt {
 
 		LOG.trace("[OpenSOC] Starting to process message for alerts");
 		JSONObject original_message = null;
+		String key = null;
 
 		try {
 
-			original_message = (JSONObject) tuple.getValue(0);
+			key = tuple.getStringByField("key");
+			original_message = (JSONObject) tuple.getValueByField("message");
 
 			if (original_message == null || original_message.isEmpty())
 				throw new Exception("Could not parse message from byte stream");
@@ -217,7 +219,7 @@ public class TelemetryAlertsBolt extends AbstractAlertBolt {
 					LOG.debug("[OpenSOC] Detected alerts: " + alerts_tag);
 
 					_collector.ack(tuple);
-					_collector.emit(new Values(original_message));
+					_collector.emit("message", new Values(key, original_message));
 
 				}
 

@@ -132,9 +132,9 @@ public class PCAPTopology {
 
 			String component_name = config.getString("bolt.parser.name",
 					"DefaultParserBolt");
-			
+
 			activeComponents.add(component_name);
-			
+
 			success = initializeParserBolt(component_name);
 			component = component_name;
 
@@ -143,25 +143,22 @@ public class PCAPTopology {
 
 		}
 
-
 		if (config.getBoolean("bolt.hbase.enabled")) {
 
 			String component_name = config.getString("bolt.hbase.name",
 					"DefaultHbaseBolt");
-			
+
 			activeComponents.add(component_name);
-			
+
 			String shuffleType = config.getString("bolt.hbase.shuffle.type",
 					"direct");
 			success = initializeHbaseBolt(component_name, shuffleType);
-			
-			
 
 			System.out.println("[OpenSOC] Component " + component_name
 					+ " initialized");
 
 		}
-		
+
 		if (config.getBoolean("bolt.indexing.enabled", true)) {
 			String component_name = config.getString("bolt.indexing.name",
 					"DefaultIndexingBolt");
@@ -171,7 +168,7 @@ public class PCAPTopology {
 			System.out.println("[OpenSOC] Component " + component_name
 					+ " initialized");
 		}
-		
+
 		if (config.getBoolean("bolt.error.indexing.enabled")) {
 			String component_name = config.getString(
 					"bolt.error.indexing.name", "DefaultErrorIndexingBolt");
@@ -235,7 +232,7 @@ public class PCAPTopology {
 					.getInt("spout.kafka.socket.timeout.ms");
 
 			kafkaConfig.scheme = new RawMultiScheme();
-			
+
 			kafkaConfig.forceFromStart = true;
 
 			builder.setSpout(name, new KafkaSpout(kafkaConfig),
@@ -268,14 +265,11 @@ public class PCAPTopology {
 
 		try {
 
-			String tableName = config.getString(
-					"bolt.hbase.table.name").toString();
-			TupleTableConfig hbaseBoltConfig = new TupleTableConfig(
-					tableName,
-					config.getString(
-							"bolt.hbase.table.key.tuple.field.name")
-							.toString(),
-							config.getString(
+			String tableName = config.getString("bolt.hbase.table.name")
+					.toString();
+			TupleTableConfig hbaseBoltConfig = new TupleTableConfig(tableName,
+					config.getString("bolt.hbase.table.key.tuple.field.name")
+							.toString(), config.getString(
 							"bolt.hbase.table.timestamp.tuple.field.name")
 							.toString());
 
@@ -295,27 +289,36 @@ public class PCAPTopology {
 					hbaseBoltConfig.addColumn(columnFamily, columnQualifier);
 				}
 
-				//hbaseBoltConfig.setDurability(Durability.valueOf(conf.get( "storm.topology.pcap.bolt.hbase.durability").toString()));
-			    
-				
-				hbaseBoltConfig.setBatch(Boolean.valueOf(config.getString("bolt.hbase.enable.batching").toString()));
-				
-				 BoltDeclarer declarer = builder.setBolt(name, new HBaseBolt(hbaseBoltConfig), config.getInt("bolt.hbase.parallelism.hint")).setNumTasks(
-							config.getInt("bolt.hbase.num.tasks")); 
-				 
-				if (Grouping._Fields.CUSTOM_OBJECT.toString().equalsIgnoreCase(shuffleType)) {
-			        declarer.customGrouping(
-			            component,
-			            "pcap_data_stream",
-			            new HBaseStreamPartitioner(hbaseBoltConfig.getTableName(), 0, Integer.parseInt(conf.get(
-			                "bolt.hbase.partitioner.region.info.refresh.interval.mins").toString())));
-			      } else if (Grouping._Fields.DIRECT.toString().equalsIgnoreCase(shuffleType)) {
-			        declarer.fieldsGrouping(component, "pcap_data_stream", new Fields("pcap_id"));
-			      }
-				
-				
+				// hbaseBoltConfig.setDurability(Durability.valueOf(conf.get(
+				// "storm.topology.pcap.bolt.hbase.durability").toString()));
 
-				
+				hbaseBoltConfig.setBatch(Boolean.valueOf(config.getString(
+						"bolt.hbase.enable.batching").toString()));
+
+				BoltDeclarer declarer = builder.setBolt(
+						name,
+						new HBaseBolt(hbaseBoltConfig, config
+								.getString("kafka.zk.list"), config
+								.getString("kafka.zk.port")),
+						config.getInt("bolt.hbase.parallelism.hint"))
+						.setNumTasks(config.getInt("bolt.hbase.num.tasks"));
+
+				if (Grouping._Fields.CUSTOM_OBJECT.toString().equalsIgnoreCase(
+						shuffleType)) {
+					declarer.customGrouping(
+							component,
+							"pcap_data_stream",
+							new HBaseStreamPartitioner(
+									hbaseBoltConfig.getTableName(),
+									0,
+									Integer.parseInt(conf
+											.get("bolt.hbase.partitioner.region.info.refresh.interval.mins")
+											.toString())));
+				} else if (Grouping._Fields.DIRECT.toString().equalsIgnoreCase(
+						shuffleType)) {
+					declarer.fieldsGrouping(component, "pcap_data_stream",
+							new Fields("pcap_id"));
+				}
 
 			}
 		} catch (Exception e) {
@@ -324,7 +327,7 @@ public class PCAPTopology {
 		}
 		return true;
 	}
-	
+
 	public static boolean initializeIndexingBolt(String name) {
 		try {
 
@@ -351,7 +354,7 @@ public class PCAPTopology {
 
 		return true;
 	}
-	
+
 	public static boolean initializeErrorIndexBolt(String component_name) {
 		try {
 

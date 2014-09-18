@@ -42,9 +42,15 @@ public class HBaseBolt implements IRichBolt {
   protected HTableConnector connector;
   protected TupleTableConfig conf;
   protected boolean autoAck = true;
+  
+  private String _quorum;
+  private String _port;
 
-  public HBaseBolt(TupleTableConfig conf) {
+  public HBaseBolt(TupleTableConfig conf, String quorum, String port) {
     this.conf = conf;
+    _quorum = quorum;
+    _port = port;
+
   }
 
   /** {@inheritDoc} */
@@ -54,7 +60,7 @@ public class HBaseBolt implements IRichBolt {
     this.collector = collector;
 
     try {
-      this.connector = new HTableConnector(conf);
+      this.connector = new HTableConnector(conf, _quorum, _port);
 
 		
     } catch (IOException e) {

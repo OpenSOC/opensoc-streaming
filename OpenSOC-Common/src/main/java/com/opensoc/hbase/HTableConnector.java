@@ -30,12 +30,15 @@ public class HTableConnector implements Serializable {
    * @param conf The {@link TupleTableConfig}
    * @throws IOException
    */
-  public HTableConnector(final TupleTableConfig conf) throws IOException {
+  public HTableConnector(final TupleTableConfig conf, String _quorum, String _port) throws IOException {
     this.tableName = conf.getTableName();
     this.conf = HBaseConfiguration.create();
     
-	//this.conf.set("hbase.zookeeper.quorum", _quorum);
-	//this.conf.set("hbase.zookeeper.property.clientPort", _port);
+    if(_quorum != null && _port != null)
+    {
+    	this.conf.set("hbase.zookeeper.quorum", _quorum);
+    	this.conf.set("hbase.zookeeper.property.clientPort", _port);
+    }
 
     LOG.info(String.format("Initializing connection to HBase table %s at %s", tableName,
       this.conf.get("hbase.rootdir")));

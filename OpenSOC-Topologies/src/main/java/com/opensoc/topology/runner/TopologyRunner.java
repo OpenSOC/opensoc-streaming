@@ -303,11 +303,12 @@ public abstract class TopologyRunner {
 			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
 					"bolt.error");
 		}
-		
-		if (config.containsKey("bolt.hbase.enabled") && config.getBoolean("bolt.hbase.enabled")) {
-			String component_name = config.getString(
-					"bolt.hbase.name", "DefaultHbaseBolt");
-			
+
+		if (config.containsKey("bolt.hbase.enabled")
+				&& config.getBoolean("bolt.hbase.enabled")) {
+			String component_name = config.getString("bolt.hbase.name",
+					"DefaultHbaseBolt");
+
 			String shuffleType = config.getString("bolt.hbase.shuffle.type",
 					"direct");
 			success = initializeHbaseBolt(component_name, shuffleType);
@@ -338,14 +339,11 @@ public abstract class TopologyRunner {
 
 		try {
 
-			String tableName = config.getString(
-					"bolt.hbase.table.name").toString();
-			TupleTableConfig hbaseBoltConfig = new TupleTableConfig(
-					tableName,
-					config.getString(
-							"bolt.hbase.table.key.tuple.field.name")
-							.toString(),
-							config.getString(
+			String tableName = config.getString("bolt.hbase.table.name")
+					.toString();
+			TupleTableConfig hbaseBoltConfig = new TupleTableConfig(tableName,
+					config.getString("bolt.hbase.table.key.tuple.field.name")
+							.toString(), config.getString(
 							"bolt.hbase.table.timestamp.tuple.field.name")
 							.toString());
 
@@ -365,29 +363,37 @@ public abstract class TopologyRunner {
 					hbaseBoltConfig.addColumn(columnFamily, columnQualifier);
 				}
 
-				//hbaseBoltConfig.setDurability(Durability.valueOf(conf.get( "storm.topology.pcap.bolt.hbase.durability").toString()));
-			    
-				
-				hbaseBoltConfig.setBatch(Boolean.valueOf(config.getString("bolt.hbase.enable.batching").toString()));
-				HBaseBolt hbase_bolt = new HBaseBolt(hbaseBoltConfig);
-				hbase_bolt.setAutoAck(true);
-			
-				 BoltDeclarer declarer = builder.setBolt(name, hbase_bolt, config.getInt("bolt.hbase.parallelism.hint")).setNumTasks(
-							config.getInt("bolt.hbase.num.tasks")); 
-				 
-				if (Grouping._Fields.CUSTOM_OBJECT.toString().equalsIgnoreCase(shuffleType)) {
-			        declarer.customGrouping(
-			            parserName,
-			            "pcap_data_stream",
-			            new HBaseStreamPartitioner(hbaseBoltConfig.getTableName(), 0, Integer.parseInt(conf.get(
-			                "bolt.hbase.partitioner.region.info.refresh.interval.mins").toString())));
-			      } else if (Grouping._Fields.DIRECT.toString().equalsIgnoreCase(shuffleType)) {
-			        declarer.fieldsGrouping(parserName, "pcap_data_stream", new Fields("pcap_id"));
-			      }
-				
-				
+				// hbaseBoltConfig.setDurability(Durability.valueOf(conf.get(
+				// "storm.topology.pcap.bolt.hbase.durability").toString()));
 
-				
+				hbaseBoltConfig.setBatch(Boolean.valueOf(config.getString(
+						"bolt.hbase.enable.batching").toString()));
+
+				HBaseBolt hbase_bolt = new HBaseBolt(hbaseBoltConfig,
+						config.getString("kafka.zk.list"),
+						config.getString("kafka.zk.port"));
+				hbase_bolt.setAutoAck(true);
+
+				BoltDeclarer declarer = builder.setBolt(name, hbase_bolt,
+						config.getInt("bolt.hbase.parallelism.hint"))
+						.setNumTasks(config.getInt("bolt.hbase.num.tasks"));
+
+				if (Grouping._Fields.CUSTOM_OBJECT.toString().equalsIgnoreCase(
+						shuffleType)) {
+					declarer.customGrouping(
+							parserName,
+							"pcap_data_stream",
+							new HBaseStreamPartitioner(
+									hbaseBoltConfig.getTableName(),
+									0,
+									Integer.parseInt(conf
+											.get("bolt.hbase.partitioner.region.info.refresh.interval.mins")
+											.toString())));
+				} else if (Grouping._Fields.DIRECT.toString().equalsIgnoreCase(
+						shuffleType)) {
+					declarer.fieldsGrouping(parserName, "pcap_data_stream",
+							new Fields("pcap_id"));
+				}
 
 			}
 		} catch (Exception e) {

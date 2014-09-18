@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.opensoc.topologies;
+package com.opensoc.topology;
 
 import java.util.HashSet;
 import java.util.Set;

@@ -59,15 +59,19 @@ public class BasicIseParser extends AbstractParser {
 			 * Standard Fields for OpenSoc.
 			 */
 
-			payload.put("ip_src_addr", ip_src_addr);
-			payload.put("ip_src_port", ip_src_port);
-			payload.put("ip_dst_addr", ip_dst_addr);
-			payload.put("ip_dst_port", ip_dst_port);
+			if(ip_src_addr != null)
+				payload.put("ip_src_addr", ip_src_addr);
+			if(ip_src_port != null)
+				payload.put("ip_src_port", ip_src_port);
+			if(ip_dst_addr != null)
+				payload.put("ip_dst_addr", ip_dst_addr);
+			if(ip_dst_port != null)
+				payload.put("ip_dst_port", ip_dst_port);
 
 			JSONObject message = new JSONObject();
-			message.put("message", payload);
+			//message.put("message", payload);
 
-			return message;
+			return payload;
 
 		} catch (Exception e) {
 			Log.error(e.toString());

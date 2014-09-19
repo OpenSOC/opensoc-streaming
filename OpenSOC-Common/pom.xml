@@ -21,9 +21,7 @@
 	<name>OpenSOC-Common</name>
 	<description>Components common to all enrichments</description>
 	<properties>
-		<json.simple.version>1.1.1</json.simple.version>
 		<kafka.version>0.8.0</kafka.version>
-		<metrics.version>3.0.2</metrics.version>
 		<commons.config.version>1.10</commons.config.version>
 		<hbase.version>0.98.5-hadoop2</hbase.version>
 	</properties>
@@ -38,9 +36,8 @@
 		<dependency>
 			<groupId>com.googlecode.json-simple</groupId>
 			<artifactId>json-simple</artifactId>
-			<version>${json.simple.version}</version>
+			<version>${global_json_simple_version}</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.apache.storm</groupId>
 			<artifactId>storm-core</artifactId>
@@ -70,12 +67,12 @@
 		<dependency>
 			<groupId>com.codahale.metrics</groupId>
 			<artifactId>metrics-core</artifactId>
-			<version>${metrics.version}</version>
+			<version>${global_metrics_version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.codahale.metrics</groupId>
 			<artifactId>metrics-graphite</artifactId>
-			<version>${metrics.version}</version>
+			<version>${global_metrics_version}</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-configuration</groupId>

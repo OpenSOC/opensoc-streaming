@@ -21,8 +21,6 @@
 	<name>OpenSOC-Alerts</name>
 	<description>Taggers for alerts</description>
 	<properties>
-		<json.simple.version>1.1.1</json.simple.version>
-		<metrics.version>3.0.2</metrics.version>
 		<commons.validator.version>1.4.0</commons.validator.version>
 	</properties>
 	<dependencies>
@@ -34,7 +32,7 @@
 		<dependency>
 			<groupId>com.googlecode.json-simple</groupId>
 			<artifactId>json-simple</artifactId>
-			<version>${json.simple.version}</version>
+			<version>${global_json_simple_version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.storm</groupId>
@@ -65,7 +63,7 @@
 		<dependency>
 			<groupId>com.codahale.metrics</groupId>
 			<artifactId>metrics-core</artifactId>
-			<version>${metrics.version}</version>
+			<version>${global_metrics_version}</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-validator</groupId>

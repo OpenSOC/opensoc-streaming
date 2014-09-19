@@ -74,13 +74,14 @@ public class JSONKafkaSerializer implements Encoder<JSONObject>,
 	 */
 	public static void main(String args[]) throws IOException {
 
-		String Input = "/home/kiran/git/opensoc-streaming/OpenSOC-Common/BroExampleOutput";
+		//String Input = "/home/kiran/git/opensoc-streaming/OpenSOC-Common/BroExampleOutput";
+		String Input = "/tmp/test";
 
 		BufferedReader reader = new BufferedReader(new FileReader(Input));
 
 		// String jsonString =
 		// "{\"dns\":{\"ts\":[14.0,12,\"kiran\"],\"uid\":\"abullis@mail.csuchico.edu\",\"id.orig_h\":\"10.122.196.204\", \"endval\":null}}";
-		String jsonString = reader.readLine();
+		String jsonString ="";// reader.readLine();
 		JSONParser parser = new JSONParser();
 		JSONObject json = null;
 		int count = 1;
@@ -88,7 +89,9 @@ public class JSONKafkaSerializer implements Encoder<JSONObject>,
 		if (args.length > 0)
 			count = Integer.parseInt(args[0]);
 
-		while ((jsonString = reader.readLine()) != null) {
+		//while ((jsonString = reader.readLine()) != null) 
+		jsonString = reader.readLine();
+		{
 			try {
 				json = (JSONObject) parser.parse(jsonString);
 				System.out.println(json);
@@ -104,7 +107,7 @@ public class JSONKafkaSerializer implements Encoder<JSONObject>,
 			for (int i = 0; i < count; i++) {
 				byte[] bytes = ser.toBytes(json);
 
-				jsonString2 = ser.fromBytes(bytes).toJSONString();
+				jsonString2 = ((JSONObject)ser.fromBytes(bytes)).toJSONString();
 			}
 			System.out.println((jsonString2));
 			System.out
@@ -118,6 +121,33 @@ public class JSONKafkaSerializer implements Encoder<JSONObject>,
 
 		ByteArrayInputStream inputBuffer = new ByteArrayInputStream(input);
 		DataInputStream data = new DataInputStream(inputBuffer);
+
+		JSONObject output = new JSONObject();
+
+		try {
+			int mapSize = data.readInt();
+
+			for (int i = 0; i < mapSize; i++) {
+				String key = (String) getObject(data);
+				// System.out.println("Key Found"+ key);
+				Object val = getObject(data);
+				output.put(key, val);
+			}
+
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
+
+		return output;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public JSONObject fromBytes1(DataInputStream data) {
+
+		//ByteArrayInputStream inputBuffer = new ByteArrayInputStream(input);
+		//DataInputStream data = new DataInputStream(inputBuffer);
 
 		JSONObject output = new JSONObject();
 
@@ -226,5 +256,8 @@ public class JSONKafkaSerializer implements Encoder<JSONObject>,
 			putObject(data, o);
 
 	}
+
+
+	
 
 }

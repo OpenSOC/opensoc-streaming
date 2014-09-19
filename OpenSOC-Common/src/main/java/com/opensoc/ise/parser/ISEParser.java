@@ -30,9 +30,12 @@ public class ISEParser implements Serializable, ISEParserConstants {
   }
 
   final public boolean ensureEOF() throws ParseException {
-    if (jj_2_1(2)) {
+    switch (jj_nt.kind) {
+    case COMMA:
       jj_consume_token(COMMA);
-    } else {
+      break;
+    default:
+      jj_la1[0] = jj_gen;
       ;
     }
     jj_consume_token(0);
@@ -52,9 +55,12 @@ public class ISEParser implements Serializable, ISEParserConstants {
     value = null;
     label_1:
     while (true) {
-      if (jj_2_2(2)) {
+      switch (jj_nt.kind) {
+      case SLASH:
         ;
-      } else {
+        break;
+      default:
+        jj_la1[1] = jj_gen;
         break label_1;
       }
       jj_consume_token(SLASH);
@@ -82,7 +88,7 @@ public class ISEParser implements Serializable, ISEParserConstants {
     value = null;
     label_2:
     while (true) {
-      if (jj_2_3(2)) {
+      if (jj_2_1(2)) {
         ;
       } else {
         break label_2;
@@ -111,21 +117,28 @@ public class ISEParser implements Serializable, ISEParserConstants {
   Object x;
   String eof = "EOF";
   Map m = null;
-    if (jj_2_4(2147483647)) {
+    if (jj_2_2(2147483647)) {
       x = nullValue();
-    } else if (jj_2_5(2147483647)) {
+    } else if (jj_2_3(2147483647)) {
       x = innerMap();
-    } else if (jj_2_6(2)) {
-      x = tagString();
-    } else if (jj_2_7(2147483647)) {
-      x = blankValue();
-    } else if (jj_2_8(2147483647)) {
-      x = braced_string();
-    } else if (jj_2_9(2)) {
-      x = string();
     } else {
-      jj_consume_token(-1);
-      throw new ParseException();
+      switch (jj_nt.kind) {
+      case TAG:
+        x = tagString();
+        break;
+      default:
+        jj_la1[2] = jj_gen;
+        if (jj_2_4(2147483647)) {
+          x = blankValue();
+        } else if (jj_2_5(2147483647)) {
+          x = braced_string();
+        } else if (jj_2_6(2)) {
+          x = string();
+        } else {
+          jj_consume_token(-1);
+          throw new ParseException();
+        }
+      }
     }
     //  System.out.println("val == " + x);
     //if (x instanceof Map) return "Map";
@@ -211,44 +224,23 @@ public class ISEParser implements Serializable, ISEParserConstants {
     finally { jj_save(5, xla); }
   }
 
-  private boolean jj_2_7(int xla) {
-    jj_la = xla; jj_lastpos = jj_scanpos = token;
-    try { return !jj_3_7(); }
-    catch(LookaheadSuccess ls) { return true; }
-    finally { jj_save(6, xla); }
-  }
-
-  private boolean jj_2_8(int xla) {
-    jj_la = xla; jj_lastpos = jj_scanpos = token;
-    try { return !jj_3_8(); }
-    catch(LookaheadSuccess ls) { return true; }
-    finally { jj_save(7, xla); }
-  }
-
-  private boolean jj_2_9(int xla) {
-    jj_la = xla; jj_lastpos = jj_scanpos = token;
-    try { return !jj_3_9(); }
-    catch(LookaheadSuccess ls) { return true; }
-    finally { jj_save(8, xla); }
-  }
-
-  private boolean jj_3_8() {
-    if (jj_3R_6()) return true;
+  private boolean jj_3_5() {
+    if (jj_3R_5()) return true;
     return false;
   }
 
-  private boolean jj_3_7() {
+  private boolean jj_3_4() {
     if (jj_scan_token(0)) return true;
     return false;
   }
 
-  private boolean jj_3R_6() {
+  private boolean jj_3R_5() {
     if (jj_scan_token(BRACED_STRING)) return true;
     if (jj_scan_token(COMMA)) return true;
     return false;
   }
 
-  private boolean jj_3_5() {
+  private boolean jj_3_3() {
     if (jj_3R_4()) return true;
     return false;
   }
@@ -256,47 +248,47 @@ public class ISEParser implements Serializable, ISEParserConstants {
   private boolean jj_3R_4() {
     if (jj_3R_3()) return true;
     if (jj_scan_token(EQUALS)) return true;
-    if (jj_3R_8()) return true;
+    if (jj_3R_7()) return true;
     Token xsp;
     while (true) {
       xsp = jj_scanpos;
-      if (jj_3_2()) { jj_scanpos = xsp; break; }
+      if (jj_3R_8()) { jj_scanpos = xsp; break; }
     }
     return false;
   }
 
-  private boolean jj_3_4() {
+  private boolean jj_3_2() {
     if (jj_scan_token(COMMA)) return true;
     return false;
   }
 
-  private boolean jj_3_9() {
-    if (jj_3R_7()) return true;
+  private boolean jj_3_6() {
+    if (jj_3R_6()) return true;
     return false;
   }
 
-  private boolean jj_3_3() {
+  private boolean jj_3_1() {
     if (jj_scan_token(COMMA)) return true;
     if (jj_3R_3()) return true;
     return false;
   }
 
-  private boolean jj_3R_12() {
-    if (jj_3R_6()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_11() {
-    if (jj_3R_14()) return true;
-    return false;
-  }
-
-  private boolean jj_3_6() {
+  private boolean jj_3R_13() {
     if (jj_3R_5()) return true;
     return false;
   }
 
-  private boolean jj_3R_7() {
+  private boolean jj_3R_12() {
+    if (jj_3R_16()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_11() {
+    if (jj_3R_15()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_6() {
     if (jj_scan_token(STRING_BODY)) return true;
     return false;
   }
@@ -307,29 +299,24 @@ public class ISEParser implements Serializable, ISEParserConstants {
   }
 
   private boolean jj_3R_9() {
-    if (jj_3R_13()) return true;
+    if (jj_3R_14()) return true;
     return false;
   }
 
-  private boolean jj_3_1() {
-    if (jj_scan_token(COMMA)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_8() {
+  private boolean jj_3R_7() {
     Token xsp;
     xsp = jj_scanpos;
     if (jj_3R_9()) {
     jj_scanpos = xsp;
     if (jj_3R_10()) {
     jj_scanpos = xsp;
-    if (jj_3_6()) {
-    jj_scanpos = xsp;
     if (jj_3R_11()) {
     jj_scanpos = xsp;
     if (jj_3R_12()) {
     jj_scanpos = xsp;
-    if (jj_3_9()) return true;
+    if (jj_3R_13()) {
+    jj_scanpos = xsp;
+    if (jj_3_6()) return true;
     }
     }
     }
@@ -338,31 +325,31 @@ public class ISEParser implements Serializable, ISEParserConstants {
     return false;
   }
 
-  private boolean jj_3R_14() {
+  private boolean jj_3R_16() {
     return false;
   }
 
-  private boolean jj_3R_5() {
+  private boolean jj_3R_15() {
     if (jj_scan_token(TAG)) return true;
     if (jj_scan_token(STRING_BODY)) return true;
     return false;
   }
 
   private boolean jj_3R_3() {
-    if (jj_3R_7()) return true;
+    if (jj_3R_6()) return true;
     return false;
   }
 
-  private boolean jj_3_2() {
+  private boolean jj_3R_8() {
     if (jj_scan_token(SLASH)) return true;
     if (jj_scan_token(COMMA)) return true;
     if (jj_3R_3()) return true;
     if (jj_scan_token(EQUALS)) return true;
-    if (jj_3R_8()) return true;
+    if (jj_3R_7()) return true;
     return false;
   }
 
-  private boolean jj_3R_13() {
+  private boolean jj_3R_14() {
     return false;
   }
 
@@ -376,15 +363,15 @@ public class ISEParser implements Serializable, ISEParserConstants {
   private Token jj_scanpos, jj_lastpos;
   private int jj_la;
   private int jj_gen;
-  final private int[] jj_la1 = new int[0];
+  final private int[] jj_la1 = new int[3];
   static private int[] jj_la1_0;
   static {
       jj_la1_init_0();
    }
    private static void jj_la1_init_0() {
-      jj_la1_0 = new int[] {};
+      jj_la1_0 = new int[] {0x20,0x80,0x100,};
    }
-  final private JJCalls[] jj_2_rtns = new JJCalls[9];
+  final private JJCalls[] jj_2_rtns = new JJCalls[6];
   private boolean jj_rescan = false;
   private int jj_gc = 0;
 
@@ -399,7 +386,7 @@ public class ISEParser implements Serializable, ISEParserConstants {
     token = new Token();
     token.next = jj_nt = token_source.getNextToken();
     jj_gen = 0;
-    for (int i = 0; i < 0; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 3; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -414,7 +401,7 @@ public class ISEParser implements Serializable, ISEParserConstants {
     token = new Token();
     token.next = jj_nt = token_source.getNextToken();
     jj_gen = 0;
-    for (int i = 0; i < 0; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 3; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -425,7 +412,7 @@ public class ISEParser implements Serializable, ISEParserConstants {
     token = new Token();
     token.next = jj_nt = token_source.getNextToken();
     jj_gen = 0;
-    for (int i = 0; i < 0; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 3; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -436,7 +423,7 @@ public class ISEParser implements Serializable, ISEParserConstants {
     token = new Token();
     token.next = jj_nt = token_source.getNextToken();
     jj_gen = 0;
-    for (int i = 0; i < 0; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 3; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -446,7 +433,7 @@ public class ISEParser implements Serializable, ISEParserConstants {
     token = new Token();
     token.next = jj_nt = token_source.getNextToken();
     jj_gen = 0;
-    for (int i = 0; i < 0; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 3; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -456,7 +443,7 @@ public class ISEParser implements Serializable, ISEParserConstants {
     token = new Token();
     token.next = jj_nt = token_source.getNextToken();
     jj_gen = 0;
-    for (int i = 0; i < 0; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 3; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -565,7 +552,7 @@ public class ISEParser implements Serializable, ISEParserConstants {
       la1tokens[jj_kind] = true;
       jj_kind = -1;
     }
-    for (int i = 0; i < 0; i++) {
+    for (int i = 0; i < 3; i++) {
       if (jj_la1[i] == jj_gen) {
         for (int j = 0; j < 32; j++) {
           if ((jj_la1_0[i] & (1<<j)) != 0) {
@@ -601,7 +588,7 @@ public class ISEParser implements Serializable, ISEParserConstants {
 
   private void jj_rescan_token() {
     jj_rescan = true;
-    for (int i = 0; i < 9; i++) {
+    for (int i = 0; i < 6; i++) {
     try {
       JJCalls p = jj_2_rtns[i];
       do {
@@ -614,9 +601,6 @@ public class ISEParser implements Serializable, ISEParserConstants {
             case 3: jj_3_4(); break;
             case 4: jj_3_5(); break;
             case 5: jj_3_6(); break;
-            case 6: jj_3_7(); break;
-            case 7: jj_3_8(); break;
-            case 8: jj_3_9(); break;
           }
         }
         p = p.next;

@@ -606,6 +606,9 @@ public abstract class TopologyRunner {
 
 			kafka_broker_properties.put("serializer.class",
 					"com.opensoc.json.serialization.JSONKafkaSerializer");
+			
+			kafka_broker_properties.put("key.serializer.class",
+					"kafka.serializer.StringEncoder");
 
 			String output_topic = config.getString("bolt.kafka.topic");
 

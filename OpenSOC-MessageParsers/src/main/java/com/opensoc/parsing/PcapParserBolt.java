@@ -42,10 +42,12 @@ public class PcapParserBolt implements IRichBolt {
   private OutputCollector collector = null;
 
   /** The conf. */
-  private Map conf;
+  @SuppressWarnings("rawtypes")
+private Map conf;
 
   /** The number of chars to use for shuffle grouping. */
-  private int numberOfCharsToUseForShuffleGrouping = 4;
+  @SuppressWarnings("unused")
+private int numberOfCharsToUseForShuffleGrouping = 4;
 
   /** The micro sec multiplier. */
   private long microSecMultiplier = 1L;
@@ -149,7 +151,8 @@ public class PcapParserBolt implements IRichBolt {
    * @see backtype.storm.task.IBolt#execute(Tuple)
    */
 
-  public void execute(Tuple input) {
+  @SuppressWarnings("unchecked")
+public void execute(Tuple input) {
 
     // LOG.debug("In PcapParserBolt bolt: Got tuple " + input);
     // LOG.debug("Got this pcap : " + new String(input.getBinary(0)));

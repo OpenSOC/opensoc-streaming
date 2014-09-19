@@ -1,5 +1,4 @@
- 
- /*
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -17,140 +16,195 @@
  */
 package com.opensoc.parsing.test;
 
-import java.util.Iterator;
-import java.util.Map;
-
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-
-import com.opensoc.parsing.parsers.BasicIseParser;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.net.URL;
 
 import junit.framework.TestCase;
 
- /**
+import org.json.simple.JSONObject;
+import org.json.simple.parser.ParseException;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.github.fge.jackson.JsonLoader;
+import com.github.fge.jsonschema.core.report.ProcessingReport;
+import com.github.fge.jsonschema.main.JsonSchemaFactory;
+import com.github.fge.jsonschema.main.JsonValidator;
+import com.opensoc.parsing.parsers.BasicIseParser;
+
+/**
  * <ul>
- * <li>Title: Basic ISE Parser </li>
+ * <li>Title: Basic ISE Parser</li>
  * <li>Description: Junit Test Case for BasicISE Parser</li>
  * <li>Created: AUG 25, 2014</li>
  * </ul>
+ * 
  * @version $Revision: 1.1 $
  */
 public class BasicIseParserTest extends TestCase {
-    private  static String rawMessage = "";
+	private static String rawMessage = "";
 
-    private static BasicIseParser iseParser=null;   
+	private static BasicIseParser iseParser = null;
+	private static String schema_string;
 
-    /**
-     * Constructs a new <code>BasicIseParserTest</code> instance.
-     * @param name
-     */
+	/**
+	 * Constructs a new <code>BasicIseParserTest</code> instance.
+	 * 
+	 * @param name
+	 */
 
-    public BasicIseParserTest(String name) {
-        super(name);
-    }
+	public BasicIseParserTest(String name) {
+		super(name);
+	}
 
-    /**
-     
-     * @throws java.lang.Exception
-     */
-    protected static void setUpBeforeClass() throws Exception {
-        setRawMessage("Aug  6 17:26:31 10.34.84.145 Aug  7 00:45:43 stage-pdp01 CISE_Profiler 0000024855 1 0 2014-08-07 00:45:43.741 -07:00 0000288542 80002 INFO  Profiler: Profiler EndPoint profiling event occurred, ConfigVersionId=113, EndpointCertainityMetric=10, EndpointIPAddress=10.56.111.14, EndpointMacAddress=3C:97:0E:C3:F8:F1, EndpointMatchedPolicy=Nortel-Device, EndpointNADAddress=10.56.72.127, EndpointOUI=Wistron InfoComm(Kunshan)Co.\\,Ltd., EndpointPolicy=Nortel-Device, EndpointProperty=StaticAssignment=false\\,PostureApplicable=Yes\\,PolicyVersion=402\\,IdentityGroupID=0c1d9270-68a6-11e1-bc72-0050568e013c\\,Total Certainty Factor=10\\,BYODRegistration=Unknown\\,FeedService=false\\,EndPointPolicyID=49054ed0-68a6-11e1-bc72-0050568e013c\\,FirstCollection=1407397543718\\,MatchedPolicyID=49054ed0-68a6-11e1-bc72-0050568e013c\\,TimeToProfile=19\\,StaticGroupAssignment=false\\,NmapSubnetScanID=0\\,DeviceRegistrationStatus=NotRegistered\\,PortalUser=, EndpointSourceEvent=SNMPQuery Probe, EndpointIdentityGroup=Profiled, ProfilerServer=stage-pdp01.cisco.com,");
-        
-    }
+	/**
+	 * 
+	 * @throws java.lang.Exception
+	 */
+	protected static void setUpBeforeClass() throws Exception {
+		setRawMessage("Aug  6 17:26:31 10.34.84.145 Aug  7 00:45:43 stage-pdp01 CISE_Profiler 0000024855 1 0 2014-08-07 00:45:43.741 -07:00 0000288542 80002 INFO  Profiler: Profiler EndPoint profiling event occurred, ConfigVersionId=113, EndpointCertainityMetric=10, EndpointIPAddress=10.56.111.14, EndpointMacAddress=3C:97:0E:C3:F8:F1, EndpointMatchedPolicy=Nortel-Device, EndpointNADAddress=10.56.72.127, EndpointOUI=Wistron InfoComm(Kunshan)Co.\\,Ltd., EndpointPolicy=Nortel-Device, EndpointProperty=StaticAssignment=false\\,PostureApplicable=Yes\\,PolicyVersion=402\\,IdentityGroupID=0c1d9270-68a6-11e1-bc72-0050568e013c\\,Total Certainty Factor=10\\,BYODRegistration=Unknown\\,FeedService=false\\,EndPointPolicyID=49054ed0-68a6-11e1-bc72-0050568e013c\\,FirstCollection=1407397543718\\,MatchedPolicyID=49054ed0-68a6-11e1-bc72-0050568e013c\\,TimeToProfile=19\\,StaticGroupAssignment=false\\,NmapSubnetScanID=0\\,DeviceRegistrationStatus=NotRegistered\\,PortalUser=, EndpointSourceEvent=SNMPQuery Probe, EndpointIdentityGroup=Profiled, ProfilerServer=stage-pdp01.cisco.com,");
 
-    /**
-     
-     * @throws java.lang.Exception
-     */
-    protected static void tearDownAfterClass() throws Exception {
-        setRawMessage("");
-    }
-    
+	}
 
-    /* 
-     * (non-Javadoc)
-     * @see junit.framework.TestCase#setUp()
-     */
+	/**
+	 * 
+	 * @throws java.lang.Exception
+	 */
+	protected static void tearDownAfterClass() throws Exception {
+		setRawMessage("");
+	}
 
-    protected void setUp() throws Exception {
-        super.setUp();
-        assertNotNull(getRawMessage());
-        BasicIseParserTest.setIseParser(new BasicIseParser());       
-    }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see junit.framework.TestCase#setUp()
+	 */
 
-    /* 
-     * (non-Javadoc)
-     * @see junit.framework.TestCase#tearDown()
-     */
+	protected void setUp() throws Exception {
+		super.setUp();
+		assertNotNull(getRawMessage());
+		BasicIseParserTest.setIseParser(new BasicIseParser());
+		
+		URL schema_url = getClass().getClassLoader().getResource(
+				"TestSchemas/IseSchema.json");
+		
+		 schema_string = readSchemaFromFile(schema_url);
+	}
 
-    protected void tearDown() throws Exception {
-        super.tearDown();
-    }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see junit.framework.TestCase#tearDown()
+	 */
 
-    /**
-     * Test method for {@link com.opensoc.parsing.parsers.BasicIseParser#parse(byte[])}.
-     */
-    public void testParse() throws ParseException {
-        JSONObject parsed = iseParser.parse(getRawMessage().getBytes());
-        assertNotNull(parsed);
-        
-        System.out.println(parsed);
-        JSONParser parser = new JSONParser();
-        
-        Map json=null;
-        try {
-            json = (Map) parser.parse(parsed.toJSONString());
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        Iterator iter = json.entrySet().iterator();
-            
+	protected void tearDown() throws Exception {
+		super.tearDown();
+	}
 
-        while (iter.hasNext()) {
-            Map.Entry entry = (Map.Entry) iter.next();
-            String key = (String) entry.getKey();
-            String value = (String) json.get("message").toString();
-            assertNotNull(value);
-        }        
-    }
+	/**
+	 * Test method for
+	 * {@link com.opensoc.parsing.parsers.BasicIseParser#parse(byte[])}.
+	 * 
+	 * @throws IOException
+	 * @throws Exception
+	 */
+	public void testParse() throws ParseException, IOException, Exception {
+		// JSONObject parsed = iseParser.parse(getRawMessage().getBytes());
+		// assertNotNull(parsed);
 
-    /**
-     * Returns the rawMessage.
-     * @return the rawMessage.
-     */
-    
-    public static String getRawMessage() {
-        return rawMessage;
-    }
+		URL log_url = getClass().getClassLoader().getResource("IseSample.log");
 
-    /**
-     * Sets the rawMessage.
-     * @param rawMessage the rawMessage.
-     */
-    
-    public static void setRawMessage(String rawMessage) {
-    
-        BasicIseParserTest.rawMessage = rawMessage;
-    }
-    
-    /**
-     * Returns the iseParser.
-     * @return the iseParser.
-     */
-    
-    public BasicIseParser getIseParser() {
-        return iseParser;
-    }
+		BufferedReader br = new BufferedReader(new FileReader(log_url.getFile()));
+		String line = "";
+		while ((line = br.readLine()) != null) {
+			System.out.println(line);
+			JSONObject parsed = iseParser.parse(line.getBytes());
+			System.out.println(parsed);
+			assertEquals(true, validateJsonData(schema_string, parsed.toString()));
 
-    /**
-     * Sets the iseParser.
-     * @param iseParser the iseParser.
-     */
-    
-    public static void setIseParser(BasicIseParser iseParser) {
-    
-        BasicIseParserTest.iseParser = iseParser;
-    }    
- }
+		}
+		br.close();
 
+	}
+
+	/**
+	 * Returns the rawMessage.
+	 * 
+	 * @return the rawMessage.
+	 */
+
+	public static String getRawMessage() {
+		return rawMessage;
+	}
+
+	/**
+	 * Sets the rawMessage.
+	 * 
+	 * @param rawMessage
+	 *            the rawMessage.
+	 */
+
+	public static void setRawMessage(String rawMessage) {
+
+		BasicIseParserTest.rawMessage = rawMessage;
+	}
+
+	/**
+	 * Returns the iseParser.
+	 * 
+	 * @return the iseParser.
+	 */
+
+	public BasicIseParser getIseParser() {
+		return iseParser;
+	}
+
+	/**
+	 * Sets the iseParser.
+	 * 
+	 * @param iseParser
+	 *            the iseParser.
+	 */
+
+	public static void setIseParser(BasicIseParser iseParser) {
+
+		BasicIseParserTest.iseParser = iseParser;
+	}
+
+	private boolean validateJsonData(final String jsonSchema, final String jsonData)
+			throws Exception {
+
+		final JsonNode d = JsonLoader.fromString(jsonData);
+		final JsonNode s = JsonLoader.fromString(jsonSchema);
+
+		final JsonSchemaFactory factory = JsonSchemaFactory.byDefault();
+		JsonValidator v = factory.getValidator();
+
+		ProcessingReport report = v.validate(s, d);
+		System.out.println(report);
+		
+		return report.toString().contains("success");
+
+	}
+
+	private String readSchemaFromFile(URL schema_url) throws Exception {
+		BufferedReader br = new BufferedReader(new FileReader(
+				schema_url.getFile()));
+		String line;
+		StringBuilder sb = new StringBuilder();
+		while ((line = br.readLine()) != null) {
+			System.out.println(line);
+			sb.append(line);
+		}
+		br.close();
+
+		String schema_string = sb.toString().replaceAll("\n", "");
+		schema_string = schema_string.replaceAll(" ", "");
+
+		System.out.println("Read in schema: " + schema_string);
+
+		return schema_string;
+
+	}
+}

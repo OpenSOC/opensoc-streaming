@@ -733,31 +733,6 @@ public abstract class TopologyRunner {
 	private boolean initializeHDFSBolt(String topology_name, String name) {
 		try {
 
-			// * ------------HDFS BOLT configuration
-
-			/*
-			 * FileNameFormat fileNameFormat = new DefaultFileNameFormat()
-			 * .withPath("/" + topology_name + "/"); RecordFormat format = new
-			 * DelimitedRecordFormat() .withFieldDelimiter("|");
-			 * 
-			 * SyncPolicy syncPolicy = new CountSyncPolicy(5);
-			 * FileRotationPolicy rotationPolicy = new
-			 * FileSizeRotationPolicy(config
-			 * .getFloat("bolt.hdfs.size.rotation.policy" ), Units.KB);
-			 * 
-			 * HdfsBolt hdfsBolt = new
-			 * HdfsBolt().withFsUrl(config.getString("bolt.hdfs.fs.url"))
-			 * .withFileNameFormat(fileNameFormat).withRecordFormat(format)
-			 * .withRotationPolicy(rotationPolicy).withSyncPolicy(syncPolicy);
-			 * 
-			 * builder.setBolt("HDFSBolt", hdfsBolt,
-			 * config.getInt("bolt.hdfs.parallelism.hint"))
-			 * .shuffleGrouping("CIFEnrichmentBolt"
-			 * ).setNumTasks(config.getInt("bolt.hdfs.num.tasks"));
-			 */
-
-			// * ------------HDFS BOLT For Enriched Data configuration
-
 			FileNameFormat fileNameFormat_enriched = new DefaultFileNameFormat()
 					.withPath(config.getString("bolt.hdfs.path", "/") + "/"
 							+ topology_name + "_enriched/");

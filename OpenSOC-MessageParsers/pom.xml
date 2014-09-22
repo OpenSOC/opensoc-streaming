@@ -45,6 +45,11 @@
 			<artifactId>json-schema-validator</artifactId>
 			<version>${global_json_schema_validator_version}</version>
 		</dependency>
+		<dependency>
+			<groupId>io.thekraken</groupId>
+			<artifactId>grok</artifactId>
+			<version>0.1.0</version>
+		</dependency>
 	</dependencies>
 	<reporting>
 		<plugins>
@@ -74,6 +79,9 @@
 	</reporting>
 	<build>
 		<resources>
+		<resource>
+				<directory>src/main/resources</directory>
+			</resource>
 			<resource>
 				<directory>src/test/resources</directory>
 			</resource>

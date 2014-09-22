@@ -11,6 +11,10 @@ import org.json.simple.JSONObject;
 
 public class GrokSourcefireParser extends AbstractParser{
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	Grok grok;
 	
 	public GrokSourcefireParser() throws GrokException
@@ -21,6 +25,20 @@ public class GrokSourcefireParser extends AbstractParser{
 		grok.compile("%{SOURCEFIRE}");
 	}
 
+	public GrokSourcefireParser(String filepath) throws GrokException
+	{
+
+		grok = Grok.create(filepath);
+		grok.compile("%{SOURCEFIRE}");
+	}
+	
+	public GrokSourcefireParser(String filepath, String pattern) throws GrokException
+	{
+
+		grok = Grok.create(filepath);
+		grok.compile("%{"+pattern+"}");
+	}
+	
 	@Override
 	public JSONObject parse(byte[] raw_message) {
 		JSONObject payload = new JSONObject();

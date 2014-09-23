@@ -116,12 +116,17 @@ public class AlertsSearcher implements Runnable {
 				logger.info( "lastSearchTime: " + lastSearchTime );
 				
 				String alertsIndexes = configProps.getProperty( "alertsIndexes", "alerts" );
-				logger.info( "" );
+				String alertsType = configProps.getProperty( "alertsType", "alert" );
+				String alertsQueryFieldName = configProps.getProperty( "alertQueryFieldName", "alert.source" );
+				String alertsQueryFieldValue = configProps.getProperty( "alertsQueryFieldValue", "*" );
+				
+				logger.info( "alertsIndexes: " + alertsIndexes );
+				
 				SearchResponse response = client.prepareSearch( alertsIndexes )
-				.setTypes( "alert" )
+				.setTypes( alertsType )
 				.setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
 				.addField("_source")		
-				.setQuery( QueryBuilders.boolQuery().must(  QueryBuilders.wildcardQuery( "alert.source", "*" ) )
+				.setQuery( QueryBuilders.boolQuery().must(  QueryBuilders.wildcardQuery( alertsQueryFieldName, alertsQueryFieldValue ) )
 													.must( QueryBuilders.rangeQuery("message.timestamp").from(lastSearchTime).to(System.currentTimeMillis()).includeLower(true).includeUpper(false)))
 				.execute()
 				.actionGet();

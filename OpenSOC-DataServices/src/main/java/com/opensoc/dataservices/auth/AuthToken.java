@@ -13,24 +13,35 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.codec.binary.Base64;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AuthToken {
 
-	
+	private static final Logger logger = LoggerFactory.getLogger( AuthToken.class );
 	
 	public static String generateToken( final Properties configProps ) throws Exception
 	{
 		
 		KeyStore ks = KeyStore.getInstance("JCEKS");
 		String keystoreFile = configProps.getProperty( "keystoreFile" );
-		String keystorePassword = configProps.getProperty( "keystorePassword" );
-		String keystoreAlias = configProps.getProperty( "authTokenAlias" );
+		logger.info( "keystoreFile: " + keystoreFile );
 		
+		String keystorePassword = configProps.getProperty( "keystorePassword" );
+		logger.info( "keystorePassword: " + keystorePassword );
+		
+		String keystoreAlias = configProps.getProperty( "authTokenAlias" );
+		logger.info( "keystoreAlias: " + keystoreAlias );
 		
 		FileInputStream fis = null;
 		try {
 			fis = new FileInputStream( keystoreFile );
 			ks.load(fis, keystorePassword.toCharArray() );
+		}
+		catch( Exception e )
+		{
+			logger.error( "Error opening keyfile:", e );
+			throw e;
 		}
 		finally {
 			fis.close();

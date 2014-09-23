@@ -7,7 +7,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -116,14 +118,20 @@ public class AlertsSearcher implements Runnable {
 				logger.info( "lastSearchTime: " + lastSearchTime );
 				
 				String alertsIndexes = configProps.getProperty( "alertsIndexes", "alerts" );
-				String alertsType = configProps.getProperty( "alertsType", "alert" );
+				String[] alertsIndexArray = alertsIndexes.split(",");
+				
+				String alertsTypes = configProps.getProperty( "alertsTypes", "" );
+				String[] alertsTypesArray = alertsTypes.split( ",");
+				
 				String alertsQueryFieldName = configProps.getProperty( "alertQueryFieldName", "alert.source" );
 				String alertsQueryFieldValue = configProps.getProperty( "alertsQueryFieldValue", "*" );
 				
 				logger.info( "alertsIndexes: " + alertsIndexes );
 				
-				SearchResponse response = client.prepareSearch( alertsIndexes )
-				.setTypes( alertsType )
+				String[] foo = new String[1];
+				
+				SearchResponse response = client.prepareSearch( alertsIndexArray )
+				.setTypes( alertsTypesArray )
 				.setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
 				.addField("_source")		
 				.setQuery( QueryBuilders.boolQuery().must(  QueryBuilders.wildcardQuery( alertsQueryFieldName, alertsQueryFieldValue ) )

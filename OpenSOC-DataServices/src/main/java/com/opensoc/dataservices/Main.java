@@ -149,7 +149,8 @@ public class Main {
         // SSL Context Factory
         SslContextFactory sslContextFactory = new SslContextFactory();
         
-        String sslKeystorePath = configProps.getProperty( "sslKeystorePath", "/etc/keystore" );
+        String sslKeystorePath = configProps.getProperty( "sslKeystorePath", "/keystore" );
+        logger.debug( "sslKeystorePath: " + sslKeystorePath );
         sslContextFactory.setKeyStorePath( homeDir + sslKeystorePath );
         
         String sslKeystorePassword = configProps.getProperty( "sslKeystorePassword" );
@@ -161,7 +162,7 @@ public class Main {
         	sslContextFactory.setKeyManagerPassword(sslKeyManagerPassword);
         }
         
-        String sslTruststorePath = configProps.getProperty( "sslTruststorePath", "/etc/keystore" );
+        String sslTruststorePath = configProps.getProperty( "sslTruststorePath" );
         if( sslTruststorePath != null && !sslTruststorePath.isEmpty() )
         {
         	sslContextFactory.setTrustStorePath( homeDir + sslTruststorePath );

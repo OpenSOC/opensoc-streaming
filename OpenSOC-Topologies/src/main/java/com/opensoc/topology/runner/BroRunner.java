@@ -32,6 +32,10 @@ public class BroRunner extends TopologyRunner{
 			String name) {
 		try {
 
+			String messageUpstreamComponent = messageComponents.get(messageComponents.size()-1);
+			
+			System.out.println("[OpenSOC] ------" +  name + " is initializing from " + messageUpstreamComponent);
+			
 			AbstractParserBolt parser_bolt = new TelemetryParserBolt()
 					.withMessageParser(new BasicBroParser())
 					.withOutputFieldName(topology_name)
@@ -40,7 +44,7 @@ public class BroRunner extends TopologyRunner{
 
 			builder.setBolt(name, parser_bolt,
 					config.getInt("bolt.parser.parallelism.hint"))
-					.shuffleGrouping(component)
+					.shuffleGrouping(messageUpstreamComponent)
 					.setNumTasks(config.getInt("bolt.parser.num.tasks"));
 
 		} catch (Exception e) {

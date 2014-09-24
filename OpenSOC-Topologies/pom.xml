@@ -25,6 +25,12 @@
 		<cli.version>20040117.000000</cli.version>
 		<commons.config.version>1.10</commons.config.version>
 	</properties>
+	<repositories>
+		<repository>
+			<id>github-snapshots</id>
+			<url>http://oss.sonatype.org/content/repositories/snapshots/</url>
+		</repository>
+	</repositories>
 	<dependencies>
 		<dependency>
 			<groupId>com.opensoc</groupId>
@@ -110,10 +116,22 @@
 			<artifactId>storm-hbase</artifactId>
 			<version>0.1.2</version>
 		</dependency>
+		<!-- dependency> <groupId>com.github.ptgoetz</groupId> <artifactId>storm-hdfs</artifactId> 
+			<version>0.1.2</version> </dependency -->
 		<dependency>
-			<groupId>com.github.ptgoetz</groupId>
+			<groupId>com.github.sheetaldolas</groupId>
 			<artifactId>storm-hdfs</artifactId>
-			<version>0.1.2</version>
+			<version>0.0.7-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.storm</groupId>
+					<artifactId>storm-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.hadoop</groupId>
+					<artifactId>hadoop-client</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 	</dependencies>

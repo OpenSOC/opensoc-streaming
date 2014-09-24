@@ -31,6 +31,7 @@ import backtype.storm.task.TopologyContext;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
+import com.esotericsoftware.minlog.Log;
 import com.google.common.cache.CacheBuilder;
 import com.opensoc.alerts.interfaces.AlertsAdapter;
 import com.opensoc.json.serialization.JSONEncoderHelper;
@@ -192,22 +193,23 @@ public class TelemetryAlertsBolt extends AbstractAlertBolt {
 				for (String alert : alerts_list.keySet()) {
 					uuid_list.add(alert);
 
-					System.out.println("CHECKING CACHE: " + alert);
+					LOG.trace("[OpenSOC] Checking alerts cache: " + alert);
 
 					if (cache.getIfPresent(alert) == null) {
-						System.out.println(" CACHE NOT FOUND: " + alert);
+						LOG.trace("[OpenSOC]: Alert not found in cache: " + alert);
 
 						JSONObject global_alert = new JSONObject();
 						global_alert.putAll(_identifier);
 						global_alert.put("triggered", alerts_list.get(alert));
+						global_alert.put("timestamp", System.currentTimeMillis());
 						_collector.emit("alert", new Values(global_alert));
 
 						cache.put(alert, "");
 
 					} else
-						System.out.println("LOCATED CACHE: " + alert);
+						LOG.trace("Alert located in cache: " + alert);
 
-					LOG.trace("[OpenSOC] Alerts are: " + alerts_list);
+					LOG.debug("[OpenSOC] Alerts are: " + alerts_list);
 
 					if (original_message.containsKey("alerts")) {
 						JSONArray already_triggered = (JSONArray) original_message

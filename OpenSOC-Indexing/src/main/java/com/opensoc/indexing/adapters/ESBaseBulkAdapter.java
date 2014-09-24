@@ -49,7 +49,7 @@ public class ESBaseBulkAdapter extends AbstractIndexAdapter implements
 			_document_name = document_name;
 			_bulk_size = bulk_size;
 
-			System.out.println("Bulk indexing is set to: " + _bulk_size);
+			_LOG.trace("[OpenSOC] Bulk indexing is set to: " + _bulk_size);
 
 			settings = ImmutableSettings.settingsBuilder()
 					.put("cluster.name", _cluster_name).build();
@@ -80,7 +80,7 @@ public class ESBaseBulkAdapter extends AbstractIndexAdapter implements
 			bulk_set.add(raw_message);
 			set_size = bulk_set.size();
 			
-			System.out.println("Bulk size is now: " + bulk_set.size());
+			_LOG.trace("[OpenSOC] Bulk size is now: " + bulk_set.size());
 		}
 
 		try {
@@ -124,7 +124,7 @@ public class ESBaseBulkAdapter extends AbstractIndexAdapter implements
 
 				}
 
-				System.out.println("Performing bulk load of size: "
+				_LOG.trace("[OpenSOC] Performing bulk load of size: "
 						+ bulkRequest.numberOfActions());
 
 				BulkResponse resp = bulkRequest.execute().actionGet();

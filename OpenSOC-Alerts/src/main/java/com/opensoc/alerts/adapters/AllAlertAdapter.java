@@ -75,22 +75,15 @@ public class AllAlertAdapter implements AlertsAdapter, Serializable {
 		conf.set("hbase.zookeeper.quorum", _quorum);
 		conf.set("hbase.zookeeper.property.clientPort", _port);
 
-		System.out.println("--------ALERTS CONNECTING TO HBASE WITH: " + conf);
+		LOG.trace("[OpenSOC] Connecting to hbase with conf:" + conf);		
+		LOG.trace("[OpenSOC] Whitelist table name: " + _whitelist_table_name);
+		LOG.trace("[OpenSOC] ZK Client/port: " + conf.get("hbase.zookeeper.quorum") + " -> " + conf.get("hbase.zookeeper.property.clientPort"));
 
-		System.out.println("--------whitelist: " + _whitelist_table_name);
-
-		System.out.println("--------hbase.zookeeper.quorum: "
-				+ conf.get("hbase.zookeeper.quorum"));
-		System.out.println("--------hbase.zookeeper.property.clientPort: "
-				+ conf.get("hbase.zookeeper.property.clientPort"));
 		try {
-
-			System.out.println("--------ALERTS CONNECTING TO HBASE WITH: "
-					+ conf);
 
 			HConnection connection = HConnectionManager.createConnection(conf);
 
-			System.out.println("--------CONNECTED TO HBASE");
+			LOG.trace("[OpenSOC] CONNECTED TO HBASE");
 
 			HBaseAdmin hba = new HBaseAdmin(conf);
 
@@ -99,8 +92,7 @@ public class AllAlertAdapter implements AlertsAdapter, Serializable {
 
 			whitelist_table = new HTable(conf, _whitelist_table_name);
 
-			System.out.println("--------CONNECTED TO TABLE: "
-					+ _whitelist_table_name);
+			LOG.trace("[OpenSOC] CONNECTED TO TABLE: "+ _whitelist_table_name);
 
 			Scan scan = new Scan();
 
@@ -111,14 +103,17 @@ public class AllAlertAdapter implements AlertsAdapter, Serializable {
 					loaded_whitelist.add(Bytes.toString(r.getRow()));
 				}
 			} catch (Exception e) {
-				System.out.println("COULD NOT READ FROM HBASE");
+				LOG.trace("[OpenSOC] COULD NOT READ FROM HBASE");
 				e.printStackTrace();
 			} finally {
-				rs.close(); // always close the ResultScanner!
+				rs.close(); 
 			}
 			whitelist_table.close();
 
-			System.out.println("READ IN WHITELIST: " + loaded_whitelist.size());
+			LOG.trace("[OpenSOC] Number of entires in white list: " + loaded_whitelist.size());
+			
+			if(loaded_whitelist.size() == 0)
+				throw new Exception("Hbase connection is OK, but the table is empty: " + whitelist_table);
 
 			return true;
 		} catch (Exception e) {
@@ -150,11 +145,8 @@ public class AllAlertAdapter implements AlertsAdapter, Serializable {
 
 	public boolean getByKey(String metadata, HTableInterface table) {
 
-		LOG.debug("=======Pinging HBase For:" + metadata);
+		LOG.trace("[OpenSOC] Pinging HBase For:" + metadata);
 
-		System.out.println("--------HBASE LIST LOOKUP: " + metadata);
-
-		System.out.println(table);
 
 		Get get = new Get(metadata.getBytes());
 		Result rs;
@@ -216,6 +208,8 @@ public class AllAlertAdapter implements AlertsAdapter, Serializable {
 
 		alert.put("reference_id", alert_id);
 		alerts.put(alert_id, alert);
+		
+		LOG.trace("[OpenSOC] Returning alert: " + alerts);
 
 		 return alerts;
 	}

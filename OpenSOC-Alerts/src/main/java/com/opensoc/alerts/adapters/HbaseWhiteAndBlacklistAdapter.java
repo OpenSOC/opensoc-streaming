@@ -74,23 +74,18 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 		conf.set("hbase.zookeeper.quorum", _quorum);
 		conf.set("hbase.zookeeper.property.clientPort", _port);
 
-		System.out.println("--------ALERTS CONNECTING TO HBASE WITH: " + conf);
+		LOG.trace("[OpenSOC] Connecting to hbase with conf:" + conf);		
+		LOG.trace("[OpenSOC] Whitelist table name: " + _whitelist_table_name);
+		LOG.trace("[OpenSOC] Whitelist table name: " + _blacklist_table_name);
+		LOG.trace("[OpenSOC] ZK Client/port: " + conf.get("hbase.zookeeper.quorum") + " -> " + conf.get("hbase.zookeeper.property.clientPort"));
 
-		System.out.println("--------whitelist: " + _whitelist_table_name);
-		System.out.println("--------blacklist: " + _blacklist_table_name);
-
-		System.out.println("--------hbase.zookeeper.quorum: "
-				+ conf.get("hbase.zookeeper.quorum"));
-		System.out.println("--------hbase.zookeeper.property.clientPort: "
-				+ conf.get("hbase.zookeeper.property.clientPort"));
 		try {
 
-			System.out.println("--------ALERTS CONNECTING TO HBASE WITH: "
-					+ conf);
+			LOG.trace("[OpenSOC] Attempting to connect to hbase");
 
 			HConnection connection = HConnectionManager.createConnection(conf);
 
-			System.out.println("--------CONNECTED TO HBASE");
+			LOG.trace("[OpenSOC] CONNECTED TO HBASE");
 
 			HBaseAdmin hba = new HBaseAdmin(conf);
 
@@ -102,10 +97,10 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 
 			whitelist_table = new HTable(conf, _whitelist_table_name);
 
-			System.out.println("--------CONNECTED TO TABLE: "
+			LOG.trace("[OpenSOC] CONNECTED TO TABLE: "
 					+ _whitelist_table_name);
 			blacklist_table = new HTable(conf, _blacklist_table_name);
-			System.out.println("--------CONNECTED TO TABLE: "
+			LOG.trace("[OpenSOC] CONNECTED TO TABLE: "
 					+ _blacklist_table_name);
 
 			if (connection == null || whitelist_table == null
@@ -121,14 +116,14 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 					loaded_whitelist.add(Bytes.toString(r.getRow()));
 				}
 			} catch (Exception e) {
-				System.out.println("COULD NOT READ FROM HBASE");
+				LOG.trace("[OpenSOC] COULD NOT READ FROM HBASE");
 				e.printStackTrace();
 			} finally {
 				rs.close(); // always close the ResultScanner!
 			}
 			whitelist_table.close();
 
-			System.out.println("READ IN WHITELIST: " + loaded_whitelist.size());
+			LOG.trace("[OpenSOC] READ IN WHITELIST: " + loaded_whitelist.size());
 			
 			
 			 scan = new Scan();
@@ -140,18 +135,18 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 					loaded_blacklist.add(Bytes.toString(r.getRow()));
 				}
 			} catch (Exception e) {
-				System.out.println("COULD NOT READ FROM HBASE");
+				LOG.trace("[OpenSOC] COULD NOT READ FROM HBASE");
 				e.printStackTrace();
 			} finally {
 				rs.close(); // always close the ResultScanner!
 			}
 			blacklist_table.close();
 
-			System.out.println("READ IN WHITELIST: " + loaded_whitelist.size());
+			LOG.trace("[OpenSOC] READ IN WHITELIST: " + loaded_whitelist.size());
 
 			return true;
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+
 			e.printStackTrace();
 		}
 
@@ -215,6 +210,8 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 			alert.put("reference_id", alert_id);
 			alerts.put(alert_id, alert);
 
+			LOG.trace("[OpenSOC] Returning alert: " + alerts);
+			
 			return alerts;
 
 		}
@@ -243,6 +240,8 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 
 			alert.put("reference_id", alert_id);
 			alerts.put(alert_id, alert);
+			
+			LOG.trace("[OpenSOC] Returning alert: " + alerts);
 
 			return alerts;
 
@@ -269,6 +268,8 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 
 			alert.put("reference_id", alert_id);
 			alerts.put(alert_id, alert);
+			
+			LOG.trace("[OpenSOC] Returning alert: " + alerts);
 
 			return alerts;
 
@@ -302,6 +303,8 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 
 			alert.put("reference_id", alert_id);
 			alerts.put(alert_id, alert);
+			
+			LOG.trace("[OpenSOC] Returning alert: " + alerts);
 
 			return alerts;
 

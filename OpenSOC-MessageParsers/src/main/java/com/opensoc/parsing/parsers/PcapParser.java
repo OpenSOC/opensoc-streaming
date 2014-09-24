@@ -157,9 +157,6 @@ public final class PcapParser {
       List<PacketInfo> list = parse(pcapBytes);
 
       for (PacketInfo packetInfo : list) {
-        // FileUtils.writeStringToFile(fout, packetInfo.getJsonDoc(), true);
-        // FileUtils.writeStringToFile(fout, "\n", true);
-        //System.out.println(packetInfo.getJsonDoc());
         System.out.println(packetInfo.getJsonIndexDoc());
       }
     }

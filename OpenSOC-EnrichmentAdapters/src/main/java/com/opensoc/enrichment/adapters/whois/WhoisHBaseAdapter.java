@@ -58,19 +58,19 @@ public class WhoisHBaseAdapter extends AbstractWhoisAdapter {
 
 		try {
 
-			LOG.debug("=======Connecting to HBASE===========");
-			LOG.debug("=======ZOOKEEPER = "
+			LOG.trace("[OpenSOC] Connecting to HBase");
+			LOG.trace("[OpenSOC] ZOOKEEPER = "
 					+ conf.get("hbase.zookeeper.quorum"));
 
-			System.out.println("--------CONNECTING TO HBASE WITH: " + conf);
+			LOG.trace("[OpenSOC] CONNECTING TO HBASE WITH: " + conf);
 
 			HConnection connection = HConnectionManager.createConnection(conf);
 
-			System.out.println("--------CONNECTED TO HBASE");
+			LOG.trace("[OpenSOC] CONNECTED TO HBASE");
 
 			table = connection.getTable(_table_name);
 
-			System.out.println("--------CONNECTED TO TABLE: " + table);
+			LOG.trace("--------CONNECTED TO TABLE: " + table);
 
 			JSONObject tester = enrich("cisco.com");
 
@@ -80,7 +80,6 @@ public class WhoisHBaseAdapter extends AbstractWhoisAdapter {
 
 			return true;
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -91,9 +90,8 @@ public class WhoisHBaseAdapter extends AbstractWhoisAdapter {
 	@SuppressWarnings({ "unchecked", "deprecation" })
 	public JSONObject enrich(String metadata) {
 
-		LOG.debug("=======Pinging HBase For:" + metadata);
+		LOG.trace("[OpenSOC] Pinging HBase For:" + metadata);
 
-		System.out.println("--------HBASE WHOIS LOOKUP: " + metadata);
 
 		JSONObject output = new JSONObject();
 		JSONObject payload = new JSONObject();

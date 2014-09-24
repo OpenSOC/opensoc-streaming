@@ -162,17 +162,8 @@ public void execute(Tuple input) {
       packetInfoList = PcapParser.parse(input.getBinary(0));
 
       if (packetInfoList != null) {
-        // LOG.debug("EUREKA! Found " + packetInfoList.size() +
-        // " packets in tuple");
+
         for (PacketInfo packetInfo : packetInfoList) {
-          // LOG.debug("Emitting key " + packetInfo.getKey());
-          // System.out.println("**********###############  Emitting key " +
-          // packetInfo.getKey());
-
-          // int regionIndex =
-          // hBaseStreamPartitioner.getRegionIndex(packetInfo.getKey()) ;
-
-         // collector.emit("pcap_index_stream", new Values(packetInfo.getJsonIndexDoc(), packetInfo.getKey()));
         	
         	String string_pcap = packetInfo.getJsonIndexDoc();
         	Object obj=JSONValue.parse(string_pcap);

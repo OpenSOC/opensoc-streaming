@@ -33,7 +33,6 @@ public class HostFromPropertiesFileAdapter extends AbstractHostAdapter {
 	@Override
 	public boolean initializeAdapter() 
 	{
-		System.out.println("------------- HOSTS SIZE: " + _known_hosts.size());
 		
 		if(_known_hosts.size() > 0)
 			return true;
@@ -44,7 +43,6 @@ public class HostFromPropertiesFileAdapter extends AbstractHostAdapter {
 	@Override
 	public JSONObject enrich(String metadata) {
 		
-		System.out.println("------------- RECEIVED: " + metadata + " ------AND FOUND " + _known_hosts.containsKey(metadata));
 		
 		if(!_known_hosts.containsKey(metadata))
 			return new JSONObject();

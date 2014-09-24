@@ -1,3 +1,20 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.opensoc.topology.runner;
 
 import java.util.ArrayList;
@@ -21,6 +38,7 @@ import org.apache.storm.hdfs.bolt.rotation.FileSizeRotationPolicy;
 import org.apache.storm.hdfs.bolt.rotation.FileSizeRotationPolicy.Units;
 import org.apache.storm.hdfs.bolt.sync.CountSyncPolicy;
 import org.apache.storm.hdfs.bolt.sync.SyncPolicy;
+import org.apache.storm.hdfs.common.rotation.MoveFileAction;
 import org.json.simple.JSONObject;
 
 import storm.kafka.BrokerHosts;
@@ -606,7 +624,7 @@ public abstract class TopologyRunner {
 
 			kafka_broker_properties.put("serializer.class",
 					"com.opensoc.json.serialization.JSONKafkaSerializer");
-			
+
 			kafka_broker_properties.put("key.serializer.class",
 					"kafka.serializer.StringEncoder");
 
@@ -736,24 +754,46 @@ public abstract class TopologyRunner {
 	private boolean initializeHDFSBolt(String topology_name, String name) {
 		try {
 
-			FileNameFormat fileNameFormat_enriched = new DefaultFileNameFormat()
-					.withPath(config.getString("bolt.hdfs.path", "/") + "/"
-							+ topology_name + "_enriched/");
-			RecordFormat format_enriched = new DelimitedRecordFormat()
-					.withFieldDelimiter("|");
+			RecordFormat format = new DelimitedRecordFormat()
+					.withFieldDelimiter(
+							config.getString("bolt.hdfs.field.delimiter")
+									.toString()).withFields(
+							new Fields("header_json"));
 
-			SyncPolicy syncPolicy_enriched = new CountSyncPolicy(5);
-			FileRotationPolicy rotationPolicy_enriched = new FileSizeRotationPolicy(
-					config.getFloat("bolt.hdfs.size.rotation.policy"), Units.KB);
+			// sync the file system after every x number of tuples
+			SyncPolicy syncPolicy = new CountSyncPolicy(Integer.valueOf(config
+					.getString("bolt.hdfs.batch.size").toString()));
 
-			HdfsBolt hdfsBolt_enriched = new HdfsBolt()
-					.withFsUrl(config.getString("bolt.hdfs.fs.url"))
-					.withFileNameFormat(fileNameFormat_enriched)
-					.withRecordFormat(format_enriched)
-					.withRotationPolicy(rotationPolicy_enriched)
-					.withSyncPolicy(syncPolicy_enriched);
+			// rotate files when they reach certain size
+			FileRotationPolicy rotationPolicy = new FileSizeRotationPolicy(
+					Float.valueOf(config.getString(
+							"bolt.hdfs.file.rotation.size.in.mb").toString()),
+					Units.MB);
 
-			builder.setBolt(name, hdfsBolt_enriched,
+			FileNameFormat fileNameFormat = new DefaultFileNameFormat()
+					.withPath(config.getString("bolt.hdfs.wip.file.path")
+							.toString());
+
+			// Post rotate action
+			MoveFileAction moveFileAction = (new MoveFileAction())
+					.toDestination(config.getString(
+							"bolt.hdfs.finished.file.path").toString());
+
+			HdfsBolt hdfsBolt = new HdfsBolt()
+					.withFsUrl(
+							config.getString("bolt.hdfs.file.system.url")
+									.toString())
+					.withFileNameFormat(fileNameFormat)
+					.withRecordFormat(format)
+					.withRotationPolicy(rotationPolicy)
+					.withSyncPolicy(syncPolicy)
+					.addRotationAction(moveFileAction);
+			if (config.getString("bolt.hdfs.compression.codec.class") != null) {
+				hdfsBolt.withCompressionCodec(config.getString(
+						"bolt.hdfs.compression.codec.class").toString());
+			}
+
+			builder.setBolt(name, hdfsBolt,
 					config.getInt("bolt.hdfs.parallelism.hint"))
 					.shuffleGrouping(component)
 					.setNumTasks(config.getInt("bolt.hdfs.num.tasks"));

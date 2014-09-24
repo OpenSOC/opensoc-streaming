@@ -29,9 +29,9 @@ public class PcapRunner extends TopologyRunner{
 	public  boolean initializeTestingSpout(String name) {
 		try {
 
+			
 			System.out.println("[OpenSOC] Initializing Test Spout");
 			
-			parserName = name;
 
 			GenericInternalTestSpout testSpout = new GenericInternalTestSpout()
 					.withFilename(test_file_path).withRepeating(
@@ -51,11 +51,15 @@ public class PcapRunner extends TopologyRunner{
 	@Override
 	boolean initializeParsingBolt(String topology_name, String name) {
 		try {
-			parserName = name;
+
+			String messageUpstreamComponent = messageComponents.get(messageComponents.size()-1);
+			
+			System.out.println("[OpenSOC] ------" +  name + " is initializing from " + messageUpstreamComponent);
+			
 			builder.setBolt(name, new PcapParserBolt(),
 					config.getInt("bolt.parser.parallelism.hint"))
 					.setNumTasks(config.getInt("bolt.parser.num.tasks"))
-					.shuffleGrouping(component);
+					.shuffleGrouping(messageUpstreamComponent);
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.exit(0);

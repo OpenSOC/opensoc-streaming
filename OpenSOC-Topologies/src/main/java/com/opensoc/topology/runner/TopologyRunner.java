@@ -19,10 +19,11 @@ package com.opensoc.topology.runner;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Queue;
+import java.util.Stack;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
@@ -86,9 +87,11 @@ public abstract class TopologyRunner {
 	protected String config_path = null;
 	protected String default_config_path = "OpenSOC_Configs";
 	protected boolean success = false;
-	protected Set<String> activeComponents = new HashSet<String>();
-	protected String component = null;
-	protected String parserName;
+	protected Stack<String> messageComponents = new Stack<String>();
+	protected Stack<String> errorComponents = new Stack<String>();
+	protected Stack<String> alertComponents = new Stack<String>();
+	protected Stack<String> dataComponents = new Stack<String>();
+	protected Stack<String> terminalComponents = new Stack<String>();
 
 	public void initTopology(String args[], String subdir)
 			throws ConfigurationException, AlreadyAliveException,
@@ -155,7 +158,7 @@ public abstract class TopologyRunner {
 			String component_name = config.getString("spout.test.name",
 					"DefaultTopologySpout");
 			success = initializeTestingSpout(component_name);
-			component = component_name;
+			messageComponents.add(component_name);
 
 			System.out.println("[OpenSOC] ------Component " + component_name
 					+ " initialized with the following settings:");
@@ -167,9 +170,9 @@ public abstract class TopologyRunner {
 		if (!command_line.isGenerator_spout()) {
 			String component_name = config.getString("spout.kafka.name",
 					"DefaultTopologyKafkaSpout");
-			// activeComponents.add(component_name);
+
 			success = initializeKafkaSpout(component_name);
-			component = component_name;
+			messageComponents.add(component_name);
 
 			System.out.println("[OpenSOC] ------Component " + component_name
 					+ " initialized with the following settings:");
@@ -181,9 +184,12 @@ public abstract class TopologyRunner {
 		if (config.getBoolean("parser.bolt.enabled", true)) {
 			String component_name = config.getString("parser.bolt.name",
 					"DefaultTopologyParserBot");
-			activeComponents.add(component_name);
+
 			success = initializeParsingBolt(topology_name, component_name);
-			component = component_name;
+			messageComponents.add(component_name);
+			errorComponents.add(component_name);
+
+			dataComponents.add(component_name);
 
 			System.out.println("[OpenSOC] ------Component " + component_name
 					+ " initialized with the following settings:");
@@ -195,9 +201,10 @@ public abstract class TopologyRunner {
 		if (config.getBoolean("bolt.enrichment.geo.enabled", false)) {
 			String component_name = config.getString(
 					"bolt.enrichment.geo.name", "DefaultGeoEnrichmentBolt");
-			activeComponents.add(component_name);
+
 			success = initializeGeoEnrichment(topology_name, component_name);
-			component = component_name;
+			messageComponents.add(component_name);
+			errorComponents.add(component_name);
 
 			System.out.println("[OpenSOC] ------Component " + component_name
 					+ " initialized with the following settings:");
@@ -211,10 +218,11 @@ public abstract class TopologyRunner {
 		if (config.getBoolean("bolt.enrichment.host.enabled", false)) {
 			String component_name = config.getString(
 					"bolt.enrichment.host.name", "DefaultHostEnrichmentBolt");
-			activeComponents.add(component_name);
+
 			success = initializeHostsEnrichment(topology_name, component_name,
 					"OpenSOC_Configs/etc/whitelists/known_hosts.conf");
-			component = component_name;
+			messageComponents.add(component_name);
+			errorComponents.add(component_name);
 
 			System.out.println("[OpenSOC] ------Component " + component_name
 					+ " initialized with the following settings:");
@@ -226,9 +234,10 @@ public abstract class TopologyRunner {
 		if (config.getBoolean("bolt.enrichment.whois.enabled", false)) {
 			String component_name = config.getString(
 					"bolt.enrichment.whois.name", "DefaultWhoisEnrichmentBolt");
-			activeComponents.add(component_name);
+
 			success = initializeWhoisEnrichment(topology_name, component_name);
-			component = component_name;
+			messageComponents.add(component_name);
+			errorComponents.add(component_name);
 
 			System.out.println("[OpenSOC] ------Component " + component_name
 					+ " initialized with the following settings:");
@@ -240,9 +249,10 @@ public abstract class TopologyRunner {
 		if (config.getBoolean("bolt.enrichment.cif.enabled", false)) {
 			String component_name = config.getString(
 					"bolt.enrichment.cif.name", "DefaultCIFEnrichmentBolt");
-			activeComponents.add(component_name);
+
 			success = initializeCIFEnrichment(topology_name, component_name);
-			component = component_name;
+			messageComponents.add(component_name);
+			errorComponents.add(component_name);
 
 			System.out.println("[OpenSOC] ------Component " + component_name
 					+ " initialized with the following settings:");
@@ -254,11 +264,14 @@ public abstract class TopologyRunner {
 		if (config.getBoolean("bolt.alerts.enabled", false)) {
 			String component_name = config.getString("bolt.alerts.name",
 					"DefaultAlertsBolt");
-			activeComponents.add(component_name);
+
 			success = initializeAlerts(topology_name, component_name,
 					config_path + "/topologies/" + subdir + "/alerts.xml",
 					environment_identifier, topology_identifier);
-			component = component_name;
+
+			messageComponents.add(component_name);
+			errorComponents.add(component_name);
+			alertComponents.add(component_name);
 
 			System.out.println("[OpenSOC] ------Component " + component_name
 					+ " initialized with the following settings:");
@@ -267,11 +280,27 @@ public abstract class TopologyRunner {
 					"bolt.alerts");
 		}
 
+		if (config.getBoolean("bolt.alerts.indexing.enabled") && config.getBoolean("bolt.alerts.enabled")) {
+
+			String component_name = config.getString(
+					"bolt.alerts.indexing.name", "DefaultAlertsBolt");
+
+			success = initializeAlertIndexing(component_name);
+			terminalComponents.add(component_name);
+
+			System.out.println("[OpenSOC] ------Component " + component_name
+					+ " initialized with the following settings:");
+
+			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
+					"bolt.alerts.indexing");
+		}
+
 		if (config.getBoolean("bolt.kafka.enabled", false)) {
 			String component_name = config.getString("bolt.kafka.name",
 					"DefaultKafkaBolt");
-			// activeComponents.add(component_name);
+
 			success = initializeKafkaBolt(component_name);
+			terminalComponents.add(component_name);
 
 			System.out.println("[OpenSOC] Component " + component_name
 					+ " initialized");
@@ -286,7 +315,10 @@ public abstract class TopologyRunner {
 		if (config.getBoolean("bolt.indexing.enabled", true)) {
 			String component_name = config.getString("bolt.indexing.name",
 					"DefaultIndexingBolt");
-			activeComponents.add(component_name);
+
+			errorComponents.add(component_name);
+			terminalComponents.add(component_name);
+
 			success = initializeIndexingBolt(component_name);
 
 			System.out.println("[OpenSOC] ------Component " + component_name
@@ -299,8 +331,9 @@ public abstract class TopologyRunner {
 		if (config.getBoolean("bolt.hdfs.enabled", false)) {
 			String component_name = config.getString("bolt.hdfs.name",
 					"DefaultHDFSBolt");
-			// activeComponents.add(component_name);
+
 			success = initializeHDFSBolt(topology_name, component_name);
+			terminalComponents.add(component_name);
 
 			System.out.println("[OpenSOC] ------Component " + component_name
 					+ " initialized with the following settings:");
@@ -314,6 +347,7 @@ public abstract class TopologyRunner {
 					"bolt.error.indexing.name", "DefaultErrorIndexingBolt");
 
 			success = initializeErrorIndexBolt(component_name);
+			terminalComponents.add(component_name);
 
 			System.out.println("[OpenSOC] ------Component " + component_name
 					+ " initialized with the following settings:");
@@ -330,6 +364,7 @@ public abstract class TopologyRunner {
 			String shuffleType = config.getString("bolt.hbase.shuffle.type",
 					"direct");
 			success = initializeHbaseBolt(component_name, shuffleType);
+			terminalComponents.add(component_name);
 
 			System.out.println("[OpenSOC] ------Component " + component_name
 					+ " initialized with the following settings:");
@@ -337,6 +372,18 @@ public abstract class TopologyRunner {
 			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
 					"bolt.hbase");
 		}
+
+		System.out.println("[OpenSOC] Topology Summary: ");
+		System.out.println("[OpenSOC] Message Stream: "
+				+ printComponentStream(messageComponents));
+		System.out.println("[OpenSOC] Alerts Stream: "
+				+ printComponentStream(alertComponents));
+		System.out.println("[OpenSOC] Error Stream: "
+				+ printComponentStream(errorComponents));
+		System.out.println("[OpenSOC] Data Stream: "
+				+ printComponentStream(dataComponents));
+		System.out.println("[OpenSOC] Terminal Components: "
+				+ printComponentStream(terminalComponents));
 
 		if (local_mode) {
 			conf.setNumWorkers(config.getInt("num.workers"));
@@ -353,9 +400,27 @@ public abstract class TopologyRunner {
 
 	}
 
+	private String printComponentStream(List<String> messageComponents) {
+		StringBuilder print_string = new StringBuilder();
+
+		for (String component : messageComponents) {
+			print_string.append(component + " -> ");
+		}
+
+		print_string.append("[TERMINAL COMPONENT]");
+
+		return print_string.toString();
+	}
+
 	public boolean initializeHbaseBolt(String name, String shuffleType) {
 
 		try {
+
+			String messageUpstreamComponent = dataComponents.get(dataComponents
+					.size()-1);
+
+			System.out.println("[OpenSOC] ------" + name
+					+ " is initializing from " + messageUpstreamComponent);
 
 			String tableName = config.getString("bolt.hbase.table.name")
 					.toString();
@@ -399,7 +464,7 @@ public abstract class TopologyRunner {
 				if (Grouping._Fields.CUSTOM_OBJECT.toString().equalsIgnoreCase(
 						shuffleType)) {
 					declarer.customGrouping(
-							parserName,
+							messageUpstreamComponent,
 							"pcap_data_stream",
 							new HBaseStreamPartitioner(
 									hbaseBoltConfig.getTableName(),
@@ -409,8 +474,8 @@ public abstract class TopologyRunner {
 											.toString())));
 				} else if (Grouping._Fields.DIRECT.toString().equalsIgnoreCase(
 						shuffleType)) {
-					declarer.fieldsGrouping(parserName, "pcap_data_stream",
-							new Fields("pcap_id"));
+					declarer.fieldsGrouping(messageUpstreamComponent,
+							"pcap_data_stream", new Fields("pcap_id"));
 				}
 
 			}
@@ -443,7 +508,7 @@ public abstract class TopologyRunner {
 							config.getInt("bolt.error.indexing.parallelism.hint"))
 					.setNumTasks(config.getInt("bolt.error.indexing.num.tasks"));
 
-			for (String component : activeComponents)
+			for (String component : errorComponents)
 				declarer.shuffleGrouping(component, "error");
 
 			return true;
@@ -484,6 +549,12 @@ public abstract class TopologyRunner {
 	private boolean initializeGeoEnrichment(String topology_name, String name) {
 
 		try {
+			String messageUpstreamComponent = messageComponents
+					.get(messageComponents.size() - 1);
+
+			System.out.println("[OpenSOC] ------" + name
+					+ " is initializing from " + messageUpstreamComponent);
+
 			List<String> geo_keys = new ArrayList<String>();
 			geo_keys.add(config.getString("source.ip"));
 			geo_keys.add(config.getString("dest.ip"));
@@ -507,7 +578,8 @@ public abstract class TopologyRunner {
 
 			builder.setBolt(name, geo_enrichment,
 					config.getInt("bolt.enrichment.geo.parallelism.hint"))
-					.fieldsGrouping(component, "message", new Fields("key"))
+					.fieldsGrouping(messageUpstreamComponent, "message",
+							new Fields("key"))
 					.setNumTasks(config.getInt("bolt.enrichment.geo.num.tasks"));
 
 		} catch (Exception e) {
@@ -522,6 +594,13 @@ public abstract class TopologyRunner {
 			String name, String hosts_path) {
 
 		try {
+
+			String messageUpstreamComponent = messageComponents
+					.get(messageComponents.size() - 1);
+
+			System.out.println("[OpenSOC] ------" + name
+					+ " is initializing from " + messageUpstreamComponent);
+
 			List<String> hosts_keys = new ArrayList<String>();
 			hosts_keys.add(config.getString("source.ip"));
 			hosts_keys.add(config.getString("dest.ip"));
@@ -545,7 +624,8 @@ public abstract class TopologyRunner {
 
 			builder.setBolt(name, host_enrichment,
 					config.getInt("bolt.enrichment.host.parallelism.hint"))
-					.fieldsGrouping(component, "message", new Fields("key"))
+					.fieldsGrouping(messageUpstreamComponent, "message",
+							new Fields("key"))
 					.setNumTasks(
 							config.getInt("bolt.enrichment.host.num.tasks"));
 
@@ -561,6 +641,12 @@ public abstract class TopologyRunner {
 			String alerts_path, JSONObject environment_identifier,
 			JSONObject topology_identifier) {
 		try {
+
+			String messageUpstreamComponent = messageComponents
+					.get(messageComponents.size() - 1);
+
+			System.out.println("[OpenSOC] ------" + name
+					+ " is initializing from " + messageUpstreamComponent);
 
 			JSONObject alerts_identifier = SettingsLoader
 					.generateAlertsIdentifier(environment_identifier,
@@ -579,32 +665,9 @@ public abstract class TopologyRunner {
 
 			builder.setBolt(name, alerts_bolt,
 					config.getInt("bolt.alerts.parallelism.hint"))
-					.fieldsGrouping(component, "message", new Fields("key"))
+					.fieldsGrouping(messageUpstreamComponent, "message",
+							new Fields("key"))
 					.setNumTasks(config.getInt("bolt.alerts.num.tasks"));
-
-			TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
-					.withIndexIP(config.getString("es.ip"))
-					.withIndexPort(config.getInt("es.port"))
-					.withClusterName(config.getString("es.clustername"))
-					.withIndexName(
-							config.getString("bolt.alerts.indexing.indexname"))
-					.withDocumentName(
-							config.getString("bolt.alerts.indexing.documentname"))
-					.withBulk(config.getInt("bolt.alerts.indexing.bulk"))
-					.withIndexAdapter(new ESBaseBulkAdapter())
-					.withMetricConfiguration(config);
-
-			if (config.getBoolean("bolt.alerts.indexing.enabled")) {
-
-				String alerts_name = config
-						.getString("bolt.alerts.indexing.name");
-				builder.setBolt(alerts_name, indexing_bolt,
-						config.getInt("bolt.indexing.parallelism.hint"))
-						.shuffleGrouping(name, "alert")
-						.setNumTasks(config.getInt("bolt.indexing.num.tasks"));
-
-				activeComponents.add(alerts_name);
-			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -613,8 +676,42 @@ public abstract class TopologyRunner {
 		return true;
 	}
 
+	private boolean initializeAlertIndexing(String name) {
+		String messageUpstreamComponent = alertComponents.get(alertComponents
+				.size() - 1);
+
+		System.out.println("[OpenSOC] ------" + name + " is initializing from "
+				+ messageUpstreamComponent);
+
+		TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
+				.withIndexIP(config.getString("es.ip"))
+				.withIndexPort(config.getInt("es.port"))
+				.withClusterName(config.getString("es.clustername"))
+				.withIndexName(
+						config.getString("bolt.alerts.indexing.indexname"))
+				.withDocumentName(
+						config.getString("bolt.alerts.indexing.documentname"))
+				.withBulk(config.getInt("bolt.alerts.indexing.bulk"))
+				.withIndexAdapter(new ESBaseBulkAdapter())
+				.withMetricConfiguration(config);
+
+		String alerts_name = config.getString("bolt.alerts.indexing.name");
+		builder.setBolt(alerts_name, indexing_bolt,
+				config.getInt("bolt.indexing.parallelism.hint"))
+				.shuffleGrouping(messageUpstreamComponent, "alert")
+				.setNumTasks(config.getInt("bolt.indexing.num.tasks"));
+
+		return true;
+	}
+
 	private boolean initializeKafkaBolt(String name) {
 		try {
+
+			String messageUpstreamComponent = messageComponents
+					.get(messageComponents.size() - 1);
+
+			System.out.println("[OpenSOC] ------" + name
+					+ " is initializing from " + messageUpstreamComponent);
 
 			Map<String, String> kafka_broker_properties = new HashMap<String, String>();
 			kafka_broker_properties.put("zk.connect",
@@ -635,7 +732,7 @@ public abstract class TopologyRunner {
 
 			builder.setBolt(name, new KafkaBolt<String, JSONObject>(),
 					config.getInt("bolt.kafka.parallelism.hint"))
-					.shuffleGrouping(component, "message")
+					.shuffleGrouping(messageUpstreamComponent, "message")
 					.setNumTasks(config.getInt("bolt.kafka.num.tasks"));
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -646,6 +743,12 @@ public abstract class TopologyRunner {
 
 	private boolean initializeWhoisEnrichment(String topology_name, String name) {
 		try {
+
+			String messageUpstreamComponent = messageComponents
+					.get(messageComponents.size() - 1);
+
+			System.out.println("[OpenSOC] ------" + name
+					+ " is initializing from " + messageUpstreamComponent);
 
 			List<String> whois_keys = new ArrayList<String>();
 			String[] keys_from_settings = config.getString(
@@ -672,7 +775,8 @@ public abstract class TopologyRunner {
 
 			builder.setBolt(name, whois_enrichment,
 					config.getInt("bolt.enrichment.whois.parallelism.hint"))
-					.fieldsGrouping(component, "message", new Fields("key"))
+					.fieldsGrouping(messageUpstreamComponent, "message",
+							new Fields("key"))
 					.setNumTasks(
 							config.getInt("bolt.enrichment.whois.num.tasks"));
 
@@ -687,6 +791,12 @@ public abstract class TopologyRunner {
 	private boolean initializeIndexingBolt(String name) {
 		try {
 
+			String messageUpstreamComponent = messageComponents
+					.get(messageComponents.size() - 1);
+
+			System.out.println("[OpenSOC] ------" + name
+					+ " is initializing from " + messageUpstreamComponent);
+
 			TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
 					.withIndexIP(config.getString("es.ip"))
 					.withIndexPort(config.getInt("es.port"))
@@ -700,7 +810,8 @@ public abstract class TopologyRunner {
 
 			builder.setBolt(name, indexing_bolt,
 					config.getInt("bolt.indexing.parallelism.hint"))
-					.fieldsGrouping(component, "message", new Fields("key"))
+					.fieldsGrouping(messageUpstreamComponent, "message",
+							new Fields("key"))
 					.setNumTasks(config.getInt("bolt.indexing.num.tasks"));
 
 		} catch (Exception e) {
@@ -713,6 +824,12 @@ public abstract class TopologyRunner {
 
 	private boolean initializeCIFEnrichment(String topology_name, String name) {
 		try {
+
+			String messageUpstreamComponent = messageComponents
+					.get(messageComponents.size() - 1);
+
+			System.out.println("[OpenSOC] ------" + name
+					+ " is initializing from " + messageUpstreamComponent);
 
 			List<String> cif_keys = new ArrayList<String>();
 
@@ -740,7 +857,8 @@ public abstract class TopologyRunner {
 
 			builder.setBolt(name, cif_enrichment,
 					config.getInt("bolt.enrichment.cif.parallelism.hint"))
-					.fieldsGrouping(component, "message", new Fields("key"))
+					.fieldsGrouping(messageUpstreamComponent, "message",
+							new Fields("key"))
 					.setNumTasks(config.getInt("bolt.enrichment.cif.num.tasks"));
 
 		} catch (Exception e) {
@@ -754,11 +872,17 @@ public abstract class TopologyRunner {
 	private boolean initializeHDFSBolt(String topology_name, String name) {
 		try {
 
+			String messageUpstreamComponent = messageComponents
+					.get(messageComponents.size() - 1);
+
+			System.out.println("[OpenSOC] ------" + name
+					+ " is initializing from " + messageUpstreamComponent);
+
 			RecordFormat format = new DelimitedRecordFormat()
 					.withFieldDelimiter(
 							config.getString("bolt.hdfs.field.delimiter")
 									.toString()).withFields(
-							new Fields("header_json"));
+							new Fields("message"));
 
 			// sync the file system after every x number of tuples
 			SyncPolicy syncPolicy = new CountSyncPolicy(Integer.valueOf(config
@@ -795,7 +919,7 @@ public abstract class TopologyRunner {
 
 			builder.setBolt(name, hdfsBolt,
 					config.getInt("bolt.hdfs.parallelism.hint"))
-					.shuffleGrouping(component)
+					.shuffleGrouping(messageUpstreamComponent, "message")
 					.setNumTasks(config.getInt("bolt.hdfs.num.tasks"));
 
 		} catch (Exception e) {

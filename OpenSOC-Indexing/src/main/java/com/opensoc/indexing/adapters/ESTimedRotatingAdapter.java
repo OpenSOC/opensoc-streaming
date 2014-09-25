@@ -8,6 +8,7 @@ import java.util.Iterator;
 
 import org.apache.commons.collections.Bag;
 import org.apache.commons.collections.HashBag;
+import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequestBuilder;
@@ -120,6 +121,8 @@ public class ESTimedRotatingAdapter extends AbstractIndexAdapter implements
 
 				while (iterator.hasNext()) {
 					JSONObject setElement = iterator.next();
+					
+					System.out.println("Flushing to index: " + _index_name+ "_" + index_postfix);
 
 					IndexRequestBuilder a = client.prepareIndex(_index_name+ "_" + index_postfix,
 							_document_name);
@@ -132,9 +135,21 @@ public class ESTimedRotatingAdapter extends AbstractIndexAdapter implements
 						+ bulkRequest.numberOfActions());
 
 				BulkResponse resp = bulkRequest.execute().actionGet();
-				_LOG.trace("[OpenSOC] Received bulk response: "
-						+ resp.toString());
+				
+				
+				System.out.println("[OpenSOC] Received bulk response: "
+						+ resp.buildFailureMessage());
 				bulk_set.clear();
+				
+				if (resp.hasFailures()) {
+				    
+					for(BulkItemResponse r: resp.getItems())
+					{
+						r.getResponse();
+						System.out.println("FAILURE MESSAGE: " + r.getFailureMessage());
+					}
+				}
+				
 			}
 
 			return true;

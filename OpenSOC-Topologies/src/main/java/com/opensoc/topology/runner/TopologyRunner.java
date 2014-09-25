@@ -19,10 +19,8 @@ package com.opensoc.topology.runner;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Stack;
 
 import org.apache.commons.configuration.Configuration;
@@ -73,6 +71,7 @@ import com.opensoc.hbase.HBaseStreamPartitioner;
 import com.opensoc.hbase.TupleTableConfig;
 import com.opensoc.indexing.TelemetryIndexingBolt;
 import com.opensoc.indexing.adapters.ESBaseBulkAdapter;
+import com.opensoc.indexing.adapters.ESTimedRotatingAdapter;
 import com.opensoc.json.serialization.JSONKryoSerializer;
 import com.opensoc.topologyhelpers.Cli;
 import com.opensoc.topologyhelpers.SettingsLoader;
@@ -316,10 +315,9 @@ public abstract class TopologyRunner {
 			String component_name = config.getString("bolt.indexing.name",
 					"DefaultIndexingBolt");
 
+			success = initializeIndexingBolt(component_name);
 			errorComponents.add(component_name);
 			terminalComponents.add(component_name);
-
-			success = initializeIndexingBolt(component_name);
 
 			System.out.println("[OpenSOC] ------Component " + component_name
 					+ " initialized with the following settings:");
@@ -805,7 +803,7 @@ public abstract class TopologyRunner {
 					.withDocumentName(
 							config.getString("bolt.indexing.documentname"))
 					.withBulk(config.getInt("bolt.indexing.bulk"))
-					.withIndexAdapter(new ESBaseBulkAdapter())
+					.withIndexAdapter(new ESTimedRotatingAdapter())
 					.withMetricConfiguration(config);
 
 			builder.setBolt(name, indexing_bolt,

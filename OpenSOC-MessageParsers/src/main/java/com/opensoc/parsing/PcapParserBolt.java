@@ -170,7 +170,7 @@ public void execute(Tuple input) {
         	  JSONObject header=(JSONObject)obj;
         	
         	JSONObject message = new JSONObject();
-        	message.put("key", packetInfo.getKey());
+        	//message.put("key", packetInfo.getKey());
         	
         	if(header.containsKey("src_addr"))
         	{

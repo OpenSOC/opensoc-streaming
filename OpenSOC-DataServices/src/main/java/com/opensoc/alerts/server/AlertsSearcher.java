@@ -101,10 +101,14 @@ public class AlertsSearcher implements Runnable {
 				logger.info( "No existing searcherState.properties found" );
 			}
 			
+			String clusterName = configProps.getProperty("clusterName", "elasticsearch" );
+			
+			logger.info( "clusterName: " + clusterName );
+			
 			// search for alerts newer than "lastSearchTime" 
 			Settings settings = ImmutableSettings.settingsBuilder()
-					.put("client.transport.sniff", true).build();
-			        // .put("cluster.name", "elasticsearch").build();
+					.put("client.transport.sniff", true)
+			        .put("cluster.name", clusterName ).build();
 	
 			Client client = null;
 			try
@@ -112,35 +116,39 @@ public class AlertsSearcher implements Runnable {
 				logger.info( "initializing elasticsearch client" );
 				
 				String elasticSearchHostName = configProps.getProperty( "elasticSearchHostName", "localhost" );
-				int elasticSearchHostPort = Integer.parseInt(configProps.getProperty( "elasticSearchHostPort", "9300" ) );
-				client = new TransportClient(settings).addTransportAddress(new InetSocketTransportAddress(elasticSearchHostName, elasticSearchHostPort));
-					
-				logger.info( "lastSearchTime: " + lastSearchTime );
 				
-				String alertsIndexes = configProps.getProperty( "alertsIndexes", "alerts" );
+				int elasticSearchHostPort = Integer.parseInt(configProps.getProperty( "elasticSearchHostPort", "9300" ) );
+				
+				client = new TransportClient(settings).addTransportAddress(new InetSocketTransportAddress(elasticSearchHostName, elasticSearchHostPort));
+				
+				String alertsIndexes = configProps.getProperty( "alertsIndexes", "alert" );
 				String[] alertsIndexArray = alertsIndexes.split(",");
 				
 				String alertsTypes = configProps.getProperty( "alertsTypes", "" );
 				String[] alertsTypesArray = alertsTypes.split( ",");
 				
-				String alertsQueryFieldName = configProps.getProperty( "alertQueryFieldName", "alert.source" );
+				String alertsQueryFieldName = configProps.getProperty(  "alertsQueryFieldName", "" );
 				String alertsQueryFieldValue = configProps.getProperty( "alertsQueryFieldValue", "*" );
-				
+
+				logger.info( "elasticSearchHostName: " + elasticSearchHostName );
+				logger.info( "elasticSearchHostPort: " + elasticSearchHostPort );
 				logger.info( "alertsIndexes: " + alertsIndexes );
-				
-				String[] foo = new String[1];
+				logger.info( "alertsTypes: " + alertsTypes );
+				logger.info( "alertsQueryFieldName: " + alertsQueryFieldName );
+				logger.info( "alertsQueryFieldValue: " + alertsQueryFieldValue );
+				logger.info( "lastSearchTime: " + lastSearchTime );				
 				
 				SearchResponse response = client.prepareSearch( alertsIndexArray )
 				.setTypes( alertsTypesArray )
 				.setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
 				.addField("_source")		
-				.setQuery( QueryBuilders.boolQuery().must(  QueryBuilders.wildcardQuery( alertsQueryFieldName, alertsQueryFieldValue ) )
-													.must( QueryBuilders.rangeQuery("message.timestamp").from(lastSearchTime).to(System.currentTimeMillis()).includeLower(true).includeUpper(false)))
+				.setQuery( QueryBuilders.boolQuery().must(  QueryBuilders.wildcardQuery( alertsQueryFieldName, alertsQueryFieldValue ) ) 
+				 .must( QueryBuilders.rangeQuery("timestamp").from(lastSearchTime).to(System.currentTimeMillis()).includeLower(true).includeUpper(false)))
 				.execute()
 				.actionGet();
 				
 				SearchHits hits = response.getHits();
-				logger.debug( "Total hits: " + hits.getTotalHits());
+				logger.info( "Total hits: " + hits.getTotalHits());
 
 				
 				// for all hits, put the alert onto the Kafka topic.

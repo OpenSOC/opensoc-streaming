@@ -26,7 +26,7 @@ public class PcapReceiverImplRestEasy {
 
 	/** The Constant LOGGER. */
 	private static final Logger LOGGER = Logger
-			.getLogger(PcapReceiverImpl.class);
+			.getLogger(PcapReceiverImplRestEasy.class);
 
 	/** The Constant HEADER_CONTENT_DISPOSITION_NAME. */
 	private static final String HEADER_CONTENT_DISPOSITION_NAME = "Content-Disposition";

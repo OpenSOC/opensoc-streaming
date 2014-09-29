@@ -1,4 +1,4 @@
-package com.opensoc.topologyhelpers;
+package com.opensoc.helpers.topology;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;

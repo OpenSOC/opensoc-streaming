@@ -34,9 +34,9 @@ import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
 import com.opensoc.enrichment.interfaces.EnrichmentAdapter;
+import com.opensoc.helpers.topology.ErrorGenerator;
 import com.opensoc.json.serialization.JSONEncoderHelper;
 import com.opensoc.metrics.MetricReporter;
-import com.opensoc.topologyhelpers.ErrorGenerator;
 
 /**
  * Uses an adapter to enrich telemetry messages with additional metadata

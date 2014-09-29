@@ -30,11 +30,11 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
+import com.opensoc.helpers.topology.ErrorGenerator;
 import com.opensoc.json.serialization.JSONEncoderHelper;
 import com.opensoc.metrics.MetricReporter;
 import com.opensoc.parser.interfaces.MessageFilter;
 import com.opensoc.parser.interfaces.MessageParser;
-import com.opensoc.topologyhelpers.ErrorGenerator;
 
 /**
  * Uses an adapter to parse a telemetry message from its native format into a

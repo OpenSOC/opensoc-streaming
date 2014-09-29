@@ -30,6 +30,7 @@
 		<global_junit_version>4.4</global_junit_version>
 		<global_guava_version>18.0</global_guava_version>
 		<global_json_schema_validator_version>2.2.5</global_json_schema_validator_version>
+		<global_slf4j_version>1.7.7</global_slf4j_version>
 
 	</properties>
 	<licenses>

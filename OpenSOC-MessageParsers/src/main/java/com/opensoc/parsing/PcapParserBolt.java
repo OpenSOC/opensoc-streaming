@@ -7,9 +7,9 @@ import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
+import com.opensoc.helpers.topology.ErrorGenerator;
 import com.opensoc.parsing.parsers.PcapParser;
 import com.opensoc.pcap.PacketInfo;
-import com.opensoc.topologyhelpers.ErrorGenerator;
 
 import backtype.storm.generated.Grouping;
 import backtype.storm.task.OutputCollector;

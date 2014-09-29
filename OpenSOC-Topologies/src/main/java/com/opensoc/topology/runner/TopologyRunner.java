@@ -66,11 +66,11 @@ import com.opensoc.enrichment.interfaces.EnrichmentAdapter;
 import com.opensoc.hbase.HBaseBolt;
 import com.opensoc.hbase.HBaseStreamPartitioner;
 import com.opensoc.hbase.TupleTableConfig;
+import com.opensoc.helpers.topology.Cli;
+import com.opensoc.helpers.topology.SettingsLoader;
 import com.opensoc.index.interfaces.IndexAdapter;
 import com.opensoc.indexing.TelemetryIndexingBolt;
 import com.opensoc.json.serialization.JSONKryoSerializer;
-import com.opensoc.topologyhelpers.Cli;
-import com.opensoc.topologyhelpers.SettingsLoader;
 
 public abstract class TopologyRunner {
 

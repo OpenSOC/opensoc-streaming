@@ -8,9 +8,10 @@ import javax.ws.rs.core.Application;
 import com.opensoc.pcapservice.PcapReceiverImplRestEasy;
 
 public class JettyServiceRunner extends Application  {
+	
+
 	private static Set services = new HashSet(); 
-	
-	
+		
 	public  JettyServiceRunner() {     
 		// initialize restful services   
 		services.add(new PcapReceiverImplRestEasy());  

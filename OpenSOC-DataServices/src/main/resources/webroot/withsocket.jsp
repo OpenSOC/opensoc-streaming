@@ -5,6 +5,7 @@
 	<head>
 		<title>Do something with WebSockets</title>
 		
+		
 		<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>	
 		<script type="text/javascript">
 		$(document).ready(function() {
@@ -14,7 +15,7 @@
 			
 			   	$("#startBtn").click(
 					function() {
-						exampleSocket = new WebSocket("wss://localhost:8443/ws/messages");
+						exampleSocket = new WebSocket("wss://${pageContext.request.serverName}:8443/ws/messages");
 						if( exampleSocket != null )
 						{
 							

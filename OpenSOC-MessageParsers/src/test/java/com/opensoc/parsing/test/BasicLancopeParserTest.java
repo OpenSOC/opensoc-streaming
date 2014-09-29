@@ -16,16 +16,16 @@
  */
 package com.opensoc.parsing.test;
 
-import java.util.Iterator;
-import java.util.Map;
-
-import junit.framework.TestCase;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.net.URL;
 
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 import com.opensoc.parsing.parsers.BasicLancopeParser;
+import com.opensoc.test.AbstractSchemaTest;
 
  /**
  * <ul>
@@ -35,7 +35,7 @@ import com.opensoc.parsing.parsers.BasicLancopeParser;
  * </ul>
  * @version $Revision: 1.1 $
  */
-public class BasicLancopeParserTest extends TestCase {
+public class BasicLancopeParserTest extends AbstractSchemaTest {
 
     private  static String rawMessage = "";
     private static BasicLancopeParser lancopeParser=null;   
@@ -73,7 +73,11 @@ public class BasicLancopeParserTest extends TestCase {
         super.setUp();
         setRawMessage("{\"message\":\"<131>Jul 17 15:59:01 smc-01 StealthWatch[12365]: 2014-07-17T15:58:30Z 10.40.10.254 0.0.0.0 Minor High Concern Index The host's concern index has either exceeded the CI threshold or rapidly increased. Observed 36.55M points. Policy maximum allows up to 20M points.\",\"@version\":\"1\",\"@timestamp\":\"2014-07-17T15:56:05.992Z\",\"type\":\"syslog\",\"host\":\"10.122.196.201\"}");        
         assertNotNull(getRawMessage());
-        BasicLancopeParserTest.setLancopeParser(new BasicLancopeParser());        
+        BasicLancopeParserTest.setLancopeParser(new BasicLancopeParser());   
+        
+        URL schema_url = getClass().getClassLoader().getResource(
+            "TestSchemas/LancopeSchema.json");
+        super.setSchemaJsonString(super.readSchemaFromFile(schema_url));      
     }
 
     /* 
@@ -87,33 +91,28 @@ public class BasicLancopeParserTest extends TestCase {
 
     /**
      * Test method for {@link com.opensoc.parsing.parsers.BasicLancopeParser#parse(byte[])}.
+     * @throws Exception 
+     * @throws IOException 
      */
-    public void testParse() {
-        byte messages[] = getRawMessage().getBytes();
-        assertNotNull(messages);        
-        JSONObject parsed = lancopeParser.parse(getRawMessage().getBytes());
-        assertNotNull(parsed);
-        
-        System.out.println(parsed);
-        JSONParser parser = new JSONParser();
-        
-        Map json=null;
-        try {
-            json = (Map) parser.parse(parsed.toJSONString());
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        Iterator iter = json.entrySet().iterator();
-            
+    public void testParse() throws IOException, Exception {
+        URL log_url = getClass().getClassLoader().getResource("LancopeSample.log");
 
-        while (iter.hasNext()) {
-            Map.Entry entry = (Map.Entry) iter.next();
-            String key = (String) entry.getKey();
-            assertNotNull((String) json.get("original_string").toString());
+        BufferedReader br;
+        try {
+            br = new BufferedReader(new FileReader(log_url.getFile()));
+            String line = "";
+            while ((line = br.readLine()) != null) {
+                System.out.println(line);
+                assertNotNull(line);
+                JSONObject parsed =  lancopeParser.parse(line.getBytes());
+                System.out.println(parsed);
+                assertEquals(true, validateJsonData(super.getSchemaJsonString(), parsed.toString()));
+            }
+            br.close();  
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
             
-            assertNotNull((String)json.get("ip_src_addr").toString());
-            assertNotNull((String)json.get("ip_dst_addr").toString());            
-        }        
+        }
     }
     
     /**

@@ -65,6 +65,11 @@
 			</exclusions>
 		</dependency>
 		<dependency>
+			<groupId>com.github.fge</groupId>
+			<artifactId>json-schema-validator</artifactId>
+			<version>${global_json_schema_validator_version}</version>
+		</dependency>		
+		<dependency>
 			<groupId>com.codahale.metrics</groupId>
 			<artifactId>metrics-core</artifactId>
 			<version>${global_metrics_version}</version>

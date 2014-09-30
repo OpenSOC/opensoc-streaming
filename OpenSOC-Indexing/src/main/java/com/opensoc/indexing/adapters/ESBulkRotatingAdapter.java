@@ -72,7 +72,7 @@ public class ESBulkRotatingAdapter extends AbstractIndexAdapter {
 	}
 
 	@SuppressWarnings("unchecked")
-	public boolean bulkIndex(JSONObject raw_message) {
+	public int bulkIndex(JSONObject raw_message) {
 
 		index_postfix = dateFormat.format(new Date());
 
@@ -82,7 +82,7 @@ public class ESBulkRotatingAdapter extends AbstractIndexAdapter {
 		return doIndex();
 	}
 
-	public boolean bulkIndex(String raw_message) {
+	public int bulkIndex(String raw_message) {
 
 		index_postfix = dateFormat.format(new Date());
 
@@ -92,9 +92,12 @@ public class ESBulkRotatingAdapter extends AbstractIndexAdapter {
 		return doIndex();
 	}
 
-	public boolean doIndex() {
+	public int doIndex() {
 
 		element_count++;
+		
+		if (element_count != _bulk_size)
+			return 0;
 
 		if (element_count == _bulk_size) {
 			_LOG.debug("Starting bulk load of size: " + _bulk_size);
@@ -104,7 +107,7 @@ public class ESBulkRotatingAdapter extends AbstractIndexAdapter {
 
 			if (resp.hasFailures()) {
 				_LOG.error("Bulk update failed");
-				return false;
+				return 2;
 			}
 
 			if (!running_index_postfix.equals(index_postfix)) {
@@ -133,7 +136,7 @@ public class ESBulkRotatingAdapter extends AbstractIndexAdapter {
 				catch (Exception e) {
 					e.printStackTrace();
 					_LOG.error("Alias request failed...");
-					return false;
+					return 2;
 				}
 			}
 
@@ -143,7 +146,7 @@ public class ESBulkRotatingAdapter extends AbstractIndexAdapter {
 		_LOG.debug("Adding to bulk load: element " + element_count
 				+ " of bulk size " + _bulk_size);
 
-		return true;
+		return 1;
 	}
 
 }

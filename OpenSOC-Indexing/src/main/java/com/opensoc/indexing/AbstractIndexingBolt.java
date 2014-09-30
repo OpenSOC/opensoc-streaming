@@ -27,7 +27,6 @@ import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichBolt;
-import backtype.storm.tuple.Fields;
 
 import com.codahale.metrics.Counter;
 import com.opensoc.index.interfaces.IndexAdapter;
@@ -54,11 +53,9 @@ public abstract class AbstractIndexingBolt extends BaseRichBolt {
 	protected String _DocumentName;
 	protected int _BulkIndexNumber = 10;
 
-	protected String OutputFieldName;
 	protected Counter ackCounter, emitCounter, failCounter;
 
 	protected void registerCounters() {
-		String prefix = "com.opensoc.metrics.";
 
 		String ackString = _adapter.getClass().getSimpleName() + ".ack";
 
@@ -86,8 +83,6 @@ public abstract class AbstractIndexingBolt extends BaseRichBolt {
 			throw new IllegalStateException("_IndexName must be specified");
 		if (this._DocumentName == null)
 			throw new IllegalStateException("_DocumentName must be specified");
-		if (this.OutputFieldName == null)
-			throw new IllegalStateException("OutputFieldName must be specified");
 		if (this._adapter == null)
 			throw new IllegalStateException("IndexAdapter must be specified");
 
@@ -100,7 +95,7 @@ public abstract class AbstractIndexingBolt extends BaseRichBolt {
 	}
 
 	public void declareOutputFields(OutputFieldsDeclarer declearer) {
-		declearer.declare(new Fields(this.OutputFieldName));
+		
 	}
 
 	abstract void doPrepare(Map conf, TopologyContext topologyContext,

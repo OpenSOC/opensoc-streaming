@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -20,6 +20,7 @@ package com.opensoc.tagging;
 import java.io.IOException;
 import java.util.Map;
 
+import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +30,9 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Fields;
 
-import com.opensoc.tagger.interfaces.TaggerAdapter;
+import com.codahale.metrics.Counter;
+import com.opensoc.alerts.interfaces.TaggerAdapter;
+import com.opensoc.metrics.MetricReporter;
 
 @SuppressWarnings("rawtypes")
 public abstract class AbstractTaggerBolt extends BaseRichBolt {
@@ -45,6 +48,24 @@ public abstract class AbstractTaggerBolt extends BaseRichBolt {
 	protected TaggerAdapter _adapter;
 
 	protected String OutputFieldName;
+	protected JSONObject _identifier;
+	protected MetricReporter _reporter;
+	
+	protected Counter ackCounter, emitCounter, failCounter;
+
+	protected void registerCounters() {
+
+		String ackString = _adapter.getClass().getSimpleName() + ".ack";
+
+		String emitString = _adapter.getClass().getSimpleName() + ".emit";
+
+		String failString = _adapter.getClass().getSimpleName() + ".fail";
+
+		ackCounter = _reporter.registerCounter(ackString);
+		emitCounter = _reporter.registerCounter(emitString);
+		failCounter = _reporter.registerCounter(failString);
+
+	}
 
 	public final void prepare(Map conf, TopologyContext topologyContext,
 			OutputCollector collector) {
@@ -52,7 +73,8 @@ public abstract class AbstractTaggerBolt extends BaseRichBolt {
 		
 		if (this._adapter == null)
 			throw new IllegalStateException("Tagging must be specified");
-		
+		if(this._identifier == null)
+			throw new IllegalStateException("Identifier must be specified");
 		try {
 			doPrepare(conf, topologyContext, collector);
 		} catch (IOException e) {

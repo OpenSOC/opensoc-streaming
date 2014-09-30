@@ -7,9 +7,12 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.graphite.Graphite;
 import com.codahale.metrics.graphite.GraphiteReporter;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
+import org.apache.log4j.Logger;
 
 public class MetricReporter {
 
@@ -19,17 +22,25 @@ public class MetricReporter {
 	private GraphiteReporter graphiteReporter = null;
 
 	private Class _klas;
+	private String _topologyname = "topology";
+
+	/** The Constant LOGGER. */
+	private static final Logger _Logger = Logger
+			.getLogger(MetricReporter.class);
 
 	public void initialize(Map config, Class klas) {
 
-		System.out.println("===========Initializing Reporter");
+		_Logger.debug("===========Initializing Reporter");
 		this._klas = klas;
+		if (config.get("topologyname")!=null)
+			_topologyname = (String) config.get("topologyname");
+			
 		this.start(config);
 
 	}
 
 	public Counter registerCounter(String countername) {
-		return metrics.counter(MetricRegistry.name(_klas, countername));
+		return metrics.counter(MetricRegistry.name(_topologyname,_klas.getCanonicalName(), countername));
 	}
 
 	public void start(Map config) {
@@ -44,31 +55,35 @@ public class MetricReporter {
 				consoleReporter.start(1, TimeUnit.SECONDS);
 			}
 
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		try {
 			if (config.get("reporter.graphite").equals("true")) {
 				String address = (String) config.get("graphite.address");
 				int port = Integer.parseInt((String) config
 						.get("graphite.port"));
 
-				System.out.println("===========Graphite ADDRESS: " + address
-						+ ":" + port);
+				_Logger.debug("===========Graphite ADDRESS: " + address + ":"
+						+ port);
 
 				Graphite graphite = new Graphite(new InetSocketAddress(address,
 						port));
+				// Check if graphite connectivity works
+				graphite.connect();
+				graphite.close();
+
 				graphiteReporter = GraphiteReporter.forRegistry(metrics).build(
 						graphite);
-				System.out
-						.println("---------******STARTING GRAPHITE*********---------");
-				graphiteReporter.start(1, TimeUnit.SECONDS);
-			} else
-				System.out
-						.println("---------******GRAPHITE DISABLED*********---------");
-		} catch (Exception e) {
-			e.printStackTrace();
 
-			for (Object key : config.values())
-				System.out.println(key + "---" + config.get(key));
+				_Logger.debug("---------******STARTING GRAPHITE*********---------");
+				graphiteReporter.start(1, TimeUnit.SECONDS);
+			}
 		}
 
+		catch (IOException io) {
+			_Logger.warn("Unable to Connect to Graphite");
+		}
 	}
-
 }

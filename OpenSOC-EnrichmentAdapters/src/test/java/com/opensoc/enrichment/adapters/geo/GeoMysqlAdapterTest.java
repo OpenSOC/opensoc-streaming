@@ -1,4 +1,3 @@
-
  /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -17,10 +16,7 @@
  */
 package com.opensoc.enrichment.adapters.geo;
 
-import java.util.Iterator;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Properties;
 
 import org.json.simple.JSONObject;
 
@@ -28,52 +24,22 @@ import com.opensoc.test.AbstractTestContext;
 
  /**
  * <ul>
- * <li>Title: GeoMysqlAdapterTest  </li>
- * <li>Description: JUnit Test for GeoMysqlAdapter </li>
- * <li>Created: Aug 7, 2014 by: spiddapa</li>
+ * <li>Title: </li>
+ * <li>Description: </li>
+ * <li>Created: Aug 25, 2014</li>
  * </ul>
- * @author $Author: spiddapa $
  * @version $Revision: 1.1 $
  */
-public class GeoMysqlAdapterTest extends AbstractTestContext {
-    /**
-     * Class Details if any
-     */    
-    
-     /**
-     * The _ip parameter
-     */
-    private String _ip=null;
-    
-     /**
-     * The _port parameter.
-     */
-    private String _port=null;
-    
-     /**
-     * The _username parameter.
-     */
-    private String _username=null;
-    
-     /**
-     * The _password parameter.
-     */
-    private String _password=null;
-    
-    /**
-    * The _tableName parameter.
-    */
-   private String _tableName=null;    
+public class GeoMysqlAdapterTest extends AbstractTestContext  {
 
-
-   private GeoMysqlAdapter geoMysqlAdapter=null;
-    
-  
+    private static GeoMysqlAdapter geoMySqlAdapter=null;
+    private static boolean connected=false;
 
     /**
      * Constructs a new <code>GeoMysqlAdapterTest</code> instance.
      * @param name
      */
+
     public GeoMysqlAdapterTest(String name) {
         super(name);
     }
@@ -83,7 +49,6 @@ public class GeoMysqlAdapterTest extends AbstractTestContext {
      * @throws java.lang.Exception
      */
     protected static void setUpBeforeClass() throws Exception {
-        
     }
 
     /**
@@ -95,188 +60,94 @@ public class GeoMysqlAdapterTest extends AbstractTestContext {
 
     /* 
      * (non-Javadoc)
-     * @see com.opensoc.test.AbstractTestContext#setUp()
+     * @see junit.framework.TestCase#setUp()
      */
 
     protected void setUp() throws Exception {
         super.setUp();
-        if(_ip==null){
-            _ip=super.getTestProperties().getProperty("bolt.enrichment.geo.adapter.ip");
-            System.out.println("ip="+_ip);
-        }
-        if(_port==null){
-            _port=super.getTestProperties().getProperty("bolt.enrichment.geo.adapter.port");
-            System.out.println("port="+_port);
-        }
-        if(_username==null){
-            _username=super.getTestProperties().getProperty("bolt.enrichment.geo.adapter.username");
-            System.out.println("username="+_username);
-        }
-        if(_password==null){
-            _password=super.getTestProperties().getProperty("bolt.enrichment.geo.adapter.password");
-            System.out.println("password="+_password);        
-        }
-        if(_tableName==null){
-            _tableName=super.getTestProperties().getProperty("bolt.enrichment.geo.adapter.table.name");
-            System.out.println("tableName="+_tableName);
-        }   
-        this.setGeoMysqlAdapter(new GeoMysqlAdapter(this._ip,new Integer(this._port).intValue(),this._username,this._password,this._tableName));      
+        Properties prop = super.getTestProperties();
+        assertNotNull(prop);   
+        System.out.println("username ="+(String)prop.get("mysql.username"));
+        if(skipTests(this.getMode())){
+            System.out.println(getClass().getName()+" Skipping Tests !!Local Mode");
+            return;//skip tests
+       }else{
+        geoMySqlAdapter=new GeoMysqlAdapter((String)prop.get("mysql.ip"), (new Integer((String)prop.get("mysql.port"))).intValue(),(String)prop.get("mysql.username"),(String)prop.get("mysql.password"), (String)prop.get("bolt.enrichment.geo.adapter.table"));
+        connected =geoMySqlAdapter.initializeAdapter();
+        assertTrue(connected);
+       }
     }
 
     /* 
      * (non-Javadoc)
-     * @see com.opensoc.test.AbstractTestContext#tearDown()
+     * @see junit.framework.TestCase#tearDown()
      */
 
     protected void tearDown() throws Exception {
         super.tearDown();
+        geoMySqlAdapter=null;
     }
 
     /**
      * Test method for {@link com.opensoc.enrichment.adapters.geo.GeoMysqlAdapter#enrich(java.lang.String)}.
      */
     public void testEnrich() {
-        String geoEnrichmentStr = "{\"sourcefire\":{\"protocol\":\"tcp\",\"ip_dst_addr\":\"72.163.0.129\",\"ip_src_port\":\"45283\",\"ip_dst_port\":\"21\",\"message\":\"SFIMS: [Primary Detection Engine (a7213248-6423-11e3-8537-fac6a92b7d9d)][MTD Access Control] Connection Type: Start, User: Unknown, Client: Unknown, Application Protocol: Unknown, Web App: Unknown, Firewall Rule Name: MTD Access Control, Firewall Rule Action: Allow, Firewall Rule Reasons: Unknown, URL Category: Unknown, URL_Reputation: Risk unknown, URL: Unknown, Interface Ingress: s1p1, Interface Egress: NA, Security Zone Ingress: Unknown, Security Zone Egress: NA, Security Intelligence Matching IP: None, Security Intelligence Category: None, \",\"ip_src_addr\":\"10.5.200.245\",\"key\":\"{TCP} 10.5.200.245:45283 -> 72.163.0.129:21\",\"timestamp\":1405482308648},\"geo_enrichment\":{\"responder_ip_regex_72.163.0.129\":{\"country\":\"US\",\"dmaCode\":\"623\",\"city\":\"Plano\",\"postalCode\":\"\",\"latitude\":\"33.0198\",\"locID\":\"14327\",\"longitude\":\"-96.6989\"},\"originator_ip_regex_10.5.200.245\":{}}}";
-        try {
-            JSONObject enrichJson=this.getGeoMysqlAdapter().enrich(geoEnrichmentStr);
-
-            Pattern p = Pattern.compile("[^\\._a-z0-9 ]", Pattern.CASE_INSENSITIVE);
-            Map<?, ?> json = (Map) enrichJson;
-            Iterator<?> iter = json.entrySet().iterator();
-
-            while (iter.hasNext()) {
-                Map.Entry entry = (Map.Entry) iter.next();
-                String key = (String) entry.getKey();
-                Matcher m = p.matcher(key);
-                boolean b = m.find();
-                // Test False
-                assertFalse(b);
-            } 
-        }catch(Exception ex) {
-                ex.printStackTrace();
-                fail("Enrichment failed for :"+geoEnrichmentStr);
-            }
+        if(skipTests(this.getMode())){
+            return;//skip tests
+       }else{
+        JSONObject json = geoMySqlAdapter.enrich("72.163.4.161");
+        
+        //assert Geo Response is not null
+        assertNotNull(json);
+        
+        //assert LocId is not null
+        assertNotNull(json.get("locID"));
+        
+        //assert right LocId is being returned
+        assertEquals("4522",json.get("locID"));
+       }
     }
 
     /**
      * Test method for {@link com.opensoc.enrichment.adapters.geo.GeoMysqlAdapter#initializeAdapter()}.
      */
     public void testInitializeAdapter() {
-        boolean initialized=this.getGeoMysqlAdapter().initializeAdapter();
-        assertTrue(initialized);
+        if(skipTests(this.getMode())){
+            return;//skip tests
+       }else{        
+        boolean connected =geoMySqlAdapter.initializeAdapter();
+        assertTrue(connected);
+       }
     }
-
+ 
     /**
      * Test method for {@link com.opensoc.enrichment.adapters.geo.GeoMysqlAdapter#GeoMysqlAdapter(java.lang.String, int, java.lang.String, java.lang.String, java.lang.String)}.
      */
     public void testGeoMysqlAdapter() {
-        assertNotNull(this.getGeoMysqlAdapter());
-
-    }
-    /**
-     * Returns the ip.
-     * @return the ip.
-     */
-    
-    public String getIp() {
-        return _ip;
+        if(skipTests(this.getMode())){
+            return;//skip tests
+       }else{       
+           assertTrue(connected);
+       }
     }
 
     /**
-     * Sets the _ip.
-     * @param ip the _ip.
+     * Returns the geoMySqlAdapter.
+     * @return the geoMySqlAdapter.
      */
     
-    public void setIp(String ip) { 
-        this._ip = ip;
-    }
-    
-    /**
-     * Returns the port.
-     * @return the _port.
-     */
-    
-    public String getPort() {
-        return _port;
+    public static GeoMysqlAdapter getGeoMySqlAdapter() {
+        return geoMySqlAdapter;
     }
 
     /**
-     * Sets the _port.
-     * @param port the port.
+     * Sets the geoMySqlAdapter.
+     * @param geoMySqlAdapter the geoMySqlAdapter.
      */
     
-    public void setPort(String port) {
-        this._port = port;
-    }    
+    public static void setGeoMySqlAdapter(GeoMysqlAdapter geoMySqlAdapter) {
     
-    /**
-     * Returns the _username.
-     * @return the username.
-     */
-    
-    public String getUsername() {
-        return _username;
-    }
-
-    /**
-     * Sets the _username.
-     * @param username the username.
-     */
-    
-    public void setUsername(String username) {
-        this._username = username;
-    }    
-    /**
-     * Returns the _password.
-     * @return the password.
-     */
-    
-    public String getPassword() {
-        return _password;
-    }
-
-    /**
-     * Sets the _password.
-     * @param password the password.
-     */ 
-    public void setPassword(String password) {
-        this._password = password;
-    }
-    
-    /**
-     * Returns the _tableName.
-     * @return the _tableName.
-     */
-    public String get_tableName() {
-        return _tableName;
-    }
-
-    /**
-     * Sets the _tableName.
-     * @param _tableName the _tableName.
-     */
-    public void set_tableName(String _tableName) {
-    
-        this._tableName = _tableName;
-    }
-    
-    /**
-     * Returns the geoMysqlAdapter.
-     * @return the geoMysqlAdapter.
-     */
-
-    public GeoMysqlAdapter getGeoMysqlAdapter() {
-        return geoMysqlAdapter;
-    }
-
-    /**
-     * Sets the geoMysqlAdapter.
-     * @param geoMysqlAdapter the geoMysqlAdapter.
-     */
-
-    public void setGeoMysqlAdapter(GeoMysqlAdapter geoMysqlAdapter) {
-
-        this.geoMysqlAdapter = geoMysqlAdapter;
+        GeoMysqlAdapterTest.geoMySqlAdapter = geoMySqlAdapter;
     }
 }
 

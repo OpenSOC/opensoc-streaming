@@ -20,9 +20,8 @@ import com.opensoc.parsing.parsers.BasicSourcefireParser;
  * <ul>
  * <li>Title: Test For SourceFireParser</li>
  * <li>Description: </li>
- * <li>Created: July 8, 2014 by: Ratna Piddaparti</li>
+ * <li>Created: July 8, 2014</li>
  * </ul>
- * @author $Author: spiddapa $
  * @version $Revision: 1.0 $
  */
 public class BasicSourcefireParserTest extends TestCase
@@ -50,9 +49,7 @@ public class BasicSourcefireParserTest extends TestCase
 	 * @throws java.lang.Exception
 	 */
 	public void setUp() throws Exception {
-		setSourceFireString("SFIMS: [Primary Detection Engine (a7213248-6423-11e3-8537-fac6a92b7d9d)][MTD Access Control] Connection Type: Start, User: Unknown, Client: Unknown, Application Protocol: Unknown, Web App: Unknown, Firewall Rule Name: MTD Access Control, Firewall Rule Action: Allow, Firewall Rule Reasons: Unknown, URL Category: Unknown, URL_Reputation: Risk unknown, URL: Unknown, Interface Ingress: s1p1, Interface Egress: N/A, Security Zone Ingress: Unknown, Security Zone Egress: N/A, Security Intelligence Matching IP: None, Security Intelligence Category: None, {TCP} 72.163.0.129:60517 -> 10.1.128.236:443");
-		//setSourceFireString("{\"alert\":{\"designated_host\":\"NOT CONFIGURED\",\"source\":\"sourcefire\",\"priority\":\"3\"},\"sourcefire\":{\"protocol\":\"tcp\",\"ip_dst_addr\":\"10.1.128.236\",\"ip_src_port\":\"60517\",\"ip_dst_port\":\"443\",\"ip_dst_addr_enriched\":{},\"ip_src_addr_enriched\":{\"country\":\"US\",\"dmaCode\":\"623\",\"city\":\"Plano\",\"postalCode\":\"\",\"latitude\":\"33.0198\",\"locID\":\"14327\",\"longitude\":\"-96.6989\"},\"message\":\"SFIMS: [Primary Detection Engine (a7213248-6423-11e3-8537-fac6a92b7d9d)][MTD Access Control] Connection Type: Start, User: Unknown, Client: Unknown, Application Protocol: Unknown, Web App: Unknown, Firewall Rule Name: MTD Access Control, Firewall Rule Action: Allow, Firewall Rule Reasons: Unknown, URL Category: Unknown, URL_Reputation: Risk unknown, URL: Unknown, Interface Ingress: s1p1, Interface Egress: NA, Security Zone Ingress: Unknown, Security Zone Egress: NA, Security Intelligence Matching IP: None, Security Intelligence Category: None, \",\"ip_src_addr\":\"72.163.0.129\",\"key\":\"{TCP} 72.163.0.129:60517 -> 10.1.128.236:443\",\"timestamp\":1407437830482}}");
-		assertNotNull(getSourceFireString());
+		setSourceFireString("SFIMS: [Primary Detection Engine (a7213248-6423-11e3-8537-fac6a92b7d9d)][MTD Access Control] Connection Type: Start, User: Unknown, Client: Unknown, Application Protocol: Unknown, Web App: Unknown, Firewall Rule Name: MTD Access Control, Firewall Rule Action: Allow, Firewall Rule Reasons: Unknown, URL Category: Unknown, URL_Reputation: Risk unknown, URL: Unknown, Interface Ingress: s1p1, Interface Egress: N/A, Security Zone Ingress: Unknown, Security Zone Egress: N/A, Security Intelligence Matching IP: None, Security Intelligence Category: None, {TCP} 72.163.0.129:60517 -> 10.1.128.236:443");		assertNotNull(getSourceFireString());
 		sourceFireParser = new BasicSourcefireParser();		
 	}
 
@@ -70,7 +67,7 @@ public class BasicSourcefireParserTest extends TestCase
 	 */
 	@SuppressWarnings({ "rawtypes", "unused" })
 	public void testParse() {
-		JSONObject parsed = sourceFireParser.parse(getSourceFireString());
+		JSONObject parsed = sourceFireParser.parse(getSourceFireString().getBytes());
 		assertNotNull(parsed);
 		
 		System.out.println(parsed);
@@ -88,7 +85,7 @@ public class BasicSourcefireParserTest extends TestCase
 		while (iter.hasNext()) {
 			Map.Entry entry = (Map.Entry) iter.next();
 			String key = (String) entry.getKey();
-            String value = (String) json.get("sourcefire").toString();
+            String value = (String) json.get("original_string").toString();
 			assertNotNull(value);
 		}
 	}

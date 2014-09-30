@@ -15,30 +15,33 @@
 	<parent>
 		<groupId>com.opensoc</groupId>
 		<artifactId>OpenSOC-Streaming</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
+		<version>0.3BETA-SNAPSHOT</version>
 	</parent>
 	<artifactId>OpenSOC-Common</artifactId>
 	<name>OpenSOC-Common</name>
 	<description>Components common to all enrichments</description>
 	<properties>
-		<json.simple.version>1.1.1</json.simple.version>
-
-		<storm.version>0.9.2-incubating</storm.version>
 		<kafka.version>0.8.0</kafka.version>
-		<metrics.version>3.0.2</metrics.version>
 		<commons.config.version>1.10</commons.config.version>
+		<hbase.version>0.98.5-hadoop2</hbase.version>
 	</properties>
+	<repositories>
+		<repository>
+			<id>Kraken-Repo</id>
+			<name>Kraken Repository</name>
+			<url>http://download.krakenapps.org</url>
+		</repository>
+	</repositories>
 	<dependencies>
 		<dependency>
 			<groupId>com.googlecode.json-simple</groupId>
 			<artifactId>json-simple</artifactId>
-			<version>${json.simple.version}</version>
+			<version>${global_json_simple_version}</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.apache.storm</groupId>
 			<artifactId>storm-core</artifactId>
-			<version>${storm.version}</version>
+			<version>${global_storm_version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -64,48 +67,66 @@
 		<dependency>
 			<groupId>com.codahale.metrics</groupId>
 			<artifactId>metrics-core</artifactId>
-			<version>${metrics.version}</version>
+			<version>${global_metrics_version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.codahale.metrics</groupId>
 			<artifactId>metrics-graphite</artifactId>
-			<version>${metrics.version}</version>
+			<version>${global_metrics_version}</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-configuration</groupId>
 			<artifactId>commons-configuration</artifactId>
 			<version>${commons.config.version}</version>
 		</dependency>
-  		<dependency>
-  			<groupId>junit</groupId>
-  			<artifactId>junit</artifactId>
-  			<version>3.8.2</version>
-  		</dependency>		
+		<dependency>
+			<groupId>org.krakenapps</groupId>
+			<artifactId>kraken-pcap</artifactId>
+			<version>1.5.0</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>3.8.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.hbase</groupId>
+			<artifactId>hbase-client</artifactId>
+			<version>${hbase.version}</version>
+		</dependency>
 	</dependencies>
-<reporting>
-    <plugins>
-	<!-- Normally, dependency report takes time, skip it -->
-      <plugin>
-		<groupId>org.apache.maven.plugins</groupId>
-		<artifactId>maven-project-info-reports-plugin</artifactId>
-		<version>2.7</version>
-	 
-		<configuration>
-	          <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
-		</configuration>
-      </plugin>
-       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>emma-maven-plugin</artifactId>
-        <version>1.0-alpha-3</version>
-      </plugin>    
-      <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-pmd-plugin</artifactId>
-          <configuration>
-            <targetJdk>1.6</targetJdk>
-		  </configuration>
-        </plugin>   
-    </plugins>
-  </reporting> 	
+
+	<reporting>
+		<plugins>
+			<!-- Normally, dependency report takes time, skip it -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-project-info-reports-plugin</artifactId>
+				<version>2.7</version>
+
+				<configuration>
+					<dependencyLocationsEnabled>false</dependencyLocationsEnabled>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>emma-maven-plugin</artifactId>
+				<version>1.0-alpha-3</version>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<configuration>
+					<targetJdk>1.7</targetJdk>
+				</configuration>
+			</plugin>
+		</plugins>
+	</reporting>
+	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+			</resource>
+		</resources>
+	</build>
 </project>

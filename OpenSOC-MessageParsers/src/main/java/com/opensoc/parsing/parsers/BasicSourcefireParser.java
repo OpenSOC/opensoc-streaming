@@ -21,8 +21,10 @@ import java.util.regex.Pattern;
 
 import org.json.simple.JSONObject;
 
+import com.opensoc.parser.interfaces.MessageParser;
+
 @SuppressWarnings("serial")
-public class BasicSourcefireParser extends AbstractParser {
+public class BasicSourcefireParser extends AbstractParser implements MessageParser{
 
 	public static final String hostkey = "host";
 	String domain_name_regex = "([^\\.]+)\\.([a-z]{2}|[a-z]{3}|([a-z]{2}\\.[a-z]{2}))$";

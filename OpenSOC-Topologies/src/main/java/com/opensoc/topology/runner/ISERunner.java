@@ -18,6 +18,7 @@
 package com.opensoc.topology.runner;
 
 import com.opensoc.filters.GenericMessageFilter;
+import com.opensoc.parser.interfaces.MessageParser;
 import com.opensoc.parsing.AbstractParserBolt;
 import com.opensoc.parsing.TelemetryParserBolt;
 import com.opensoc.parsing.parsers.BasicIseParser;
@@ -36,8 +37,13 @@ public class ISERunner extends TopologyRunner{
 			
 			System.out.println("[OpenSOC] ------" +  name + " is initializing from " + messageUpstreamComponent);
 
+			
+			Class loaded_class = Class.forName(config.getString("bolt.parser.adapter"));
+			MessageParser parser = (MessageParser) loaded_class.newInstance();
+			
+			
 			AbstractParserBolt parser_bolt = new TelemetryParserBolt()
-					.withMessageParser(new BasicIseParser())
+					.withMessageParser(parser)
 					.withOutputFieldName(topology_name)
 					.withMessageFilter(new GenericMessageFilter())
 					.withMetricConfig(config);

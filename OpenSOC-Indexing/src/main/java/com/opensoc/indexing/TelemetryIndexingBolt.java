@@ -33,10 +33,10 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
+import com.opensoc.helpers.topology.ErrorGenerator;
 import com.opensoc.index.interfaces.IndexAdapter;
 import com.opensoc.json.serialization.JSONEncoderHelper;
 import com.opensoc.metrics.MetricReporter;
-import com.opensoc.topologyhelpers.ErrorGenerator;
 
 /**
  * 

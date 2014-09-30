@@ -13,7 +13,7 @@ import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
-import com.opensoc.topologyhelpers.ErrorGenerator;
+import com.opensoc.helpers.topology.ErrorGenerator;
 
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;

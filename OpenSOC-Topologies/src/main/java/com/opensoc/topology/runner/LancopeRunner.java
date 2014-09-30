@@ -18,7 +18,10 @@
 package com.opensoc.topology.runner;
 
 import com.opensoc.filters.GenericMessageFilter;
+<<<<<<< HEAD
 import com.opensoc.parser.interfaces.MessageParser;
+=======
+>>>>>>> FETCH_HEAD
 import com.opensoc.parsing.AbstractParserBolt;
 import com.opensoc.parsing.TelemetryParserBolt;
 import com.opensoc.parsing.parsers.BasicLancopeParser;
@@ -37,12 +40,17 @@ public class LancopeRunner extends TopologyRunner{
 			
 			System.out.println("[OpenSOC] ------" +  name + " is initializing from " + messageUpstreamComponent);
 
+<<<<<<< HEAD
 			
 			Class loaded_class = Class.forName(config.getString("bolt.parser.adapter"));
 			MessageParser parser = (MessageParser) loaded_class.newInstance();
 			
 			AbstractParserBolt parser_bolt = new TelemetryParserBolt()
 					.withMessageParser(parser)
+=======
+			AbstractParserBolt parser_bolt = new TelemetryParserBolt()
+					.withMessageParser(new BasicLancopeParser())
+>>>>>>> FETCH_HEAD
 					.withOutputFieldName(topology_name)
 					.withMessageFilter(new GenericMessageFilter())
 					.withMetricConfig(config);

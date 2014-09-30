@@ -37,6 +37,24 @@ import com.opensoc.helpers.topology.ErrorGenerator;
 import com.opensoc.index.interfaces.IndexAdapter;
 import com.opensoc.json.serialization.JSONEncoderHelper;
 import com.opensoc.metrics.MetricReporter;
+import com.opensoc.topologyhelpers.ErrorGenerator;
+
+/**
+ * 
+ * Bolt for indexing telemetry messages into Elastic Search, Solr, Druid, etc...
+ * For a list of all adapters provided please see com.opensoc.indexing.adapters
+ * 
+ * As of release of this code the following adapters for indexing are provided:
+ * <p>
+ * <ul>
+ * 
+ * <li>ESBulkAdapter = adapter that can bulk index messages into ES
+ * <li>ESBulkRotatingAdapter = adapter that can bulk index messages into ES,
+ * rotate the index, and apply an alias to the rotated index
+ * <ul>
+ * <p>
+ *
+ */
 
 /**
  * 

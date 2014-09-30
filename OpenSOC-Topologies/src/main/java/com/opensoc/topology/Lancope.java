@@ -24,11 +24,14 @@ import backtype.storm.generated.InvalidTopologyException;
 import com.opensoc.topology.runner.LancopeRunner;
 import com.opensoc.topology.runner.TopologyRunner;
 
+<<<<<<< HEAD
 
 /**
  * Topology for processing Lancope messages
  *
  */
+=======
+>>>>>>> FETCH_HEAD
 public class Lancope{
 	
 	public static void main(String[] args) throws ConfigurationException, Exception, InvalidTopologyException {

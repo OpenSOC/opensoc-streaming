@@ -14,7 +14,11 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.opensoc</groupId>
 	<artifactId>OpenSOC-Streaming</artifactId>
+<<<<<<< HEAD
 	<version>0.4BETA</version>
+=======
+	<version>0.3BETA-SNAPSHOT</version>
+>>>>>>> FETCH_HEAD
 	<packaging>pom</packaging>
 	<name>OpenSOC-Streaming</name>
 	<description>Stream analytics for OpenSOC</description>
@@ -30,8 +34,11 @@
 		<global_junit_version>4.4</global_junit_version>
 		<global_guava_version>18.0</global_guava_version>
 		<global_json_schema_validator_version>2.2.5</global_json_schema_validator_version>
+<<<<<<< HEAD
 		<global_slf4j_version>1.7.7</global_slf4j_version>
 
+=======
+>>>>>>> FETCH_HEAD
 	</properties>
 	<licenses>
 		<license>

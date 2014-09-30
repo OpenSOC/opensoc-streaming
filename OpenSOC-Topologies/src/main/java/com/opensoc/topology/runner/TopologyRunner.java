@@ -24,6 +24,10 @@ import java.util.Map;
 import java.util.Stack;
 
 import org.apache.commons.configuration.Configuration;
+<<<<<<< HEAD
+=======
+import org.apache.commons.configuration.ConfigurationException;
+>>>>>>> FETCH_HEAD
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.apache.storm.hdfs.bolt.HdfsBolt;
@@ -47,7 +51,13 @@ import storm.kafka.bolt.KafkaBolt;
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
+<<<<<<< HEAD
 import backtype.storm.generated.Grouping;
+=======
+import backtype.storm.generated.AlreadyAliveException;
+import backtype.storm.generated.Grouping;
+import backtype.storm.generated.InvalidTopologyException;
+>>>>>>> FETCH_HEAD
 import backtype.storm.spout.RawScheme;
 import backtype.storm.spout.SchemeAsMultiScheme;
 import backtype.storm.topology.BoltDeclarer;
@@ -66,11 +76,20 @@ import com.opensoc.enrichment.interfaces.EnrichmentAdapter;
 import com.opensoc.hbase.HBaseBolt;
 import com.opensoc.hbase.HBaseStreamPartitioner;
 import com.opensoc.hbase.TupleTableConfig;
+<<<<<<< HEAD
 import com.opensoc.helpers.topology.Cli;
 import com.opensoc.helpers.topology.SettingsLoader;
 import com.opensoc.index.interfaces.IndexAdapter;
 import com.opensoc.indexing.TelemetryIndexingBolt;
 import com.opensoc.json.serialization.JSONKryoSerializer;
+=======
+import com.opensoc.indexing.TelemetryIndexingBolt;
+import com.opensoc.indexing.adapters.ESBaseBulkAdapter;
+import com.opensoc.indexing.adapters.ESTimedRotatingAdapter;
+import com.opensoc.json.serialization.JSONKryoSerializer;
+import com.opensoc.topologyhelpers.Cli;
+import com.opensoc.topologyhelpers.SettingsLoader;
+>>>>>>> FETCH_HEAD
 
 public abstract class TopologyRunner {
 
@@ -89,7 +108,12 @@ public abstract class TopologyRunner {
 	protected Stack<String> terminalComponents = new Stack<String>();
 
 	public void initTopology(String args[], String subdir)
+<<<<<<< HEAD
 			throws Exception {
+=======
+			throws ConfigurationException, AlreadyAliveException,
+			InvalidTopologyException {
+>>>>>>> FETCH_HEAD
 		Cli command_line = new Cli(args);
 		command_line.parse();
 
@@ -481,9 +505,12 @@ public abstract class TopologyRunner {
 
 	private boolean initializeErrorIndexBolt(String component_name) {
 		try {
+<<<<<<< HEAD
 			
 			Class loaded_class = Class.forName(config.getString("bolt.error.indexing.adapter"));
 			IndexAdapter adapter = (IndexAdapter) loaded_class.newInstance();
+=======
+>>>>>>> FETCH_HEAD
 
 			TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
 					.withIndexIP(config.getString("es.ip"))
@@ -494,7 +521,11 @@ public abstract class TopologyRunner {
 					.withDocumentName(
 							config.getString("bolt.error.indexing.documentname"))
 					.withBulk(config.getInt("bolt.error.indexing.bulk"))
+<<<<<<< HEAD
 					.withIndexAdapter(adapter)
+=======
+					.withIndexAdapter(new ESBaseBulkAdapter())
+>>>>>>> FETCH_HEAD
 					.withMetricConfiguration(config);
 
 			BoltDeclarer declarer = builder
@@ -673,16 +704,22 @@ public abstract class TopologyRunner {
 	}
 
 	private boolean initializeAlertIndexing(String name) {
+<<<<<<< HEAD
 		
 		try{
+=======
+>>>>>>> FETCH_HEAD
 		String messageUpstreamComponent = alertComponents.get(alertComponents
 				.size() - 1);
 
 		System.out.println("[OpenSOC] ------" + name + " is initializing from "
 				+ messageUpstreamComponent);
+<<<<<<< HEAD
 		
 		Class loaded_class = Class.forName(config.getString("bolt.alerts.indexing.adapter"));
 		IndexAdapter adapter = (IndexAdapter) loaded_class.newInstance();
+=======
+>>>>>>> FETCH_HEAD
 
 		TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
 				.withIndexIP(config.getString("es.ip"))
@@ -693,7 +730,11 @@ public abstract class TopologyRunner {
 				.withDocumentName(
 						config.getString("bolt.alerts.indexing.documentname"))
 				.withBulk(config.getInt("bolt.alerts.indexing.bulk"))
+<<<<<<< HEAD
 				.withIndexAdapter(adapter)
+=======
+				.withIndexAdapter(new ESBaseBulkAdapter())
+>>>>>>> FETCH_HEAD
 				.withMetricConfiguration(config);
 
 		String alerts_name = config.getString("bolt.alerts.indexing.name");
@@ -701,12 +742,15 @@ public abstract class TopologyRunner {
 				config.getInt("bolt.indexing.parallelism.hint"))
 				.shuffleGrouping(messageUpstreamComponent, "alert")
 				.setNumTasks(config.getInt("bolt.indexing.num.tasks"));
+<<<<<<< HEAD
 		}
 		catch(Exception e)
 		{
 			e.printStackTrace();
 			return false;
 		}
+=======
+>>>>>>> FETCH_HEAD
 
 		return true;
 	}
@@ -803,10 +847,13 @@ public abstract class TopologyRunner {
 
 			System.out.println("[OpenSOC] ------" + name
 					+ " is initializing from " + messageUpstreamComponent);
+<<<<<<< HEAD
 			
 			Class loaded_class = Class.forName(config.getString("bolt.indexing.adapter"));
 			IndexAdapter adapter = (IndexAdapter) loaded_class.newInstance();
 			
+=======
+>>>>>>> FETCH_HEAD
 
 			TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
 					.withIndexIP(config.getString("es.ip"))
@@ -816,7 +863,11 @@ public abstract class TopologyRunner {
 					.withDocumentName(
 							config.getString("bolt.indexing.documentname"))
 					.withBulk(config.getInt("bolt.indexing.bulk"))
+<<<<<<< HEAD
 					.withIndexAdapter(adapter)
+=======
+					.withIndexAdapter(new ESTimedRotatingAdapter())
+>>>>>>> FETCH_HEAD
 					.withMetricConfiguration(config);
 
 			builder.setBolt(name, indexing_bolt,

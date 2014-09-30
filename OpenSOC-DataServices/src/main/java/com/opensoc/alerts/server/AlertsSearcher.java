@@ -101,10 +101,21 @@ public class AlertsSearcher implements Runnable {
 				logger.info( "No existing searcherState.properties found" );
 			}
 			
+<<<<<<< HEAD
 			// search for alerts newer than "lastSearchTime" 
 			Settings settings = ImmutableSettings.settingsBuilder()
 					.put("client.transport.sniff", true).build();
 			        // .put("cluster.name", "elasticsearch").build();
+=======
+			String clusterName = configProps.getProperty("clusterName", "elasticsearch" );
+			
+			logger.info( "clusterName: " + clusterName );
+			
+			// search for alerts newer than "lastSearchTime" 
+			Settings settings = ImmutableSettings.settingsBuilder()
+					.put("client.transport.sniff", true)
+			        .put("cluster.name", clusterName ).build();
+>>>>>>> FETCH_HEAD
 	
 			Client client = null;
 			try
@@ -112,35 +123,66 @@ public class AlertsSearcher implements Runnable {
 				logger.info( "initializing elasticsearch client" );
 				
 				String elasticSearchHostName = configProps.getProperty( "elasticSearchHostName", "localhost" );
+<<<<<<< HEAD
 				int elasticSearchHostPort = Integer.parseInt(configProps.getProperty( "elasticSearchHostPort", "9300" ) );
 				client = new TransportClient(settings).addTransportAddress(new InetSocketTransportAddress(elasticSearchHostName, elasticSearchHostPort));
 					
 				logger.info( "lastSearchTime: " + lastSearchTime );
 				
 				String alertsIndexes = configProps.getProperty( "alertsIndexes", "alerts" );
+=======
+				
+				int elasticSearchHostPort = Integer.parseInt(configProps.getProperty( "elasticSearchHostPort", "9300" ) );
+				
+				client = new TransportClient(settings).addTransportAddress(new InetSocketTransportAddress(elasticSearchHostName, elasticSearchHostPort));
+				
+				String alertsIndexes = configProps.getProperty( "alertsIndexes", "alert" );
+>>>>>>> FETCH_HEAD
 				String[] alertsIndexArray = alertsIndexes.split(",");
 				
 				String alertsTypes = configProps.getProperty( "alertsTypes", "" );
 				String[] alertsTypesArray = alertsTypes.split( ",");
 				
+<<<<<<< HEAD
 				String alertsQueryFieldName = configProps.getProperty( "alertQueryFieldName", "alert.source" );
 				String alertsQueryFieldValue = configProps.getProperty( "alertsQueryFieldValue", "*" );
 				
 				logger.info( "alertsIndexes: " + alertsIndexes );
 				
 				String[] foo = new String[1];
+=======
+				String alertsQueryFieldName = configProps.getProperty(  "alertsQueryFieldName", "" );
+				String alertsQueryFieldValue = configProps.getProperty( "alertsQueryFieldValue", "*" );
+
+				logger.info( "elasticSearchHostName: " + elasticSearchHostName );
+				logger.info( "elasticSearchHostPort: " + elasticSearchHostPort );
+				logger.info( "alertsIndexes: " + alertsIndexes );
+				logger.info( "alertsTypes: " + alertsTypes );
+				logger.info( "alertsQueryFieldName: " + alertsQueryFieldName );
+				logger.info( "alertsQueryFieldValue: " + alertsQueryFieldValue );
+				logger.info( "lastSearchTime: " + lastSearchTime );				
+>>>>>>> FETCH_HEAD
 				
 				SearchResponse response = client.prepareSearch( alertsIndexArray )
 				.setTypes( alertsTypesArray )
 				.setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
 				.addField("_source")		
+<<<<<<< HEAD
 				.setQuery( QueryBuilders.boolQuery().must(  QueryBuilders.wildcardQuery( alertsQueryFieldName, alertsQueryFieldValue ) )
 													.must( QueryBuilders.rangeQuery("message.timestamp").from(lastSearchTime).to(System.currentTimeMillis()).includeLower(true).includeUpper(false)))
+=======
+				.setQuery( QueryBuilders.boolQuery().must(  QueryBuilders.wildcardQuery( alertsQueryFieldName, alertsQueryFieldValue ) ) 
+				 .must( QueryBuilders.rangeQuery("timestamp").from(lastSearchTime).to(System.currentTimeMillis()).includeLower(true).includeUpper(false)))
+>>>>>>> FETCH_HEAD
 				.execute()
 				.actionGet();
 				
 				SearchHits hits = response.getHits();
+<<<<<<< HEAD
 				logger.debug( "Total hits: " + hits.getTotalHits());
+=======
+				logger.info( "Total hits: " + hits.getTotalHits());
+>>>>>>> FETCH_HEAD
 
 				
 				// for all hits, put the alert onto the Kafka topic.

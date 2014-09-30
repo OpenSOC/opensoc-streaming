@@ -35,6 +35,29 @@ import com.opensoc.json.serialization.JSONEncoderHelper;
 import com.opensoc.metrics.MetricReporter;
 import com.opensoc.parser.interfaces.MessageFilter;
 import com.opensoc.parser.interfaces.MessageParser;
+import com.opensoc.topologyhelpers.ErrorGenerator;
+
+/**
+ * Uses an adapter to parse a telemetry message from its native format into a
+ * standard JSON. For a list of available adapter please check
+ * com.opensoc.parser.parsers. The input is a raw byte array and the output is a
+ * JSONObject
+ * <p>
+ * The parsing conventions are as follows:
+ * <p>
+ * <ul>
+ * 
+ * <li>ip_src_addr = source ip of a message
+ * <li>ip_dst_addr = destination ip of a message
+ * <li>ip_src_port = source port of a message
+ * <li>ip_dst_port = destination port of a message
+ * <li>protocol = protocol of a message
+ * <ul>
+ * <p>
+ * <p>
+ * If a message does not contain at least one of these variables it will be
+ * failed
+ **/
 
 /**
  * Uses an adapter to parse a telemetry message from its native format into a

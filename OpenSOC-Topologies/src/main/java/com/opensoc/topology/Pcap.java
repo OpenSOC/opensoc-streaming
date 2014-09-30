@@ -24,12 +24,15 @@ import backtype.storm.generated.InvalidTopologyException;
 import com.opensoc.topology.runner.PcapRunner;
 import com.opensoc.topology.runner.TopologyRunner;
 
+<<<<<<< HEAD
 
 /**
  * Topology for processing raw packet messages
  *
  */
 
+=======
+>>>>>>> FETCH_HEAD
 public class Pcap{
 	
 	public static void main(String[] args) throws ConfigurationException, Exception, InvalidTopologyException {

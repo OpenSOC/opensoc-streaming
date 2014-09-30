@@ -13,7 +13,11 @@ import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
+<<<<<<< HEAD
 import com.opensoc.helpers.topology.ErrorGenerator;
+=======
+import com.opensoc.topologyhelpers.ErrorGenerator;
+>>>>>>> FETCH_HEAD
 
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;

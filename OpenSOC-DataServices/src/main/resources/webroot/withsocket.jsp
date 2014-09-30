@@ -5,6 +5,10 @@
 	<head>
 		<title>Do something with WebSockets</title>
 		
+<<<<<<< HEAD
+=======
+		
+>>>>>>> FETCH_HEAD
 		<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>	
 		<script type="text/javascript">
 		$(document).ready(function() {
@@ -14,7 +18,11 @@
 			
 			   	$("#startBtn").click(
 					function() {
+<<<<<<< HEAD
 						exampleSocket = new WebSocket("wss://localhost:8443/ws/messages");
+=======
+						exampleSocket = new WebSocket("wss://${pageContext.request.serverName}:8443/ws/messages");
+>>>>>>> FETCH_HEAD
 						if( exampleSocket != null )
 						{
 							

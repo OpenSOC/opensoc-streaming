@@ -21,6 +21,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.URL;
 
+<<<<<<< HEAD
 import junit.framework.TestCase;
 
 import org.json.simple.JSONObject;
@@ -32,6 +33,14 @@ import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import com.github.fge.jsonschema.main.JsonValidator;
 import com.opensoc.parsing.parsers.BasicIseParser;
+=======
+import org.json.simple.JSONObject;
+import org.json.simple.parser.ParseException;
+
+import com.opensoc.parsing.parsers.BasicIseParser;
+import com.opensoc.test.AbstractSchemaTest;
+
+>>>>>>> FETCH_HEAD
 
 /**
  * <ul>
@@ -42,11 +51,21 @@ import com.opensoc.parsing.parsers.BasicIseParser;
  * 
  * @version $Revision: 1.1 $
  */
+<<<<<<< HEAD
 public class BasicIseParserTest extends TestCase {
 	private static String rawMessage = "";
 
 	private static BasicIseParser iseParser = null;
 	private static String schema_string;
+=======
+
+public class BasicIseParserTest extends AbstractSchemaTest {
+    
+	private static String rawMessage = "";
+
+	private static BasicIseParser iseParser = null;
+
+>>>>>>> FETCH_HEAD
 
 	/**
 	 * Constructs a new <code>BasicIseParserTest</code> instance.
@@ -88,8 +107,12 @@ public class BasicIseParserTest extends TestCase {
 		
 		URL schema_url = getClass().getClassLoader().getResource(
 				"TestSchemas/IseSchema.json");
+<<<<<<< HEAD
 		
 		 schema_string = readSchemaFromFile(schema_url);
+=======
+		 super.setSchemaJsonString(super.readSchemaFromFile(schema_url));
+>>>>>>> FETCH_HEAD
 	}
 
 	/*
@@ -121,11 +144,19 @@ public class BasicIseParserTest extends TestCase {
 			System.out.println(line);
 			JSONObject parsed = iseParser.parse(line.getBytes());
 			System.out.println(parsed);
+<<<<<<< HEAD
 			assertEquals(true, validateJsonData(schema_string, parsed.toString()));
 
 		}
 		br.close();
 
+=======
+
+			assertEquals(true, super.validateJsonData(super.getSchemaJsonString(), parsed.toString()));
+
+		}
+		br.close();
+>>>>>>> FETCH_HEAD
 	}
 
 	/**
@@ -136,13 +167,20 @@ public class BasicIseParserTest extends TestCase {
 
 	public static String getRawMessage() {
 		return rawMessage;
+<<<<<<< HEAD
+=======
+		
+>>>>>>> FETCH_HEAD
 	}
 
 	/**
 	 * Sets the rawMessage.
 	 * 
 	 * @param rawMessage
+<<<<<<< HEAD
 	 *            the rawMessage.
+=======
+>>>>>>> FETCH_HEAD
 	 */
 
 	public static void setRawMessage(String rawMessage) {
@@ -164,14 +202,21 @@ public class BasicIseParserTest extends TestCase {
 	 * Sets the iseParser.
 	 * 
 	 * @param iseParser
+<<<<<<< HEAD
 	 *            the iseParser.
 	 */
 
+=======
+	 */
+
+
+>>>>>>> FETCH_HEAD
 	public static void setIseParser(BasicIseParser iseParser) {
 
 		BasicIseParserTest.iseParser = iseParser;
 	}
 
+<<<<<<< HEAD
 	private boolean validateJsonData(final String jsonSchema, final String jsonData)
 			throws Exception {
 
@@ -207,4 +252,9 @@ public class BasicIseParserTest extends TestCase {
 		return schema_string;
 
 	}
+=======
+
+
+
+>>>>>>> FETCH_HEAD
 }

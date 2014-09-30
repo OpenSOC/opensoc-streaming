@@ -15,7 +15,11 @@
 	<parent>
 		<groupId>com.opensoc</groupId>
 		<artifactId>OpenSOC-Streaming</artifactId>
+<<<<<<< HEAD
 		<version>0.4BETA</version>
+=======
+		<version>0.3BETA-SNAPSHOT</version>
+>>>>>>> FETCH_HEAD
 	</parent>
 	<artifactId>OpenSOC-EnrichmentAdapters</artifactId>
 

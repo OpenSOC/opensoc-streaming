@@ -34,9 +34,15 @@ import backtype.storm.tuple.Values;
 import com.esotericsoftware.minlog.Log;
 import com.google.common.cache.CacheBuilder;
 import com.opensoc.alerts.interfaces.AlertsAdapter;
+<<<<<<< HEAD
 import com.opensoc.helpers.topology.ErrorGenerator;
 import com.opensoc.json.serialization.JSONEncoderHelper;
 import com.opensoc.metrics.MetricReporter;
+=======
+import com.opensoc.json.serialization.JSONEncoderHelper;
+import com.opensoc.metrics.MetricReporter;
+import com.opensoc.topologyhelpers.ErrorGenerator;
+>>>>>>> FETCH_HEAD
 
 @SuppressWarnings("rawtypes")
 public class TelemetryAlertsBolt extends AbstractAlertBolt {

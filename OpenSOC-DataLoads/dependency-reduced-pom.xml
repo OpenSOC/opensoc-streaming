@@ -3,7 +3,11 @@
   <parent>
     <artifactId>OpenSOC-Streaming</artifactId>
     <groupId>com.opensoc</groupId>
+<<<<<<< HEAD
     <version>0.4BETA</version>
+=======
+    <version>0.3BETA-SNAPSHOT</version>
+>>>>>>> FETCH_HEAD
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>OpenSOC-DataLoads</artifactId>

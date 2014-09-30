@@ -15,7 +15,11 @@
 	<parent>
 		<groupId>com.opensoc</groupId>
 		<artifactId>OpenSOC-Streaming</artifactId>
+<<<<<<< HEAD
 		<version>0.4BETA</version>
+=======
+		<version>0.3BETA-SNAPSHOT</version>
+>>>>>>> FETCH_HEAD
 	</parent>
 	<artifactId>OpenSOC-Common</artifactId>
 	<name>OpenSOC-Common</name>
@@ -64,6 +68,11 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+		<dependency>
+			<groupId>com.github.fge</groupId>
+			<artifactId>json-schema-validator</artifactId>
+			<version>${global_json_schema_validator_version}</version>
+		</dependency>		
 		<dependency>
 			<groupId>com.codahale.metrics</groupId>
 			<artifactId>metrics-core</artifactId>

@@ -18,44 +18,20 @@
 package com.opensoc.enrichment.adapters.geo;
 
 import java.io.Serializable;
-import java.net.InetAddress;
 
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.opensoc.enrichment.common.EnrichmentAdapter;
 import com.opensoc.enrichment.common.GenericEnrichmentBolt;
-import com.opensoc.enrichment.interfaces.EnrichmentAdapter;
 
 @SuppressWarnings("serial")
-public abstract class AbstractGeoAdapter implements EnrichmentAdapter,
-		Serializable {
+public abstract class AbstractGeoAdapter implements EnrichmentAdapter, Serializable{
 
-	protected static final Logger _LOG = LoggerFactory
-			.getLogger(GenericEnrichmentBolt.class);
-
+	protected static final Logger _LOG = LoggerFactory.getLogger(GenericEnrichmentBolt.class);
+	
 	abstract public JSONObject enrich(String metadata);
-
 	abstract public boolean initializeAdapter();
-
-	/**
-	 * Check if we can reach the IP where geo data is storred
-	 * 
-	 * @param ip
-	 *            - ip of geo database
-	 * @param timeout
-	 *            - timeout for a connection attempt
-	 * @return - True if can connect, False if cannot
-	 * @throws Exception
-	 */
-	public boolean checkIfReachable(String ip, int timeout) throws Exception {
-		boolean reachable = InetAddress.getByName(ip).isReachable(timeout);
-
-		if (!reachable)
-			return false;
-
-		return true;
-
-	}
-
+	
 }

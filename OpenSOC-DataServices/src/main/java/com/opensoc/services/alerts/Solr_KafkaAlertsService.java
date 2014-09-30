@@ -2,16 +2,11 @@ package com.opensoc.services.alerts;
 
 import javax.inject.Singleton;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.opensoc.dataservices.common.OpenSOCService;
 
 @Singleton
 public class Solr_KafkaAlertsService implements OpenSOCService {
 
-	private static final Logger logger = LoggerFactory.getLogger( Solr_KafkaAlertsService.class );	
-	
 	@Override
 	public String identify() {
 		// TODO Auto-generated method stub

@@ -23,7 +23,6 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
-import org.apache.commons.validator.routines.InetAddressValidator;
 import org.json.simple.JSONObject;
 
 @SuppressWarnings("serial")
@@ -31,29 +30,27 @@ public class GeoMysqlAdapter extends AbstractGeoAdapter {
 
 	private Connection connection = null;
 	private Statement statement = null;
+	private ResultSet resultSet = null;
+
 	private String _ip;
 	private String _username;
 	private String _password;
 	private String _tablename;
-	InetAddressValidator ipvalidator = new InetAddressValidator();
 
 	public GeoMysqlAdapter(String ip, int port, String username,
 			String password, String tablename) {
 		try {
 			_ip = InetAddress.getByName(ip).getHostAddress();
-
-			boolean reachable = checkIfReachable(ip, 500);
+			
+			boolean reachable = InetAddress.getByName(ip).isReachable(100);
 
 			if (!reachable)
-				throw new Exception("Unable to reach IP " + _ip
-						+ " with username " + _username + " and password "
-						+ _password + " accessing table name " + _tablename);
-
+				throw new Exception("Unable to reach IP " + _ip);
+			
 		} catch (Exception e) {
 			_LOG.error("Environment misconfigured, cannot reach MYSQL server....");
 			e.printStackTrace();
 		}
-
 		_username = username;
 		_password = password;
 		_tablename = tablename;
@@ -62,74 +59,32 @@ public class GeoMysqlAdapter extends AbstractGeoAdapter {
 	@SuppressWarnings("unchecked")
 	@Override
 	public JSONObject enrich(String metadata) {
-
-		ResultSet resultSet = null;
-
 		try {
 
-			_LOG.trace("[OpenSOC] Received metadata: " + metadata);
+			_LOG.debug("Received metadata: " + metadata);
 
 			InetAddress addr = InetAddress.getByName(metadata);
 
 			if (addr.isAnyLocalAddress() || addr.isLoopbackAddress()
-					|| addr.isSiteLocalAddress() || addr.isMulticastAddress()
-					|| !ipvalidator.isValidInet4Address(metadata)) {
-				_LOG.trace("[OpenSOC] Not a remote IP: " + metadata);
-				_LOG.trace("[OpenSOC] Returning enrichment: " + "{}");
+					|| addr.isSiteLocalAddress() || addr.isMulticastAddress()) {
+				_LOG.debug("Not a remote IP: " + metadata);
+				_LOG.debug("Returning enrichment: " + "{}");
 
 				return new JSONObject();
 			}
 
-			_LOG.trace("[OpenSOC] Is a valid remote IP: " + metadata);
+			_LOG.debug("Is a valid remote IP: " + metadata);
 
-			statement = connection.createStatement(
-					ResultSet.TYPE_SCROLL_INSENSITIVE,
-					ResultSet.CONCUR_READ_ONLY);
-			String locid_query = "select IPTOLOCID(\"" + metadata
-					+ "\") as ANS";
-			resultSet = statement.executeQuery(locid_query);
+			statement = connection.createStatement();
+			resultSet = statement.executeQuery("select IPTOLOCID(\"" + metadata
+					+ "\") as ANS");
 
-			if (resultSet == null)
-				throw new Exception("Invalid result set for metadata: "
-						+ metadata + ". Query run was: " + locid_query);
-
-			resultSet.last();
-			int size = resultSet.getRow();
-
-			if (size == 0)
-				throw new Exception("No result returned for: " + metadata
-						+ ". Query run was: " + locid_query);
-
-			resultSet.beforeFirst();
 			resultSet.next();
+			String locid = resultSet.getString("ANS");
 
-			String locid = null;
-			locid = resultSet.getString("ANS");
-
-			if (locid == null)
-				throw new Exception("Invalid location id for: " + metadata
-						+ ". Query run was: " + locid_query);
-
-			String geo_query = "select * from location where locID = " + locid
-					+ ";";
-			resultSet = statement.executeQuery(geo_query);
-
-			if (resultSet == null)
-				throw new Exception(
-						"Invalid result set for metadata and locid: "
-								+ metadata + ", " + locid + ". Query run was: "
-								+ geo_query);
-
-			resultSet.last();
-			size = resultSet.getRow();
-
-			if (size == 0)
-				throw new Exception(
-						"No result id returned for metadata and locid: "
-								+ metadata + ", " + locid + ". Query run was: "
-								+ geo_query);
-
-			resultSet.beforeFirst();
+			resultSet = statement
+					.executeQuery("select * from location where locID = "
+							+ locid + ";");
 			resultSet.next();
 
 			JSONObject jo = new JSONObject();
@@ -148,7 +103,7 @@ public class GeoMysqlAdapter extends AbstractGeoAdapter {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			_LOG.error("Enrichment failure: " + e);
+			_LOG.error("Enrichment failure");
 			return new JSONObject();
 		}
 	}
@@ -156,7 +111,7 @@ public class GeoMysqlAdapter extends AbstractGeoAdapter {
 	@Override
 	public boolean initializeAdapter() {
 
-		_LOG.info("[OpenSOC] Initializing MysqlAdapter....");
+		_LOG.info("Initializing MysqlAdapter....");
 
 		try {
 
@@ -170,13 +125,12 @@ public class GeoMysqlAdapter extends AbstractGeoAdapter {
 			if (!connection.isValid(0))
 				throw new Exception("Invalid connection string....");
 
-			_LOG.info("[OpenSOC] Set JDBC connection....");
-
+			_LOG.info("Set JDBC connection....");
 
 			return true;
 		} catch (Exception e) {
 			e.printStackTrace();
-			_LOG.error("[OpenSOC] JDBC connection failed....");
+			_LOG.error("JDBC connection failed....");
 
 			return false;
 		}

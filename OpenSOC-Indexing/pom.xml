@@ -15,14 +15,12 @@
 	<parent>
 		<groupId>com.opensoc</groupId>
 		<artifactId>OpenSOC-Streaming</artifactId>
-<<<<<<< HEAD
-		<version>0.4BETA</version>
-=======
-		<version>0.3BETA-SNAPSHOT</version>
->>>>>>> FETCH_HEAD
+		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 	<artifactId>OpenSOC-Indexing</artifactId>
 	<properties>
+		<opensoc.common.version>0.0.1-SNAPSHOT</opensoc.common.version>
+		<storm.version>0.9.1-incubating</storm.version>
 		<elastic.search.version>1.2.1</elastic.search.version>
 		<http.client.version>4.3.4</http.client.version>
 		<jsonsimple.version>1.1.1</jsonsimple.version>
@@ -32,12 +30,12 @@
 		<dependency>
 			<groupId>com.opensoc</groupId>
 			<artifactId>OpenSOC-Common</artifactId>
-			<version>${parent.version}</version>
+			<version>${opensoc.common.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.storm</groupId>
 			<artifactId>storm-core</artifactId>
-			<version>${global_storm_version}</version>
+			<version>${storm.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>

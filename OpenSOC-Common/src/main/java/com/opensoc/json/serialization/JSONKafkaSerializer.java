@@ -17,15 +17,11 @@
 
 package com.opensoc.json.serialization;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.Reader;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -69,55 +65,44 @@ public class JSONKafkaSerializer implements Encoder<JSONObject>,
 		// Do Nothing. constructor needed by Storm
 	}
 
-	/*
-	 * Main Method for unit testing
-	 */
-	public static void main(String args[]) throws IOException {
+	public static void main(String args[]) {
+		String jsonString = "{\"dns\":{\"ts\":[14.0,12,\"kiran\"],\"uid\":\"abullis@mail.csuchico.edu\",\"id.orig_h\":\"10.122.196.204\", \"endval\":null}}";
 
-		//String Input = "/home/kiran/git/opensoc-streaming/OpenSOC-Common/BroExampleOutput";
-		String Input = "/tmp/test";
-
-		BufferedReader reader = new BufferedReader(new FileReader(Input));
-
-		// String jsonString =
-		// "{\"dns\":{\"ts\":[14.0,12,\"kiran\"],\"uid\":\"abullis@mail.csuchico.edu\",\"id.orig_h\":\"10.122.196.204\", \"endval\":null}}";
-		String jsonString ="";// reader.readLine();
-		JSONParser parser = new JSONParser();
+		JSONParser p = new JSONParser();
 		JSONObject json = null;
 		int count = 1;
 
 		if (args.length > 0)
 			count = Integer.parseInt(args[0]);
 
-		//while ((jsonString = reader.readLine()) != null) 
-		jsonString = reader.readLine();
-		{
-			try {
-				json = (JSONObject) parser.parse(jsonString);
-				System.out.println(json);
-			} catch (ParseException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-
-			String jsonString2 = null;
-
-			JSONKafkaSerializer ser = new JSONKafkaSerializer();
-
-			for (int i = 0; i < count; i++) {
-				byte[] bytes = ser.toBytes(json);
-
-				jsonString2 = ((JSONObject)ser.fromBytes(bytes)).toJSONString();
-			}
-			System.out.println((jsonString2));
-			System.out
-					.println(jsonString2.equalsIgnoreCase(json.toJSONString()));
+		try {
+			json = (JSONObject) p.parse(jsonString);
+			System.out.println(json);
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+
+		String jsonString2 = null;
+
+		JSONKafkaSerializer ser = new JSONKafkaSerializer();
+
+		for (int i = 0; i < count; i++) {
+			byte[] bytes = ser.toBytes(json);
+
+			jsonString2 = ser.fromBytes(bytes).toJSONString();
+		}
+		System.out.println((jsonString2));
+		System.out.println(jsonString2.equalsIgnoreCase(json.toJSONString()));
 
 	}
 
+
+	
+
 	@SuppressWarnings("unchecked")
 	public JSONObject fromBytes(byte[] input) {
+		// TODO Auto-generated method stub
 
 		ByteArrayInputStream inputBuffer = new ByteArrayInputStream(input);
 		DataInputStream data = new DataInputStream(inputBuffer);
@@ -142,36 +127,10 @@ public class JSONKafkaSerializer implements Encoder<JSONObject>,
 
 		return output;
 	}
-	
-	@SuppressWarnings("unchecked")
-	public JSONObject fromBytes1(DataInputStream data) {
-
-		//ByteArrayInputStream inputBuffer = new ByteArrayInputStream(input);
-		//DataInputStream data = new DataInputStream(inputBuffer);
-
-		JSONObject output = new JSONObject();
-
-		try {
-			int mapSize = data.readInt();
-
-			for (int i = 0; i < mapSize; i++) {
-				String key = (String) getObject(data);
-				// System.out.println("Key Found"+ key);
-				Object val = getObject(data);
-				output.put(key, val);
-			}
-
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return null;
-		}
-
-		return output;
-	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public byte[] toBytes(JSONObject input) {
+		// TODO Auto-generated method stub
 
 		ByteArrayOutputStream outputBuffer = new ByteArrayOutputStream();
 		DataOutputStream data = new DataOutputStream(outputBuffer);
@@ -179,12 +138,10 @@ public class JSONKafkaSerializer implements Encoder<JSONObject>,
 		Iterator it = input.entrySet().iterator();
 		try {
 
-			// write num of entries into output. 
-			//each KV pair is counted as an entry
+			// write num of entries
 			data.writeInt(input.size());
 
 			// Write every single entry in hashmap
-			//Assuming key to be String.
 			while (it.hasNext()) {
 				Map.Entry<String, Object> entry = (Entry<String, Object>) it
 						.next();
@@ -201,8 +158,8 @@ public class JSONKafkaSerializer implements Encoder<JSONObject>,
 
 	private void putObject(DataOutputStream data, Object value)
 			throws IOException {
+		// TODO Auto-generated method stub
 
-		//Check object type and invoke appropriate method
 		if (value instanceof JSONObject) {
 			putJSON(data, (JSONObject) value);
 			return;
@@ -238,7 +195,7 @@ public class JSONKafkaSerializer implements Encoder<JSONObject>,
 
 	private void putJSON(DataOutputStream data, JSONObject value)
 			throws IOException {
-
+		// TODO Auto-generated method stub
 		// JSON ID is 2
 		data.writeByte(JSONKafkaSerializer.JSONObjectID);
 		data.write(toBytes(value));
@@ -247,7 +204,7 @@ public class JSONKafkaSerializer implements Encoder<JSONObject>,
 
 	public void putArray(DataOutputStream data, JSONArray array)
 			throws IOException {
-
+		// TODO Auto-generated method stub
 		data.writeByte(JSONKafkaSerializer.JSONArrayID);
 
 		data.writeInt(array.size());
@@ -256,8 +213,5 @@ public class JSONKafkaSerializer implements Encoder<JSONObject>,
 			putObject(data, o);
 
 	}
-
-
-	
 
 }

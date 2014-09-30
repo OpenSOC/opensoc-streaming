@@ -7,7 +7,7 @@
 	</property>
 	<property>
 		<name>zookeeper.session.timeout</name>
-		<value>20</value>
+		<value>30000</value>
 	</property>
 
 	<property>

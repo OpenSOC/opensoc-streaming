@@ -2,17 +2,11 @@ package com.opensoc.services.alerts;
 
 import javax.inject.Singleton;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.opensoc.dataservices.common.OpenSOCService;
-import com.opensoc.dataservices.kafkaclient.KafkaConsumer;
 
 @Singleton
 public class ElasticSearch_KafkaAlertsService implements OpenSOCService {
 
-	private static final Logger logger = LoggerFactory.getLogger( ElasticSearch_KafkaAlertsService.class );
-	
 	@Override
 	public String identify() {
 		// TODO Auto-generated method stub

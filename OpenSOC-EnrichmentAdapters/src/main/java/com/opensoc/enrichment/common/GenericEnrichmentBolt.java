@@ -18,13 +18,16 @@
 package com.opensoc.enrichment.common;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.commons.configuration.Configuration;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.opensoc.json.serialization.JSONEncoderHelper;
+import com.opensoc.metrics.MetricReporter;
 
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
@@ -33,36 +36,6 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
-import com.opensoc.enrichment.interfaces.EnrichmentAdapter;
-<<<<<<< HEAD
-import com.opensoc.helpers.topology.ErrorGenerator;
-import com.opensoc.json.serialization.JSONEncoderHelper;
-import com.opensoc.metrics.MetricReporter;
-=======
-import com.opensoc.json.serialization.JSONEncoderHelper;
-import com.opensoc.metrics.MetricReporter;
-import com.opensoc.topologyhelpers.ErrorGenerator;
->>>>>>> FETCH_HEAD
-
-/**
- * Uses an adapter to enrich telemetry messages with additional metadata
- * entries. For a list of available enrichment adapters see
- * com.opensoc.enrichment.adapters.
- * <p>
- * At the moment of release the following enrichment adapters are available:
- * <p>
- * <ul>
- * 
- * <li>geo = attaches geo coordinates to IPs
- * <li>whois = attaches whois information to domains
- * <li>host = attaches reputation information to known hosts
- * <li>CIF = attaches information from threat intelligence feeds
- * <ul>
- * <p>
- * <p>
- * Enrichments are optional
- **/
-
 @SuppressWarnings({ "rawtypes", "serial" })
 public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 
@@ -70,79 +43,41 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 			.getLogger(GenericEnrichmentBolt.class);
 	private JSONObject metricConfiguration;
 
-	/**
-	 * @param adapter
-	 *            Adapter for doing the enrichment
-	 * @return Instance of this class
-	 */
-
 	public GenericEnrichmentBolt withAdapter(EnrichmentAdapter adapter) {
 		_adapter = adapter;
 		return this;
 	}
-
-	/**
-	 * @param OutputFieldName
-	 *            Fieldname of the output tuple for this bolt
-	 * @return Instance of this class
-	 */
 
 	public GenericEnrichmentBolt withOutputFieldName(String OutputFieldName) {
 		_OutputFieldName = OutputFieldName;
 		return this;
 	}
 
-	/**
-	 * @param EnrichmentTag
-	 *            Defines what tag the enrichment will be tagged with in the
-	 *            telemetry message
-	 * @return Instance of this class
-	 */
-
 	public GenericEnrichmentBolt withEnrichmentTag(String EnrichmentTag) {
 		_enrichment_tag = EnrichmentTag;
 		return this;
 	}
-
-	/**
-	 * @param MAX_CACHE_SIZE
-	 *            Maximum size of cache before flushing
-	 * @return Instance of this class
-	 */
 
 	public GenericEnrichmentBolt withMaxCacheSize(long MAX_CACHE_SIZE) {
 		_MAX_CACHE_SIZE = MAX_CACHE_SIZE;
 		return this;
 	}
 
-	/**
-	 * @param MAX_TIME_RETAIN
-	 *            Maximum time to retain cached entry before expiring
-	 * @return Instance of this class
-	 */
-
 	public GenericEnrichmentBolt withMaxTimeRetain(long MAX_TIME_RETAIN) {
 		_MAX_TIME_RETAIN = MAX_TIME_RETAIN;
 		return this;
 	}
 
-	/**
-	 * @param jsonKeys
-	 *            Keys in the telemetry message that are to be enriched by this
-	 *            bolt
-	 * @return Instance of this class
-	 */
+	public GenericEnrichmentBolt withEnrichmentSourceIP(
+			String EnrichmentSourceIP) {
+		_enrichment_source_ip = EnrichmentSourceIP;
+		return this;
+	}
 
 	public GenericEnrichmentBolt withKeys(List<String> jsonKeys) {
 		_jsonKeys = jsonKeys;
 		return this;
 	}
-
-	/**
-	 * @param config
-	 *            A class for generating custom metrics into graphite
-	 * @return Instance of this class
-	 */
 
 	public GenericEnrichmentBolt withMetricConfiguration(Configuration config) {
 		this.metricConfiguration = JSONEncoderHelper.getJSON(config
@@ -153,128 +88,65 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 	@SuppressWarnings("unchecked")
 	public void execute(Tuple tuple) {
 
-		LOG.trace("[OpenSOC] Starting enrichment");
+		JSONObject original_message = (JSONObject) tuple.getValue(0);
+		LOG.debug("Received tuple: " + original_message);
 
-		JSONObject in_json = null;
-		String key = null;
-		
-		try {
+		LOG.debug("---------RECEIVED MESSAGE IN ENRICHMENT BOLT: "
+				+ original_message);
 
-			key = tuple.getStringByField("key");
-			in_json = (JSONObject) tuple.getValueByField("message");
-
-			if (in_json == null || in_json.isEmpty())
-				throw new Exception("Could not parse binary stream to JSON");
-			
-			if(key == null)
-				throw new Exception("Key is not valid");
-
-			LOG.trace("[OpenSOC] Received tuple: " + in_json);
-
-			JSONObject message = (JSONObject) in_json.get("message");
-
-			if (message == null || message.isEmpty())
-				throw new Exception("Could not extract message from JSON: "
-						+ in_json);
-
-			LOG.trace("[OpenSOC] Extracted message: " + message);
+		for (Object key : original_message.keySet()) {
+			JSONObject payload = (JSONObject) original_message.get(key);
+			Map<String, JSONObject> tokens_found = new HashMap<String, JSONObject>();
 
 			for (String jsonkey : _jsonKeys) {
-				LOG.trace("[OpenSOC] Processing:" + jsonkey + " within:"
-						+ message);
 
-				String jsonvalue = (String) message.get(jsonkey);
-				LOG.trace("[OpenSOC] Processing: " + jsonkey + " -> "
+				LOG.debug("Processing:" + jsonkey + " within:" + payload);
+
+				String jsonvalue = (String) payload.get(jsonkey);
+
+				LOG.debug("---------Processing: " + jsonkey + " -> "
 						+ jsonvalue);
 
-				if (null == jsonvalue) {
-					LOG.trace("[OpenSOC] Key " + jsonkey
-							+ "not present in message " + message);
+				if (null == jsonvalue)
 					continue;
-				}
 
 				JSONObject enrichment = cache.getUnchecked(jsonvalue);
-				LOG.trace("[OpenSOC] Enriched: " + jsonkey + " -> "
-						+ enrichment);
 
-				if (enrichment == null)
-					throw new Exception("[OpenSOC] Could not enrich string: "
-							+ jsonvalue);
+				LOG.debug("---------Enriched: " + jsonkey + " -> " + enrichment);
 
-				if (!in_json.containsKey("enrichment")) {
-					in_json.put("enrichment", new JSONObject());
-					LOG.trace("[OpenSOC] Starting a string of enrichments");
-				}
-
-				JSONObject enr1 = (JSONObject) in_json.get("enrichment");
-
-				if (enr1 == null)
-					throw new Exception("Internal enrichment is empty");
-
-				if (!enr1.containsKey(_enrichment_tag)) {
-					enr1.put(_enrichment_tag, new JSONObject());
-					LOG.trace("[OpenSOC] Starting a new enrichment");
-				}
-
-				LOG.trace("[OpenSOC] ENR1 is: " + enr1);
-
-				JSONObject enr2 = (JSONObject) enr1.get(_enrichment_tag);
-				enr2.put(jsonkey, enrichment);
-
-				LOG.trace("[OpenSOC] ENR2 is: " + enr2);
-
-				enr1.put(_enrichment_tag, enr2);
-				in_json.put("enrichment", enr1);
+				tokens_found.put(jsonkey + "_enriched", enrichment);
 			}
 
-			LOG.debug("[OpenSOC] Generated combined enrichment: " + in_json);
+			payload.putAll(tokens_found);
+			original_message.put(key, payload);
 
-			_collector.emit("message", new Values(key, in_json));
-			_collector.ack(tuple);
-
-			if (_reporter != null) {
-				emitCounter.inc();
-				ackCounter.inc();
-			}
-		} catch (Exception e) {
-			
-			LOG.error("[OpenSOC] Unable to enrich message: " + in_json);
-			_collector.fail(tuple);
-
-			if (_reporter != null) {
-				failCounter.inc();
-			}
-			
-			JSONObject error = ErrorGenerator.generateErrorMessage("Enrichment problem: " + in_json, e.toString());
-			_collector.emit("error", new Values(error));
 		}
-		
-		
+
+		LOG.debug("-----------------combined: " + original_message);
+
+		_collector.emit(new Values(original_message));
+		emitCounter.inc();
+		_collector.ack(tuple);
+
+		ackCounter.inc();
 
 	}
 
-	public void declareOutputFields(OutputFieldsDeclarer declearer) {
-		declearer.declareStream("message", new Fields("key", "message"));
-		declearer.declareStream("error", new Fields("message"));
+	public void declareOutputFields(OutputFieldsDeclarer declarer) {
+		declarer.declare(new Fields("message"));
 	}
 
 	@Override
 	void doPrepare(Map conf, TopologyContext topologyContext,
 			OutputCollector collector) throws IOException {
-		LOG.info("[OpenSOC] Preparing Enrichment Bolt...");
+		LOG.info("Preparing Enrichment Bolt...");
 
 		_collector = collector;
+		_reporter = new MetricReporter();
+		_reporter.initialize(metricConfiguration, GenericEnrichmentBolt.class);
+		this.registerCounters();
 
-		try {
-			_reporter = new MetricReporter();
-			_reporter.initialize(metricConfiguration,
-					GenericEnrichmentBolt.class);
-			this.registerCounters();
-		} catch (Exception e) {
-			LOG.info("[OpenSOC] Unable to initialize metrics reporting");
-		}
-
-		LOG.info("[OpenSOC] Enrichment bolt initialized...");
+		LOG.info("Enrichment bolt initialized...");
 	}
 
 }

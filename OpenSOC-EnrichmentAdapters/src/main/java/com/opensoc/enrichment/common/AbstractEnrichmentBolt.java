@@ -34,13 +34,12 @@ import com.codahale.metrics.Counter;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.opensoc.enrichment.interfaces.EnrichmentAdapter;
 import com.opensoc.metrics.MetricReporter;
 
 @SuppressWarnings("rawtypes")
 public abstract class AbstractEnrichmentBolt extends BaseRichBolt {
 	/**
-	 * Abstract enrichment bolt
+	 * 
 	 */
 	private static final long serialVersionUID = -6710596708304282838L;
 
@@ -53,6 +52,7 @@ public abstract class AbstractEnrichmentBolt extends BaseRichBolt {
 	protected String _enrichment_tag;
 	protected Long _MAX_CACHE_SIZE;
 	protected Long _MAX_TIME_RETAIN;
+	protected String _enrichment_source_ip;
 
 	// JSON Keys to be enriched
 	protected List<String> _jsonKeys;
@@ -109,14 +109,16 @@ public abstract class AbstractEnrichmentBolt extends BaseRichBolt {
 		boolean success = _adapter.initializeAdapter();
 
 		if (!success) {
-			LOG.error("[OpenSOC] EnrichmentBolt could not initialize adapter");
+			LOG.error("EnrichmentBolt could not initialize adapter");
 			throw new IllegalStateException("Could not initialize adapter...");
 		}
+
+		LOG.info("EnrichmentBolt Initialized...");
 
 		try {
 			doPrepare(conf, topologyContext, collector);
 		} catch (IOException e) {
-			LOG.error("[OpenSOC] Counld not initialize...");
+			LOG.error("Counld not initialize...");
 			e.printStackTrace();
 		}
 

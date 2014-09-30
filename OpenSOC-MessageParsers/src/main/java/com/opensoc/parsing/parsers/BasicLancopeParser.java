@@ -17,9 +17,6 @@
 
 package com.opensoc.parsing.parsers;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
@@ -30,43 +27,15 @@ public class BasicLancopeParser extends AbstractParser {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public JSONObject parse(byte[] msg) {
+	public JSONObject parse(String raw_message) {
 
-		JSONObject payload = null;
+		JSONObject payload;
+		payload = (JSONObject) JSONValue.parse(raw_message);
 
-		try {
-			
-			String raw_message = new String(msg, "UTF-8");
-			
-			payload = (JSONObject) JSONValue.parse(raw_message);
-			
-			
+		JSONObject output = new JSONObject();
+		output.put("lancope", payload);
 
-			String message = payload.get("message").toString();
-			String[] parts = message.split(" ");
-			payload.put("ip_src_addr", parts[6]);
-			payload.put("ip_dst_addr", parts[7]);
-
-			String fixed_date = parts[5].replace('T', ' ');
-			fixed_date = fixed_date.replace('Z', ' ').trim();
-
-			SimpleDateFormat formatter = new SimpleDateFormat(
-					"yyyy-MM-dd HH:mm:ss");
-
-			Date date;
-
-			date = formatter.parse(fixed_date);
-			payload.put("timestamp", date.getTime());
-
-			payload.remove("@timestamp");
-			payload.remove("message");
-			payload.put("original_string", message);
-
-			return payload;
-		} catch (Exception e) {
-
-			_LOG.error("Unable to parse message: " + payload.toJSONString());
-			return null;
-		}
+		return output;
 	}
+
 }

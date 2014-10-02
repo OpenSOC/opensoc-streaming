@@ -14,7 +14,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.opensoc</groupId>
 	<artifactId>OpenSOC-Streaming</artifactId>
-	<version>0.4BETA</version>
+	<version>0.5BETA</version>
 	<packaging>pom</packaging>
 	<name>OpenSOC-Streaming</name>
 	<description>Stream analytics for OpenSOC</description>

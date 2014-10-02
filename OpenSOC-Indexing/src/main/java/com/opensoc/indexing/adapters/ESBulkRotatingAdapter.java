@@ -3,6 +3,7 @@ package com.opensoc.indexing.adapters;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -147,6 +148,11 @@ public class ESBulkRotatingAdapter extends AbstractIndexAdapter {
 				+ " of bulk size " + _bulk_size);
 
 		return 1;
+	}
+
+	public void setOptionalSettings(Map<String, String> settings) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

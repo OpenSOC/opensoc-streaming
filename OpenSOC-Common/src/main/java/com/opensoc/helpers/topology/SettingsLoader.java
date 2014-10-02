@@ -115,4 +115,36 @@ public class SettingsLoader {
 		}
 
 	}
+	
+	public static void printOptionalSettings(Map<String, String> settings)
+	{
+		for(String setting: settings.keySet())
+		{
+			System.out.println("[OpenSOC] Optional Setting: " + setting + " -> " +settings.get(setting));
+		}
+
+	}
+	
+	public static Map<String, String> getConfigOptions(PropertiesConfiguration config, String path_fragment)
+	{
+		Iterator<String> itr = config.getKeys();
+		Map<String, String> settings = new HashMap<String, String>();
+		
+		while(itr.hasNext())
+		{
+			String key = itr.next();
+			
+			if(key.contains(path_fragment))
+			{
+				String tmp_key = key.replace(path_fragment, "");
+				if(tmp_key.charAt(0)== '.')
+				{
+					tmp_key.replaceFirst("/.", "");
+				}
+				settings.put(tmp_key, config.getString(key));
+			}
+		}
+
+		return settings;
+	}
 }

@@ -1,5 +1,7 @@
 package com.opensoc.index.interfaces;
 
+import java.util.Map;
+
 import org.json.simple.JSONObject;
 
 public interface IndexAdapter {
@@ -8,4 +10,6 @@ public interface IndexAdapter {
 			String index_name, String document_name, int bulk) throws Exception;
 
 	int bulkIndex(JSONObject raw_message);
+
+	void setOptionalSettings(Map<String, String> settings);
 }

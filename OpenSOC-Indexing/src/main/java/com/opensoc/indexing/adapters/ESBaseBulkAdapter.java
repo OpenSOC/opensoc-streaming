@@ -3,6 +3,7 @@ package com.opensoc.indexing.adapters;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.collections.Bag;
@@ -140,5 +141,10 @@ public class ESBaseBulkAdapter extends AbstractIndexAdapter implements
 			e.printStackTrace();
 			return false;
 		}
+	}
+
+	public void setOptionalSettings(Map<String, String> settings) {
+		// TODO Auto-generated method stub
+		
 	}
 }

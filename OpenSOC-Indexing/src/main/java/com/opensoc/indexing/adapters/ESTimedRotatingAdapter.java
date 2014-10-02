@@ -5,6 +5,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.apache.commons.collections.Bag;
 import org.apache.commons.collections.HashBag;
@@ -30,10 +31,17 @@ public class ESTimedRotatingAdapter extends AbstractIndexAdapter implements
 	private String _ip;
 	public transient TransportClient client;
 	private DateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd.HH");
+	
+	private Map<String, String> tuning_settings;
 
 	private Bag bulk_set;
 
 	private Settings settings;
+	
+	public void setOptionalSettings(Map<String, String> settings)
+	{
+		tuning_settings = settings;
+	}
 
 	@Override
 	public boolean initializeConnection(String ip, int port,
@@ -54,8 +62,19 @@ public class ESTimedRotatingAdapter extends AbstractIndexAdapter implements
 
 			System.out.println("Bulk indexing is set to: " + _bulk_size);
 
-			settings = ImmutableSettings.settingsBuilder()
-					.put("cluster.name", _cluster_name).build();
+			ImmutableSettings.Builder builder = ImmutableSettings.settingsBuilder() ;	
+			
+			if(tuning_settings != null && tuning_settings.size() > 0)
+			{
+					builder.put(tuning_settings);
+			}
+			
+			builder.put("cluster.name", _cluster_name);
+			builder.put("client.transport.ping_timeout","500s");
+			
+			
+			settings = builder.build();
+					
 			client = new TransportClient(settings)
 					.addTransportAddress(new InetSocketTransportAddress(_ip,
 							_port));

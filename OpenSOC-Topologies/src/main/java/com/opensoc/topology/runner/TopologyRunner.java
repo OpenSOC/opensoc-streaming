@@ -807,7 +807,7 @@ public abstract class TopologyRunner {
 			Class loaded_class = Class.forName(config.getString("bolt.indexing.adapter"));
 			IndexAdapter adapter = (IndexAdapter) loaded_class.newInstance();
 			
-			Map<String, String> settings = SettingsLoader.getConfigOptions((PropertiesConfiguration)config, "optional.settings.bolt.index.search");
+			Map<String, String> settings = SettingsLoader.getConfigOptions((PropertiesConfiguration)config, "optional.settings.bolt.index.search.");
 			
 			if(settings != null && settings.size() > 0)
 			{

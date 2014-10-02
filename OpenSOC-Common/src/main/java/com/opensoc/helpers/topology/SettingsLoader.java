@@ -137,10 +137,6 @@ public class SettingsLoader {
 			if(key.contains(path_fragment))
 			{
 				String tmp_key = key.replace(path_fragment, "");
-				if(tmp_key.charAt(0)== '.')
-				{
-					tmp_key.replaceFirst("/.", "");
-				}
 				settings.put(tmp_key, config.getString(key));
 			}
 		}

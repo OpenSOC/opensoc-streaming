@@ -41,9 +41,9 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 	String _topologyname;
 	Configuration conf = null;
 
-	Cache<String, String>cache;
+	Cache<String, String> cache;
 	String _topology_name;
-	
+
 	Set<String> loaded_whitelist = new HashSet<String>();
 	Set<String> loaded_blacklist = new HashSet<String>();
 
@@ -63,8 +63,6 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 				.expireAfterWrite(_MAX_TIME_RETAIN, TimeUnit.MINUTES).build();
 
 	}
-	
-
 
 	public boolean initialize() {
 
@@ -72,12 +70,13 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 		conf.set("hbase.zookeeper.quorum", _quorum);
 		conf.set("hbase.zookeeper.property.clientPort", _port);
 
-		LOG.trace("[OpenSOC] Connecting to hbase with conf:" + conf);		
+		LOG.trace("[OpenSOC] Connecting to hbase with conf:" + conf);
 		LOG.trace("[OpenSOC] Whitelist table name: " + _whitelist_table_name);
 		LOG.trace("[OpenSOC] Whitelist table name: " + _blacklist_table_name);
-		LOG.trace("[OpenSOC] ZK Client/port: " + conf.get("hbase.zookeeper.quorum") + " -> " + conf.get("hbase.zookeeper.property.clientPort"));
+		LOG.trace("[OpenSOC] ZK Client/port: "
+				+ conf.get("hbase.zookeeper.quorum") + " -> "
+				+ conf.get("hbase.zookeeper.property.clientPort"));
 
-		
 		try {
 
 			LOG.trace("[OpenSOC] Attempting to connect to hbase");
@@ -96,18 +95,15 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 
 			whitelist_table = new HTable(conf, _whitelist_table_name);
 
-			LOG.trace("[OpenSOC] CONNECTED TO TABLE: "
-					+ _whitelist_table_name);
+			LOG.trace("[OpenSOC] CONNECTED TO TABLE: " + _whitelist_table_name);
 			blacklist_table = new HTable(conf, _blacklist_table_name);
-			LOG.trace("[OpenSOC] CONNECTED TO TABLE: "
-					+ _blacklist_table_name);
+			LOG.trace("[OpenSOC] CONNECTED TO TABLE: " + _blacklist_table_name);
 
 			if (connection == null || whitelist_table == null
 					|| blacklist_table == null)
 				throw new Exception("Unable to initialize hbase connection");
-			
-			Scan scan = new Scan();
 
+			Scan scan = new Scan();
 
 			ResultScanner rs = whitelist_table.getScanner(scan);
 			try {
@@ -124,12 +120,10 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 			whitelist_table.close();
 
 			LOG.trace("[OpenSOC] READ IN WHITELIST: " + loaded_whitelist.size());
-			
-			
-			 scan = new Scan();
 
+			scan = new Scan();
 
-			 rs = blacklist_table.getScanner(scan);
+			rs = blacklist_table.getScanner(scan);
 			try {
 				for (Result r = rs.next(); r != null; r = rs.next()) {
 					loaded_blacklist.add(Bytes.toString(r.getRow()));
@@ -144,7 +138,7 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 			blacklist_table.close();
 
 			LOG.trace("[OpenSOC] READ IN WHITELIST: " + loaded_whitelist.size());
-			
+
 			rs.close(); // always close the ResultScanner!
 			hba.close();
 
@@ -155,7 +149,6 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 		}
 
 		return false;
-
 
 	}
 
@@ -177,7 +170,6 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 
 	}
 
-
 	public boolean refresh() throws Exception {
 		// TODO Auto-generated method stub
 		return false;
@@ -193,9 +185,13 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 		Map<String, JSONObject> alerts = new HashMap<String, JSONObject>();
 
 		JSONObject content = (JSONObject) raw_message.get("message");
-		JSONObject enrichment = (JSONObject) raw_message.get("enrichment");
-		
-		if (!content.containsKey("ip_src_addr") || !content.containsKey("ip_dst_addr") ) {
+		JSONObject enrichment = null;
+
+		if (raw_message.containsKey("enrichment"))
+			enrichment = (JSONObject) raw_message.get("enrichment");
+
+		if (!content.containsKey("ip_src_addr")
+				|| !content.containsKey("ip_dst_addr")) {
 
 			int alert_type = 0;
 
@@ -207,18 +203,18 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 			alert.put("designated_host", "Uknown");
 			alert.put("source", "NA");
 			alert.put("dest", "NA");
-			alert.put(
-					"body",
-					"Source or destination IP is missing");
+			alert.put("body", "Source or destination IP is missing");
 
 			String alert_id = UUID.randomUUID().toString();
 
 			alert.put("reference_id", alert_id);
 			alerts.put(alert_id, alert);
-			alert.put("enrichment", enrichment);
+
+			if (enrichment != null)
+				alert.put("enrichment", enrichment);
 
 			LOG.trace("[OpenSOC] Returning alert: " + alerts);
-			
+
 			return alerts;
 
 		}
@@ -247,8 +243,9 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 
 			alert.put("reference_id", alert_id);
 			alerts.put(alert_id, alert);
-			alert.put("enrichment", enrichment);
-			
+			if (enrichment != null)
+				alert.put("enrichment", enrichment);
+
 			LOG.trace("[OpenSOC] Returning alert: " + alerts);
 
 			return alerts;
@@ -276,8 +273,9 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 
 			alert.put("reference_id", alert_id);
 			alerts.put(alert_id, alert);
-			alert.put("enrichment", enrichment);
-			
+			if (enrichment != null)
+				alert.put("enrichment", enrichment);
+
 			LOG.trace("[OpenSOC] Returning alert: " + alerts);
 
 			return alerts;
@@ -290,7 +288,6 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 			designated_host = source_ip;
 		else if (loaded_whitelist.contains(dst_ip))
 			designated_host = dst_ip;
-		
 
 		if (designated_host == null) {
 			int alert_type = 3;
@@ -312,8 +309,9 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 
 			alert.put("reference_id", alert_id);
 			alerts.put(alert_id, alert);
-			alert.put("enrichment", enrichment);
-			
+			if (enrichment != null)
+				alert.put("enrichment", enrichment);
+
 			LOG.trace("[OpenSOC] Returning alert: " + alerts);
 
 			return alerts;
@@ -341,7 +339,8 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 
 			alert.put("reference_id", alert_id);
 			alerts.put(alert_id, alert);
-			alert.put("enrichment", enrichment);
+			if (enrichment != null)
+				alert.put("enrichment", enrichment);
 
 		}
 
@@ -366,7 +365,8 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 
 			alert.put("reference_id", alert_id);
 			alerts.put(alert_id, alert);
-			alert.put("enrichment", enrichment);
+			if (enrichment != null)
+				alert.put("enrichment", enrichment);
 
 		}
 
@@ -390,7 +390,8 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 
 			alert.put("reference_id", alert_id);
 			alerts.put(alert_id, alert);
-			alert.put("enrichment", enrichment);
+			if (enrichment != null)
+				alert.put("enrichment", enrichment);
 
 		}
 
@@ -414,7 +415,8 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 
 			alert.put("reference_id", alert_id);
 			alerts.put(alert_id, alert);
-			alert.put("enrichment", enrichment);
+			if (enrichment != null)
+				alert.put("enrichment", enrichment);
 
 		}
 
@@ -423,8 +425,6 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 		else
 			return alerts;
 	}
-
-
 
 	public boolean containsAlertId(String alert) {
 		// TODO Auto-generated method stub

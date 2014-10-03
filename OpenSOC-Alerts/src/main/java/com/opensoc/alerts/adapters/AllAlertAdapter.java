@@ -36,7 +36,7 @@ public class AllAlertAdapter implements AlertsAdapter, Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = -4963668606839437124L;
-	
+
 	HTableInterface whitelist_table;
 	InetAddressValidator ipvalidator = new InetAddressValidator();
 	String _whitelist_table_name;
@@ -46,7 +46,7 @@ public class AllAlertAdapter implements AlertsAdapter, Serializable {
 	String _topologyname;
 	Configuration conf = null;
 
-	protected  Cache<String, String> cache;
+	protected Cache<String, String> cache;
 
 	Map<String, String> id_list = new HashMap<String, String>();
 
@@ -70,9 +70,7 @@ public class AllAlertAdapter implements AlertsAdapter, Serializable {
 		cache = CacheBuilder.newBuilder().maximumSize(_MAX_CACHE_SIZE)
 				.expireAfterWrite(_MAX_TIME_RETAIN, TimeUnit.MINUTES).build();
 
-
 	}
-
 
 	public boolean initialize() {
 
@@ -80,13 +78,16 @@ public class AllAlertAdapter implements AlertsAdapter, Serializable {
 		conf.set("hbase.zookeeper.quorum", _quorum);
 		conf.set("hbase.zookeeper.property.clientPort", _port);
 
-		LOG.trace("[OpenSOC] Connecting to hbase with conf:" + conf);		
+		LOG.trace("[OpenSOC] Connecting to hbase with conf:" + conf);
 		LOG.trace("[OpenSOC] Whitelist table name: " + _whitelist_table_name);
-		LOG.trace("[OpenSOC] ZK Client/port: " + conf.get("hbase.zookeeper.quorum") + " -> " + conf.get("hbase.zookeeper.property.clientPort"));
+		LOG.trace("[OpenSOC] ZK Client/port: "
+				+ conf.get("hbase.zookeeper.quorum") + " -> "
+				+ conf.get("hbase.zookeeper.property.clientPort"));
 
 		try {
 
-			//HConnection connection = HConnectionManager.createConnection(conf);
+			// HConnection connection =
+			// HConnectionManager.createConnection(conf);
 
 			LOG.trace("[OpenSOC] CONNECTED TO HBASE");
 
@@ -97,10 +98,9 @@ public class AllAlertAdapter implements AlertsAdapter, Serializable {
 
 			whitelist_table = new HTable(conf, _whitelist_table_name);
 
-			LOG.trace("[OpenSOC] CONNECTED TO TABLE: "+ _whitelist_table_name);
+			LOG.trace("[OpenSOC] CONNECTED TO TABLE: " + _whitelist_table_name);
 
 			Scan scan = new Scan();
-
 
 			ResultScanner rs = whitelist_table.getScanner(scan);
 			try {
@@ -111,19 +111,22 @@ public class AllAlertAdapter implements AlertsAdapter, Serializable {
 				LOG.trace("[OpenSOC] COULD NOT READ FROM HBASE");
 				e.printStackTrace();
 			} finally {
-				rs.close(); 
+				rs.close();
 				hba.close();
 			}
 			whitelist_table.close();
 
-			LOG.trace("[OpenSOC] Number of entires in white list: " + loaded_whitelist.size());
-			
-			if(loaded_whitelist.size() == 0)
-				throw new Exception("Hbase connection is OK, but the table is empty: " + whitelist_table);
+			LOG.trace("[OpenSOC] Number of entires in white list: "
+					+ loaded_whitelist.size());
 
-			rs.close(); 
+			if (loaded_whitelist.size() == 0)
+				throw new Exception(
+						"Hbase connection is OK, but the table is empty: "
+								+ whitelist_table);
+
+			rs.close();
 			hba.close();
-			
+
 			return true;
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -155,7 +158,6 @@ public class AllAlertAdapter implements AlertsAdapter, Serializable {
 	public boolean getByKey(String metadata, HTableInterface table) {
 
 		LOG.trace("[OpenSOC] Pinging HBase For:" + metadata);
-
 
 		Get get = new Get(metadata.getBytes());
 		Result rs;
@@ -193,7 +195,11 @@ public class AllAlertAdapter implements AlertsAdapter, Serializable {
 		JSONObject alert = new JSONObject();
 
 		JSONObject content = (JSONObject) raw_message.get("message");
-		JSONObject enrichment = (JSONObject) raw_message.get("enrichment");
+		JSONObject enrichment = null;
+
+		if (raw_message.containsKey("enrichment"))
+			enrichment = (JSONObject) raw_message.get("enrichment");
+
 		String source_ip = content.get("ip_src_addr").toString();
 		String dst_ip = content.get("ip_dst_addr").toString();
 
@@ -213,18 +219,19 @@ public class AllAlertAdapter implements AlertsAdapter, Serializable {
 		alert.put("source", source_ip);
 		alert.put("dest", dst_ip);
 		alert.put("body", "Appliance alert for: " + source_ip + "->" + dst_ip);
-		alert.put("enrichment", enrichment);
+
+		if (enrichment != null)
+			alert.put("enrichment", enrichment);
 
 		String alert_id = generateAlertId(source_ip, dst_ip, 0);
 
 		alert.put("reference_id", alert_id);
 		alerts.put(alert_id, alert);
-		
+
 		LOG.trace("[OpenSOC] Returning alert: " + alerts);
 
-		 return alerts;
+		return alerts;
 	}
-
 
 	public boolean containsAlertId(String alert) {
 		// TODO Auto-generated method stub

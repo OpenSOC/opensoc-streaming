@@ -107,6 +107,7 @@ public class AllAlertAdapter implements AlertsAdapter, Serializable {
 				e.printStackTrace();
 			} finally {
 				rs.close(); 
+				hba.close();
 			}
 			whitelist_table.close();
 
@@ -115,6 +116,9 @@ public class AllAlertAdapter implements AlertsAdapter, Serializable {
 			if(loaded_whitelist.size() == 0)
 				throw new Exception("Hbase connection is OK, but the table is empty: " + whitelist_table);
 
+			rs.close(); 
+			hba.close();
+			
 			return true;
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

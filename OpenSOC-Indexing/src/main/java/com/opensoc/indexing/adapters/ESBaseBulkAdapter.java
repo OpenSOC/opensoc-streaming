@@ -1,10 +1,8 @@
 package com.opensoc.indexing.adapters;
 
 import java.io.Serializable;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.commons.collections.Bag;
 import org.apache.commons.collections.HashBag;

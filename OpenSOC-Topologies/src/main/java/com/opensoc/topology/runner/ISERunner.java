@@ -21,7 +21,6 @@ import com.opensoc.filters.GenericMessageFilter;
 import com.opensoc.parser.interfaces.MessageParser;
 import com.opensoc.parsing.AbstractParserBolt;
 import com.opensoc.parsing.TelemetryParserBolt;
-import com.opensoc.parsing.parsers.BasicIseParser;
 import com.opensoc.test.spouts.GenericInternalTestSpout;
 
 public class ISERunner extends TopologyRunner{

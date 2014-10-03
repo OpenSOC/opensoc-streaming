@@ -1,6 +1,5 @@
 package com.opensoc.alerts.adapters;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,7 +11,6 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.validator.routines.InetAddressValidator;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.hbase.client.HConnection;
 import org.apache.hadoop.hbase.client.HConnectionManager;
@@ -79,6 +77,7 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 		LOG.trace("[OpenSOC] Whitelist table name: " + _blacklist_table_name);
 		LOG.trace("[OpenSOC] ZK Client/port: " + conf.get("hbase.zookeeper.quorum") + " -> " + conf.get("hbase.zookeeper.property.clientPort"));
 
+		
 		try {
 
 			LOG.trace("[OpenSOC] Attempting to connect to hbase");
@@ -120,6 +119,7 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 				e.printStackTrace();
 			} finally {
 				rs.close(); // always close the ResultScanner!
+				hba.close();
 			}
 			whitelist_table.close();
 
@@ -139,10 +139,14 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 				e.printStackTrace();
 			} finally {
 				rs.close(); // always close the ResultScanner!
+				hba.close();
 			}
 			blacklist_table.close();
 
 			LOG.trace("[OpenSOC] READ IN WHITELIST: " + loaded_whitelist.size());
+			
+			rs.close(); // always close the ResultScanner!
+			hba.close();
 
 			return true;
 		} catch (Exception e) {
@@ -151,6 +155,7 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 		}
 
 		return false;
+
 
 	}
 

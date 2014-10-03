@@ -32,6 +32,11 @@ import com.opensoc.alerts.interfaces.AlertsAdapter;
 
 public class AllAlertAdapter implements AlertsAdapter, Serializable {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -4963668606839437124L;
+	
 	HTableInterface whitelist_table;
 	InetAddressValidator ipvalidator = new InetAddressValidator();
 	String _whitelist_table_name;
@@ -81,7 +86,7 @@ public class AllAlertAdapter implements AlertsAdapter, Serializable {
 
 		try {
 
-			HConnection connection = HConnectionManager.createConnection(conf);
+			//HConnection connection = HConnectionManager.createConnection(conf);
 
 			LOG.trace("[OpenSOC] CONNECTED TO HBASE");
 
@@ -188,6 +193,7 @@ public class AllAlertAdapter implements AlertsAdapter, Serializable {
 		JSONObject alert = new JSONObject();
 
 		JSONObject content = (JSONObject) raw_message.get("message");
+		JSONObject enrichment = (JSONObject) raw_message.get("enrichment");
 		String source_ip = content.get("ip_src_addr").toString();
 		String dst_ip = content.get("ip_dst_addr").toString();
 
@@ -207,6 +213,7 @@ public class AllAlertAdapter implements AlertsAdapter, Serializable {
 		alert.put("source", source_ip);
 		alert.put("dest", dst_ip);
 		alert.put("body", "Appliance alert for: " + source_ip + "->" + dst_ip);
+		alert.put("enrichment", enrichment);
 
 		String alert_id = generateAlertId(source_ip, dst_ip, 0);
 

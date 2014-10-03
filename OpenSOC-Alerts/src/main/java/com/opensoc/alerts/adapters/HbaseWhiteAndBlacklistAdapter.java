@@ -193,6 +193,7 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 		Map<String, JSONObject> alerts = new HashMap<String, JSONObject>();
 
 		JSONObject content = (JSONObject) raw_message.get("message");
+		JSONObject enrichment = (JSONObject) raw_message.get("enrichment");
 		
 		if (!content.containsKey("ip_src_addr") || !content.containsKey("ip_dst_addr") ) {
 
@@ -214,6 +215,7 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 
 			alert.put("reference_id", alert_id);
 			alerts.put(alert_id, alert);
+			alert.put("enrichment", enrichment);
 
 			LOG.trace("[OpenSOC] Returning alert: " + alerts);
 			
@@ -245,6 +247,7 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 
 			alert.put("reference_id", alert_id);
 			alerts.put(alert_id, alert);
+			alert.put("enrichment", enrichment);
 			
 			LOG.trace("[OpenSOC] Returning alert: " + alerts);
 
@@ -273,6 +276,7 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 
 			alert.put("reference_id", alert_id);
 			alerts.put(alert_id, alert);
+			alert.put("enrichment", enrichment);
 			
 			LOG.trace("[OpenSOC] Returning alert: " + alerts);
 
@@ -308,6 +312,7 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 
 			alert.put("reference_id", alert_id);
 			alerts.put(alert_id, alert);
+			alert.put("enrichment", enrichment);
 			
 			LOG.trace("[OpenSOC] Returning alert: " + alerts);
 
@@ -336,6 +341,7 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 
 			alert.put("reference_id", alert_id);
 			alerts.put(alert_id, alert);
+			alert.put("enrichment", enrichment);
 
 		}
 
@@ -360,6 +366,7 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 
 			alert.put("reference_id", alert_id);
 			alerts.put(alert_id, alert);
+			alert.put("enrichment", enrichment);
 
 		}
 
@@ -383,6 +390,7 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 
 			alert.put("reference_id", alert_id);
 			alerts.put(alert_id, alert);
+			alert.put("enrichment", enrichment);
 
 		}
 
@@ -406,6 +414,7 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 
 			alert.put("reference_id", alert_id);
 			alerts.put(alert_id, alert);
+			alert.put("enrichment", enrichment);
 
 		}
 

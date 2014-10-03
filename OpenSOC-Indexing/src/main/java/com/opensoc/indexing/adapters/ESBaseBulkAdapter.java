@@ -5,7 +5,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.commons.collections.Bag;
-import org.apache.commons.collections.HashBag;
+import org.apache.commons.collections.bag.HashBag;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequestBuilder;

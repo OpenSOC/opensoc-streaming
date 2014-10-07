@@ -34,7 +34,7 @@ public class ESBaseBulkAdapter extends AbstractIndexAdapter implements
 	@Override
 	public boolean initializeConnection(String ip, int port,
 			String cluster_name, String index_name, String document_name,
-			int bulk_size) throws Exception {
+			int bulk_size, JSONObject runtime_configuration) throws Exception {
 
 		bulk_set = new HashBag();
 

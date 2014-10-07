@@ -51,7 +51,7 @@
 			</properties>
 		</developer>
 	</developers>
-	
+
 
 	<modules>
 		<module>OpenSOC-Common</module>
@@ -61,7 +61,7 @@
 		<module>OpenSOC-Alerts</module>
 		<module>OpenSOC-DataLoads</module>
 		<module>OpenSOC-Topologies</module>
-        <module>OpenSOC-Pcap_Service</module>
+		<module>OpenSOC-Pcap_Service</module>
 	</modules>
 	<dependencies>
 		<dependency>
@@ -113,4 +113,11 @@
 			</plugin>
 		</plugins>
 	</reporting>
+	<repositories>
+
+		<repository>
+			<id>clojars.org</id>
+			<url>http://clojars.org/repo</url>
+		</repository>
+	</repositories>
 </project>

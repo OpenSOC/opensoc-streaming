@@ -89,11 +89,6 @@
 			<artifactId>commons-validator</artifactId>
 			<version>1.4.0</version>
 		</dependency>
-		<dependency>
-			<groupId>org.apache.lucene</groupId>
-			<artifactId>lucene-spatial</artifactId>
-			<version>4.10.1</version>
-		</dependency>
 
 	</dependencies>
 	<reporting>

@@ -26,8 +26,6 @@ import java.sql.Statement;
 import org.apache.commons.validator.routines.InetAddressValidator;
 import org.json.simple.JSONObject;
 
-import com.spatial4j.core.io.GeohashUtils;
-
 @SuppressWarnings("serial")
 public class GeoMysqlAdapter extends AbstractGeoAdapter {
 
@@ -143,17 +141,6 @@ public class GeoMysqlAdapter extends AbstractGeoAdapter {
 			jo.put("longitude", resultSet.getString("longitude"));
 			jo.put("dmaCode", resultSet.getString("dmaCode"));
 			jo.put("locID", resultSet.getString("locID"));
-
-			try {
-				String geoHash = GeohashUtils.encodeLatLon(
-						Double.parseDouble((String) jo.get("latitude")),
-						Double.parseDouble((String) jo.get("longitude")));
-				
-				jo.put("geoHash", geoHash);
-			} catch (Exception e) {
-				
-				_LOG.trace("Unable to compile geogash for: " + jo.get("latitude") + ", " + jo.get("longitude"));
-			}
 			
 			jo.put("location_point", jo.get("longitude") + "," + jo.get("latitude"));
 

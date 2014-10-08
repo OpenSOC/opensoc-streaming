@@ -112,7 +112,7 @@ public class ESTimedRotatingAdapter extends AbstractIndexAdapter implements
 			bulk_set.add(raw_message);
 			set_size = bulk_set.size();
 			
-			System.out.println("Bulk size is now: " + bulk_set.size());
+			_LOG.trace("[OpenSOC] Incremented bulk size to: " + bulk_set.size());
 		}
 
 		try {
@@ -151,7 +151,7 @@ public class ESTimedRotatingAdapter extends AbstractIndexAdapter implements
 				while (iterator.hasNext()) {
 					JSONObject setElement = iterator.next();
 					
-					System.out.println("Flushing to index: " + _index_name+ "_" + index_postfix);
+					_LOG.trace("[OpenSOC] Flushing to index: " + _index_name+ "_" + index_postfix);
 
 					IndexRequestBuilder a = client.prepareIndex(_index_name+ "_" + index_postfix,
 							_document_name);
@@ -160,22 +160,27 @@ public class ESTimedRotatingAdapter extends AbstractIndexAdapter implements
 
 				}
 
-				System.out.println("Performing bulk load of size: "
+				_LOG.trace("[OpenSOC] Performing bulk load of size: "
 						+ bulkRequest.numberOfActions());
 
 				BulkResponse resp = bulkRequest.execute().actionGet();
 				
+				for(BulkItemResponse r: resp.getItems())
+				{
+					r.getResponse();
+					_LOG.trace("[OpenSOC] ES SUCCESS MESSAGE: " + r.getFailureMessage());
+				}
 				
-				System.out.println("[OpenSOC] Received bulk response: "
-						+ resp.buildFailureMessage());
 				bulk_set.clear();
 				
 				if (resp.hasFailures()) {
-				    
+					_LOG.error("[OpenSOC] Received bulk response error: "
+							+ resp.buildFailureMessage());
+					
 					for(BulkItemResponse r: resp.getItems())
 					{
 						r.getResponse();
-						System.out.println("FAILURE MESSAGE: " + r.getFailureMessage());
+						_LOG.error("[OpenSOC] ES FAILURE MESSAGE: " + r.getFailureMessage());
 					}
 				}
 				

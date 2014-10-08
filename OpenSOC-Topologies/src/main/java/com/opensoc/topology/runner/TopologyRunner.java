@@ -825,7 +825,8 @@ public abstract class TopologyRunner {
 							config.getString("bolt.indexing.documentname"))
 					.withBulk(config.getInt("bolt.indexing.bulk"))
 					.withIndexAdapter(adapter)
-					.withMetricConfiguration(config);
+					.withMetricConfiguration(config)
+					.withRuntimeConfiguration(config);
 
 			builder.setBolt(name, indexing_bolt,
 					config.getInt("bolt.indexing.parallelism.hint"))

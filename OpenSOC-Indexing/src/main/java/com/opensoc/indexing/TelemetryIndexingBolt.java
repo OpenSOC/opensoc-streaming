@@ -59,6 +59,8 @@ import com.opensoc.metrics.MetricReporter;
 public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 
 	private JSONObject metricConfiguration;
+	private JSONObject _runtimeConfiguration;
+	
 	private Set<Tuple> tuple_queue = new HashSet<Tuple>();
 
 	/**
@@ -152,6 +154,17 @@ public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 				.subset("com.opensoc.metrics"));
 		return this;
 	}
+	
+	/**
+	 * @param config
+	 * 			- configuration for arbitrary runtime configuration
+	 * @return instance of bolt
+	 */
+	public TelemetryIndexingBolt withRuntimeConfiguration(Configuration config) {
+		this._runtimeConfiguration = JSONEncoderHelper.getJSON(config
+				.subset("com.opensoc.runtime"));
+		return this;
+	}
 
 	@SuppressWarnings("rawtypes")
 	@Override
@@ -161,7 +174,7 @@ public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 		try {
 			
 			_adapter.initializeConnection(_IndexIP, _IndexPort,
-					_ClusterName, _IndexName, _DocumentName, _BulkIndexNumber);
+					_ClusterName, _IndexName, _DocumentName, _BulkIndexNumber, _runtimeConfiguration);
 			
 			_reporter = new MetricReporter();
 			_reporter.initialize(metricConfiguration,

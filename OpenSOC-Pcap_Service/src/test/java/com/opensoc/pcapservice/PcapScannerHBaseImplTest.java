@@ -16,8 +16,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import com.opensoc.pcapservice.PcapScannerHBaseImpl;
-
 // TODO: Auto-generated Javadoc
 /**
  * The Class PcapScannerHBaseImplTest.

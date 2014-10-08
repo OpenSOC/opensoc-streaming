@@ -19,8 +19,6 @@
 package com.opensoc.alerts.adapters;
 
 import java.io.Serializable;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 

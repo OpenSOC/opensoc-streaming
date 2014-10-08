@@ -5,8 +5,15 @@ package com.opensoc.hbase;
 import java.io.IOException;
 import java.util.Map;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.HColumnDescriptor;
+import org.apache.hadoop.hbase.HTableDescriptor;
+import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
+
+import com.opensoc.helpers.topology.ErrorGenerator;
 
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
@@ -15,8 +22,6 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
-
-import com.opensoc.helpers.topology.ErrorGenerator;
 
 /**
  * A Storm bolt for putting data into HBase.

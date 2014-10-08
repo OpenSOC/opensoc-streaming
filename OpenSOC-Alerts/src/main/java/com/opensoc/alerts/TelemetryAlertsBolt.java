@@ -31,6 +31,7 @@ import backtype.storm.task.TopologyContext;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
+import com.esotericsoftware.minlog.Log;
 import com.google.common.cache.CacheBuilder;
 import com.opensoc.alerts.interfaces.AlertsAdapter;
 import com.opensoc.helpers.topology.ErrorGenerator;

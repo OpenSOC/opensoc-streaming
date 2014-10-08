@@ -377,9 +377,6 @@ public class PacketInfo {
 
     jsonSb.append("{\"pcap_id\":\"").append(getKey());
     jsonSb.append("\",\"ip_protocol\":").append(ipv4Packet.getProtocol());
-    jsonSb.append(",\"ts_sec\":").append(packetHeader.getTsSec());
-    jsonSb.append(",\"ts_usec\":").append(packetHeader.getTsUsec());
-
 
     // tcp header
     if (tcpPacket != null) {

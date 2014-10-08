@@ -7,13 +7,15 @@ import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import kafka.consumer.ConsumerConfig;
-import kafka.consumer.KafkaStream;
-import kafka.javaapi.consumer.ConsumerConnector;
-
 import org.eclipse.jetty.websocket.api.RemoteEndpoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.opensoc.dataservices.Main;
+
+import kafka.consumer.ConsumerConfig;
+import kafka.consumer.KafkaStream;
+import kafka.javaapi.consumer.ConsumerConnector;
 
 public class KafkaClient 
 {

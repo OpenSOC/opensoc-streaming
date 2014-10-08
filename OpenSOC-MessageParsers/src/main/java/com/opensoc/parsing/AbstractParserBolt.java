@@ -18,7 +18,9 @@
 package com.opensoc.parsing;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.Map;
+import java.util.zip.Deflater;
 
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;

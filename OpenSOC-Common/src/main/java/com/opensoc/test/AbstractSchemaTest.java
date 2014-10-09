@@ -21,8 +21,6 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.net.URL;
 
-import junit.framework.TestCase;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jackson.JsonLoader;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
@@ -41,7 +39,7 @@ import com.github.fge.jsonschema.main.JsonValidator;
  * </ul>
  * @version $Revision: 1.1 $
  */
-public class AbstractSchemaTest  extends TestCase{
+public class AbstractSchemaTest  extends AbstractTestContext{
         
         
          /**
@@ -58,9 +56,10 @@ public class AbstractSchemaTest  extends TestCase{
 
         /**
          * Constructs a new <code>AbstractTestContext</code> instance.
+         * @throws Exception 
          */
-        public AbstractSchemaTest() {
-            super();
+        public AbstractSchemaTest() throws Exception {
+            super.setUp();
         }
 
         /**
@@ -87,6 +86,7 @@ public class AbstractSchemaTest  extends TestCase{
          */
         @Override
         protected void setUp() throws Exception {
+            super.setUp();
             
         }
 

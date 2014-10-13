@@ -1,4 +1,4 @@
-#OpenSOC-Parsers
+#OpenSOC-Enrichments
 
 ##Module Description
 
@@ -20,6 +20,7 @@ Enrichment bolts are designed to go after the parser bolts.  Parser bolts will p
 }
 
 }
+```
 
 A single enrichment bolt would enrich the message and produce a JSON enrichment and attach it to the message.  Enrichments are stackable so multiple enrichments can be attached sequentially after a single parser bolt.  Stacked enrichments would produce messages under the "enrichment" tag and attach it to the message like so:
 

@@ -41,13 +41,13 @@ So putting it all together a typical OpenSOC message with all 5-tuple fields pre
 
 The OpenSOC parser bolt is a standard bolt, which can be extended with multiple Java and Grok parser adapter for parsing different topology messages.  The bolt signature for declaration in a storm topology is as follows:
 
-'''
+```
 AbstractParserBolt parser_bolt = new TelemetryParserBolt()
 .withMessageParser(parser)
 .withMessageFilter(new GenericMessageFilter())
 .withMetricConfig(config);
 
-'''
+```
 
 Metric Config - optional argument for exporting custom metrics to graphite.  If set to null no metrics will be exported.  If set, then a list of metrics defined in the metrics.conf file of each topology will define will metrics are exported and how often.
 

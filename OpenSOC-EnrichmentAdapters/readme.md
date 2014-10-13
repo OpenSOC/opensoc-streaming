@@ -37,6 +37,7 @@ A single enrichment bolt would enrich the message and produce a JSON enrichment 
 "enrichment" : {"geo": xxxx, "whois": xxxx, "hosts": xxxxx, "CIF": "xxxxx"}
 
 }
+```
 
 ##Enrichment Sources
 

@@ -114,10 +114,12 @@ CIF adapter is designed to take in CIF feeds and cross-reference them against ev
 
 The signature of the CIF adapter is as follows:
 
+```
 CIFHbaseAdapter = new CIFHbaseAdapter(config
 .getString("kafka.zk.list"), config
 .getString("kafka.zk.port"), config
 .getString("bolt.enrichment.cif.tablename")))
+```
 
 ##Stacking Enrichments
 Enrichments can be stacked.  By default each enrichment bolt listens on the "message" stream.  In order to create and stack enrichment bolts create a new bolt and instantiate the appropariate adapter.  You can look at our sample topologies to see how enrichments can be stacked

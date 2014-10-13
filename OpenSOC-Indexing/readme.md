@@ -29,3 +29,33 @@ config.getString("bolt.error.indexing.documentname"))
 *com.opensoc.indexing.adapters.ESBaseBulkRotatingAdapter - does everything adapter above does, but is able to rotate the index names based on size
 *com.opensoc.indexing.adapters.ESTimedBulkRotatingAdapter - does everything adapter above does, but is able to rotate the index names based on size and time
 *com.opensoc.indexing.adapters.SolrAdapter - currently under development
+
+/etc/ directory contains all environment-related configs
+
+##Sample Input and Generator Spout
+
+The sample input for topologies provided in this release was checked in here:
+
+```
+https://github.com/OpenSOC/opensoc-streaming/tree/master/OpenSOC-Topologies/src/main/resources/SampleInput
+```
+
+We provide a generator spout that is able to drive these topologies.  In production we run with the kafka spout, but for documentation on that please reference the Storm project documentation
+
+The generator spout comes with the following signature:
+
+```
+GenericInternalTestSpout testSpout = new GenericInternalTestSpout()
+.withFilename(test_file_path).withRepeating(
+config.getBoolean("spout.test.parallelism.repeat"));
+```
+
+* the repeat variable defines if the generator spout will loop through the input or stop once it gets to the end of file
+
+###Additional Storm Bolts
+In addition to custom bolts developed for OpenSOC we utilize standard bolts and spouts included with the Storm release.  We will not provide documentation for these spouts and bolts since they are provided as part of Storm.  These spouts bolts are:
+
+* KafkaSpout
+* KafkaBolt
+* HDFSBolt
+* HBaseBolt

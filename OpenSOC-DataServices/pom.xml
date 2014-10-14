@@ -21,8 +21,7 @@
 	</properties>
 
 	<dependencies>
-	
-		<dependency>
+			<dependency>
 			<groupId>org.krakenapps</groupId>
 			<artifactId>kraken-pcap</artifactId>
 			<version>1.5.0</version>

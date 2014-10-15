@@ -56,6 +56,12 @@ public class BasicBroParser extends AbstractParser {
 			if(payload == null)
 				throw new Exception("Unable to retrieve payload for message: " + raw_message);
 
+			if (payload.containsKey("ts")) {
+				String ts = payload.remove("ts").toString();
+				payload.put("timestamp", ts);
+				_LOG.trace("[OpenSOC] Added ts to: " + payload);
+			}
+			
 			if (payload.containsKey("id.orig_h")) {
 				String source_ip = payload.remove("id.orig_h").toString();
 				payload.put("ip_src_addr", source_ip);

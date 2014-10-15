@@ -1,6 +1,5 @@
 package com.opensoc.alerts.adapters;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,8 +11,9 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.validator.routines.InetAddressValidator;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.HBaseAdmin;
+import org.apache.hadoop.hbase.client.HConnection;
+import org.apache.hadoop.hbase.client.HConnectionManager;
 import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Result;
@@ -30,17 +30,56 @@ import com.opensoc.alerts.interfaces.AlertsAdapter;
 
 public class AllAlertAdapter implements AlertsAdapter, Serializable {
 
+	HTableInterface blacklist_table;
+	HTableInterface whitelist_table;
+	InetAddressValidator ipvalidator = new InetAddressValidator();
+	String _whitelist_table_name;
+	String _blacklist_table_name;
+	String _quorum;
+	String _port;
+	String _topologyname;
+	Configuration conf = null;
+
 	Cache<String, String> cache;
+	String _topology_name;
+
+	Set<String> loaded_whitelist = new HashSet<String>();
+	Set<String> loaded_blacklist = new HashSet<String>();
+
+	protected static final Logger LOG = LoggerFactory
+			.getLogger(AllAlertAdapter.class);
 
 	public AllAlertAdapter(Map<String, String> config) {
 		try {
+			if(!config.containsKey("whitelist_table_name"))
+				throw new Exception("Whitelist table name is missing");
+				
+			_whitelist_table_name = config.get("whitelist_table_name");
+			
+			if(!config.containsKey("blacklist_table_name"))
+				throw new Exception("Blacklist table name is missing");
+			
+			_blacklist_table_name = config.get("blacklist_table_name");
+			
+			if(!config.containsKey("quorum"))
+				throw new Exception("Quorum name is missing");
+			
+			_quorum = config.get("quorum");
+			
+			if(!config.containsKey("port"))
+				throw new Exception("port name is missing");
+			
+			_port = config.get("port");
 
+			if(!config.containsKey("_MAX_CACHE_SIZE"))
+				throw new Exception("_MAX_CACHE_SIZE name is missing");
+			
 			int _MAX_CACHE_SIZE = Integer.parseInt(config
 					.get("_MAX_CACHE_SIZE"));
-
-			if (!config.containsKey("_MAX_TIME_RETAIN"))
+			
+			if(!config.containsKey("_MAX_TIME_RETAIN"))
 				throw new Exception("_MAX_TIME_RETAIN name is missing");
-
+			
 			int _MAX_TIME_RETAIN = Integer.parseInt(config
 					.get("_MAX_TIME_RETAIN"));
 
@@ -48,7 +87,7 @@ public class AllAlertAdapter implements AlertsAdapter, Serializable {
 					.expireAfterWrite(_MAX_TIME_RETAIN, TimeUnit.MINUTES)
 					.build();
 		} catch (Exception e) {
-			System.out.println("Could not initialize alerts adapter");
+			System.out.println("Could not initialize Alerts Adapter");
 			e.printStackTrace();
 			System.exit(0);
 		}
@@ -56,8 +95,91 @@ public class AllAlertAdapter implements AlertsAdapter, Serializable {
 
 	@Override
 	public boolean initialize() {
-		// TODO Auto-generated method stub
-		return true;
+
+		conf = HBaseConfiguration.create();
+		conf.set("hbase.zookeeper.quorum", _quorum);
+		conf.set("hbase.zookeeper.property.clientPort", _port);
+
+		LOG.trace("[OpenSOC] Connecting to hbase with conf:" + conf);
+		LOG.trace("[OpenSOC] Whitelist table name: " + _whitelist_table_name);
+		LOG.trace("[OpenSOC] Whitelist table name: " + _blacklist_table_name);
+		LOG.trace("[OpenSOC] ZK Client/port: "
+				+ conf.get("hbase.zookeeper.quorum") + " -> "
+				+ conf.get("hbase.zookeeper.property.clientPort"));
+
+		try {
+
+			LOG.trace("[OpenSOC] Attempting to connect to hbase");
+
+			HConnection connection = HConnectionManager.createConnection(conf);
+
+			LOG.trace("[OpenSOC] CONNECTED TO HBASE");
+
+			HBaseAdmin hba = new HBaseAdmin(conf);
+
+			if (!hba.tableExists(_whitelist_table_name))
+				throw new Exception("Whitelist table doesn't exist");
+
+			if (!hba.tableExists(_blacklist_table_name))
+				throw new Exception("Blacklist table doesn't exist");
+
+			whitelist_table = new HTable(conf, _whitelist_table_name);
+
+			LOG.trace("[OpenSOC] CONNECTED TO TABLE: " + _whitelist_table_name);
+			blacklist_table = new HTable(conf, _blacklist_table_name);
+			LOG.trace("[OpenSOC] CONNECTED TO TABLE: " + _blacklist_table_name);
+
+			if (connection == null || whitelist_table == null
+					|| blacklist_table == null)
+				throw new Exception("Unable to initialize hbase connection");
+
+			Scan scan = new Scan();
+
+			ResultScanner rs = whitelist_table.getScanner(scan);
+			try {
+				for (Result r = rs.next(); r != null; r = rs.next()) {
+					loaded_whitelist.add(Bytes.toString(r.getRow()));
+				}
+			} catch (Exception e) {
+				LOG.trace("[OpenSOC] COULD NOT READ FROM HBASE");
+				e.printStackTrace();
+			} finally {
+				rs.close(); // always close the ResultScanner!
+				hba.close();
+			}
+			whitelist_table.close();
+
+			LOG.trace("[OpenSOC] READ IN WHITELIST: " + loaded_whitelist.size());
+
+			scan = new Scan();
+
+			rs = blacklist_table.getScanner(scan);
+			try {
+				for (Result r = rs.next(); r != null; r = rs.next()) {
+					loaded_blacklist.add(Bytes.toString(r.getRow()));
+				}
+			} catch (Exception e) {
+				LOG.trace("[OpenSOC] COULD NOT READ FROM HBASE");
+				e.printStackTrace();
+			} finally {
+				rs.close(); // always close the ResultScanner!
+				hba.close();
+			}
+			blacklist_table.close();
+
+			LOG.trace("[OpenSOC] READ IN WHITELIST: " + loaded_whitelist.size());
+
+			rs.close(); // always close the ResultScanner!
+			hba.close();
+
+			return true;
+		} catch (Exception e) {
+
+			e.printStackTrace();
+		}
+
+		return false;
+
 	}
 
 	@Override
@@ -79,22 +201,35 @@ public class AllAlertAdapter implements AlertsAdapter, Serializable {
 
 		JSONObject alert = new JSONObject();
 
-		alert.put("title", "Alert from Topology");
-		alert.put("priority", "4");
-		alert.put("type", "error");
-		alert.put("designated_host", "Uknown");
-		alert.put("source", "NA");
-		alert.put("dest", "NA");
-		alert.put("body", "Alert from Topology");
+
 
 		String source = "unknown";
 		String dest = "unknown";
+		String host = "unknown";
 
 		if (content.containsKey("ip_src_addr"))
+		{
 			source = content.get("ip_src_addr").toString();
+			
+			if(loaded_whitelist.contains(source))
+				host = source;				
+		}
 
 		if (content.containsKey("ip_dst_addr"))
+		{
 			dest = content.get("ip_dst_addr").toString();
+			
+			if(loaded_whitelist.contains(dest))
+				host = dest;	
+		}
+
+		alert.put("designated_host", host);
+		alert.put("title", "Alert from Topology");
+		alert.put("priority", "4");
+		alert.put("type", "error");
+		alert.put("source", source);
+		alert.put("dest", dest);
+		alert.put("body", "Alert from Topology");
 
 		String alert_id = generateAlertId(source, dest, 0);
 

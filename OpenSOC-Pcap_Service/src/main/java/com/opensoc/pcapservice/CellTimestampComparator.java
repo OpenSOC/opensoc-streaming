@@ -5,7 +5,7 @@ import java.util.Comparator;
 import org.apache.hadoop.hbase.Cell;
 
 /**
- * Comparator created for sorting pcaps cells based on the timestamp (dsc).
+ * Comparator created for sorting pcaps cells based on the timestamp (asc).
  * 
  * @author Sayi
  */
@@ -18,6 +18,6 @@ public class CellTimestampComparator implements Comparator<Cell> {
    */
   
   public int compare(Cell o1, Cell o2) {
-    return Long.valueOf(o2.getTimestamp()).compareTo(o1.getTimestamp());
+    return Long.valueOf(o1.getTimestamp()).compareTo(o2.getTimestamp());
   }
 }

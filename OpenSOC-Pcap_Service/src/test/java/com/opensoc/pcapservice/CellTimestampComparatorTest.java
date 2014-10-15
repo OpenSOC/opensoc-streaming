@@ -49,7 +49,7 @@ public class CellTimestampComparatorTest {
     CellTimestampComparator comparator = new CellTimestampComparator();
 
     // actual call and verify
-    Assert.assertTrue(comparator.compare(cell1, cell2) == -1);
+    Assert.assertTrue(comparator.compare(cell2, cell1) == -1);
 
   }
 
@@ -67,7 +67,7 @@ public class CellTimestampComparatorTest {
     CellTimestampComparator comparator = new CellTimestampComparator();
 
     // actual call and verify
-    Assert.assertTrue(comparator.compare(cell1, cell2) == 1);
+    Assert.assertTrue(comparator.compare(cell2, cell1) == 1);
 
   }
 
@@ -85,7 +85,7 @@ public class CellTimestampComparatorTest {
     CellTimestampComparator comparator = new CellTimestampComparator();
 
     // actual call and verify
-    Assert.assertTrue(comparator.compare(cell1, cell2) == 0);
+    Assert.assertTrue(comparator.compare(cell2, cell1) == 0);
 
   }
 

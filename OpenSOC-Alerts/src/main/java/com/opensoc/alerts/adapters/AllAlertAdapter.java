@@ -97,8 +97,8 @@ public class AllAlertAdapter implements AlertsAdapter, Serializable {
 	public boolean initialize() {
 
 		conf = HBaseConfiguration.create();
-		conf.set("hbase.zookeeper.quorum", _quorum);
-		conf.set("hbase.zookeeper.property.clientPort", _port);
+		//conf.set("hbase.zookeeper.quorum", _quorum);
+		//conf.set("hbase.zookeeper.property.clientPort", _port);
 
 		LOG.trace("[OpenSOC] Connecting to hbase with conf:" + conf);
 		LOG.trace("[OpenSOC] Whitelist table name: " + _whitelist_table_name);
@@ -150,6 +150,11 @@ public class AllAlertAdapter implements AlertsAdapter, Serializable {
 			whitelist_table.close();
 
 			LOG.trace("[OpenSOC] READ IN WHITELIST: " + loaded_whitelist.size());
+			
+			System.out.println("LOADED WHITELIST IS: ");
+			
+			for(String str: loaded_whitelist)
+				System.out.println("WHITELIST: " + str);
 
 			scan = new Scan();
 
@@ -211,7 +216,7 @@ public class AllAlertAdapter implements AlertsAdapter, Serializable {
 		{
 			source = content.get("ip_src_addr").toString();
 			
-			if(loaded_whitelist.contains(source))
+			if(RangeChecker.checkRange(loaded_whitelist, source))
 				host = source;				
 		}
 
@@ -219,7 +224,7 @@ public class AllAlertAdapter implements AlertsAdapter, Serializable {
 		{
 			dest = content.get("ip_dst_addr").toString();
 			
-			if(loaded_whitelist.contains(dest))
+			if(RangeChecker.checkRange(loaded_whitelist, dest))
 				host = dest;	
 		}
 

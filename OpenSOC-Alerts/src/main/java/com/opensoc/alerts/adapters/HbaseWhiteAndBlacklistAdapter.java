@@ -99,8 +99,8 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 	public boolean initialize() {
 
 		conf = HBaseConfiguration.create();
-		conf.set("hbase.zookeeper.quorum", _quorum);
-		conf.set("hbase.zookeeper.property.clientPort", _port);
+		//conf.set("hbase.zookeeper.quorum", _quorum);
+		//conf.set("hbase.zookeeper.property.clientPort", _port);
 
 		LOG.trace("[OpenSOC] Connecting to hbase with conf:" + conf);
 		LOG.trace("[OpenSOC] Whitelist table name: " + _whitelist_table_name);

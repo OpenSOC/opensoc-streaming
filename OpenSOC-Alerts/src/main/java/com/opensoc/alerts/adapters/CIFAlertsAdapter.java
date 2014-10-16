@@ -205,6 +205,8 @@ public class CIFAlertsAdapter implements AlertsAdapter, Serializable {
 
 		if (raw_message.containsKey("enrichment"))
 			enrichment = (JSONObject) raw_message.get("enrichment");
+		else
+			return null;
 
 		if (enrichment.containsKey(enrichment_tag)) {
 

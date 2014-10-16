@@ -184,10 +184,10 @@ public class TelemetryAlertsBolt extends AbstractAlertBolt {
 			JSONArray uuid_list = new JSONArray();
 
 			if (alerts_list == null || alerts_list.isEmpty()) {
-				LOG.trace("[OpenSOC] No alerts detected in: "
+				System.out.println("[OpenSOC] No alerts detected in: "
 						+ original_message);
 				_collector.ack(tuple);
-				_collector.emit(new Values(original_message));
+				_collector.emit("message", new Values(key, original_message));
 			} else {
 				for (String alert : alerts_list.keySet()) {
 					uuid_list.add(alert);
@@ -195,7 +195,7 @@ public class TelemetryAlertsBolt extends AbstractAlertBolt {
 					LOG.trace("[OpenSOC] Checking alerts cache: " + alert);
 
 					if (cache.getIfPresent(alert) == null) {
-						LOG.trace("[OpenSOC]: Alert not found in cache: " + alert);
+						System.out.println("[OpenSOC]: Alert not found in cache: " + alert);
 
 						JSONObject global_alert = new JSONObject();
 						global_alert.putAll(_identifier);

@@ -1,12 +1,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	
+
 	<parent>
 		<groupId>com.opensoc</groupId>
 		<artifactId>OpenSOC-Streaming</artifactId>
 		<version>0.5BETA</version>
 	</parent>
-	
+
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>OpenSOC-DataServices</artifactId>
 	<version>1.0-SNAPSHOT</version>
@@ -16,12 +16,19 @@
 		<commons-configuration.version>1.10</commons-configuration.version>
 		<commons-beanutils.version>1.8.3</commons-beanutils.version>
 		<commons-jexl.version>2.1.1</commons-jexl.version>
-				<spring.integration.version>3.0.0.RELEASE</spring.integration.version>
-		<spring.version>3.2.6.RELEASE</spring.version>		
+		<spring.integration.version>3.0.0.RELEASE</spring.integration.version>
+		<spring.version>3.2.6.RELEASE</spring.version>
 	</properties>
+	<repositories>
+		<repository>
+			<id>Kraken-Repo</id>
+			<name>Kraken Repository</name>
+			<url>http://download.krakenapps.org</url>
+		</repository>
+	</repositories>
 
 	<dependencies>
-			<dependency>
+		<dependency>
 			<groupId>org.krakenapps</groupId>
 			<artifactId>kraken-pcap</artifactId>
 			<version>1.5.0</version>
@@ -33,7 +40,7 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-	
+
 		<dependency>
 			<groupId>com.opensoc</groupId>
 			<artifactId>OpenSOC-Common</artifactId>
@@ -78,7 +85,7 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-webmvc</artifactId>
 			<version>${spring.version}</version>
-		</dependency>		
+		</dependency>
 		<dependency>
 			<groupId>org.apache.hbase</groupId>
 			<artifactId>hbase-client</artifactId>
@@ -197,7 +204,7 @@
 		</dependency>
 
 
-	
+
 		<dependency>
 			<groupId>org.elasticsearch</groupId>
 			<artifactId>elasticsearch</artifactId>
@@ -224,8 +231,8 @@
 					<artifactId>slf4j-api</artifactId>
 				</exclusion>
 			</exclusions>
-		</dependency>		
-		
+		</dependency>
+
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
@@ -376,7 +383,7 @@
 			<artifactId>slf4j-api</artifactId>
 			<version>${slf4j.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<!-- Required in the sample apps only for 3rd-party libraries that expect 
 				to call the commons logging APIs -->

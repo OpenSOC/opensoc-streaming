@@ -17,9 +17,12 @@ Where appropriate there is also a standardization around the 5-tuple JSON fields
 
 * ip_src_addr: layer 3 source IP
 * ip_dst_addr: layer 3 dest IP
-* ip_src_port: layer 3 source port
-* ip_dst_port: layer 3 dest port
-* protocol: layer 3 protocol
+* ip_src_port: layer 4 source port
+* ip_dst_port: layer 4 dest port
+* protocol: layer 4 protocol
+* timestamp (epoch)
+
+At least one of the required tuples must be present.  If any of the 5 tuples are not available then the field for that tuple should not be added to the JSON.
 
 So putting it all together a typical OpenSOC message with all 5-tuple fields present would look like the following:
 

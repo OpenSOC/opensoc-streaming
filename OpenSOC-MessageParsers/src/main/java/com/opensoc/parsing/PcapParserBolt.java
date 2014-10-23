@@ -49,11 +49,9 @@ private Map conf;
   @SuppressWarnings("unused")
 private int numberOfCharsToUseForShuffleGrouping = 4;
 
-  /** The micro sec multiplier. */
-  private long microSecMultiplier = 1L;
+  /** The divisor to convert nanos to expected time precision. */
+  private long timePrecisonDivisor = 1L;
 
-  /** The sec multiplier. */
-  private long secMultiplier = 1000000L;
 
   // HBaseStreamPartitioner hBaseStreamPartitioner = null ;
 
@@ -119,14 +117,14 @@ private int numberOfCharsToUseForShuffleGrouping = 4;
     if (conf.containsKey("bolt.parser.ts.precision")) {
       String timePrecision = conf.get("bolt.parser.ts.precision").toString();
       if (timePrecision.equalsIgnoreCase("MILLI")) {
-        microSecMultiplier = 1L / 1000;
-        secMultiplier = 1000L;
+    	  //Convert nanos to millis
+    	  timePrecisonDivisor = 1000000L;
       } else if (timePrecision.equalsIgnoreCase("MICRO")) {
-        microSecMultiplier = 1L;
-        secMultiplier = 1000000L;
+    	//Convert nanos to micro
+    	  timePrecisonDivisor = 1000L;
       } else if (timePrecision.equalsIgnoreCase("NANO")) {
-        microSecMultiplier = 1000L;
-        secMultiplier = 1000000000L;
+    	//Keep nano as is.
+    	  timePrecisonDivisor = 1L;
       }
     }
     // hBaseStreamPartitioner = new HBaseStreamPartitioner(
@@ -164,6 +162,7 @@ public void execute(Tuple input) {
       if (packetInfoList != null) {
 
         for (PacketInfo packetInfo : packetInfoList) {
+        	
         	
         	String string_pcap = packetInfo.getJsonIndexDoc();
         	Object obj=JSONValue.parse(string_pcap);
@@ -214,7 +213,7 @@ public void execute(Tuple input) {
         	
           collector.emit("pcap_header_stream", new Values(packetInfo.getJsonDoc(), packetInfo.getKey()));
           collector.emit("pcap_data_stream", new Values(packetInfo.getKey(),
-              (packetInfo.getPacketHeader().getTsSec() * secMultiplier + packetInfo.getPacketHeader().getTsUsec() * microSecMultiplier),
+             packetInfo.getPacketTimeInNanos() / timePrecisonDivisor,
               input.getBinary(0)));
 
           // collector.emit(new Values(packetInfo.getJsonDoc(), packetInfo

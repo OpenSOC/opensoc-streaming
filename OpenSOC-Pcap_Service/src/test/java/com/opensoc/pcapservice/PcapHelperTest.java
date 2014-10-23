@@ -266,7 +266,7 @@ public class PcapHelperTest {
   @Test
   public void test_getDataCreationTimeUnit() {
     TimeUnit dataCreationTimeUnit = PcapHelper.getDataCreationTimeUnit();
-    Assert.isTrue(TimeUnit.MICROS == dataCreationTimeUnit);
+    Assert.isTrue(TimeUnit.MILLIS == dataCreationTimeUnit);
   }
 
   /**

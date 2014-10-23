@@ -401,4 +401,19 @@ public class PacketInfo {
 
     return jsonSb.toString();
   }
+  
+  public long getPacketTimeInNanos()
+  {
+	  if ( getGlobalHeader().getMagicNumber() == 0xa1b2c3d4 || getGlobalHeader().getMagicNumber() == 0xd4c3b2a1 )
+	  {
+		  //Time is in micro assemble as nano
+		  return getPacketHeader().getTsSec() * 1000000000L + getPacketHeader().getTsUsec() * 1000L ; 
+	  }
+	  else if ( getGlobalHeader().getMagicNumber() == 0xa1b23c4d || getGlobalHeader().getMagicNumber() == 0x4d3cb2a1 ) {
+		//Time is in nano assemble as nano
+		  return getPacketHeader().getTsSec() * 1000000000L + getPacketHeader().getTsUsec() ; 
+	  }
+	  //Default assume time is in milli assemble as nano
+	  return getPacketHeader().getTsSec() * 1000000000L + getPacketHeader().getTsUsec() * 1000000L ;  
+  }
 }

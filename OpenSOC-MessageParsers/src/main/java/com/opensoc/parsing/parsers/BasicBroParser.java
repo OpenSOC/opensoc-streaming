@@ -88,17 +88,21 @@ public class BasicBroParser extends AbstractParser {
 				String host = payload.get("host").toString().trim();
 				String[] parts = host.split("\\.");
 				int length = parts.length;
-				payload.put("tld", parts[length - 2] + "."
-						+ parts[length - 1]);
-				_LOG.trace("[OpenSOC] Added tld to: " + payload);
+				if ( length >= 2 ) {
+          payload.put("tld", parts[length - 2] + "."
+						  + parts[length - 1]);
+				  _LOG.trace("[OpenSOC] Added tld to: " + payload);
+        }
 			}
 			if (payload.containsKey("query")) {
 				String host = payload.get("query").toString();
 				String[] parts = host.split("\\.");
 				int length = parts.length;
-				payload.put("tld", parts[length - 2] + "."
-						+ parts[length - 1]);
-				_LOG.trace("[OpenSOC] Added tld to: " + payload);
+				if (length >= 2) {
+          payload.put("tld", parts[length - 2] + "."
+						  + parts[length - 1]);
+				  _LOG.trace("[OpenSOC] Added tld to: " + payload);
+        }
 			}
 
 			_LOG.trace("[OpenSOC] Inner message: " + payload);

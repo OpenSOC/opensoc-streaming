@@ -234,7 +234,7 @@ public class AllAlertAdapter implements AlertsAdapter, Serializable {
 		alert.put("type", "error");
 		alert.put("source", source);
 		alert.put("dest", dest);
-		alert.put("body", "Alert from Topology");
+		alert.put("body", content);
 
 		String alert_id = generateAlertId(source, dest, 0);
 

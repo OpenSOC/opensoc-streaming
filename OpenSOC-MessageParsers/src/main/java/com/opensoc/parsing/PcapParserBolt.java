@@ -50,7 +50,7 @@ private Map conf;
 private int numberOfCharsToUseForShuffleGrouping = 4;
 
   /** The divisor to convert nanos to expected time precision. */
-  private long timePrecisonDivisor = 1L;
+  private long timePrecisionDivisor = 1L;
 
 
   // HBaseStreamPartitioner hBaseStreamPartitioner = null ;
@@ -62,6 +62,26 @@ private int numberOfCharsToUseForShuffleGrouping = 4;
 
   }
 
+  public PcapParserBolt withTsPrecision(String tsPrecision) {
+	if (tsPrecision.equalsIgnoreCase("MILLI")) {
+	  //Convert nanos to millis
+	  LOG.info("Configured for MILLI, setting timePrecisionDivisor to 1000000L" );
+	  timePrecisionDivisor = 1000000L;
+	} else if (tsPrecision.equalsIgnoreCase("MICRO")) {
+	  //Convert nanos to micro
+	  LOG.info("Configured for MICRO, setting timePrecisionDivisor to 1000L" );
+	  timePrecisionDivisor = 1000L;
+	} else if (tsPrecision.equalsIgnoreCase("NANO")) {
+	  //Keep nano as is.
+	  LOG.info("Configured for NANO, setting timePrecisionDivisor to 1L" );
+	  timePrecisionDivisor = 1L;
+	} else {
+	  LOG.info("bolt.parser.ts.precision not set. Default to NANO");
+	  timePrecisionDivisor = 1L;
+	}
+	return this;
+  }
+  
   /*
    * (non-Javadoc)
    * 
@@ -114,19 +134,7 @@ private int numberOfCharsToUseForShuffleGrouping = 4;
     
     Grouping._Fields a;
 
-    if (conf.containsKey("bolt.parser.ts.precision")) {
-      String timePrecision = conf.get("bolt.parser.ts.precision").toString();
-      if (timePrecision.equalsIgnoreCase("MILLI")) {
-    	  //Convert nanos to millis
-    	  timePrecisonDivisor = 1000000L;
-      } else if (timePrecision.equalsIgnoreCase("MICRO")) {
-    	//Convert nanos to micro
-    	  timePrecisonDivisor = 1000L;
-      } else if (timePrecision.equalsIgnoreCase("NANO")) {
-    	//Keep nano as is.
-    	  timePrecisonDivisor = 1L;
-      }
-    }
+
     // hBaseStreamPartitioner = new HBaseStreamPartitioner(
     // conf.get("bolt.hbase.table.name").toString(),
     // 0,
@@ -179,7 +187,7 @@ public void execute(Tuple input) {
         	
           collector.emit("pcap_header_stream", new Values(packetInfo.getJsonDoc(), packetInfo.getKey()));
           collector.emit("pcap_data_stream", new Values(packetInfo.getKey(),
-             packetInfo.getPacketTimeInNanos() / timePrecisonDivisor,
+             packetInfo.getPacketTimeInNanos() / timePrecisionDivisor,
               input.getBinary(0)));
 
           // collector.emit(new Values(packetInfo.getJsonDoc(), packetInfo

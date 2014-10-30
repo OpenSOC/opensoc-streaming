@@ -199,7 +199,7 @@ public class TelemetryAlertsBolt extends AbstractAlertBolt {
 
 						JSONObject global_alert = new JSONObject();
 						global_alert.putAll(_identifier);
-						global_alert.put("triggered", alerts_list.get(alert));
+						global_alert.putAll(alerts_list.get(alert));
 						global_alert.put("timestamp", System.currentTimeMillis());
 						_collector.emit("alert", new Values(global_alert));
 

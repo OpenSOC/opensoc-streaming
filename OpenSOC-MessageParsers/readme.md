@@ -21,8 +21,9 @@ Where appropriate there is also a standardization around the 5-tuple JSON fields
 * ip_dst_port: layer 4 dest port
 * protocol: layer 4 protocol
 * timestamp (epoch)
+* original_string: A human friendly string representation of the message
 
-At least one of the required tuples must be present.  If any of the 5 tuples are not available then the field for that tuple should not be added to the JSON.
+The timestamp and original_string fields are madatory. The remaining standard fields are optional.  If any of the optional fields are not applicable then the field should be left out of the JSON.
 
 So putting it all together a typical OpenSOC message with all 5-tuple fields present would look like the following:
 
@@ -34,6 +35,7 @@ So putting it all together a typical OpenSOC message with all 5-tuple fields pre
 "ip_src_port": xxxx, 
 "ip_dst_port": xxxx, 
 "protocol": xxxx, 
+"original_string": xxx,
 "additional-field 1": xxx,
 }
 

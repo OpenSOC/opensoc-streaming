@@ -2,7 +2,7 @@
 
 ##Module Description
 
-This module enables telemetry alerts.  It splits the mssage stream into two streams.  The original message is emitted on the "message" stream.  The corresponding alert is emitted on the "alerts" stream.  The two are tied together through the alrts UUID.  
+This module enables telemetry alerts.  It splits the mssage stream into two streams.  The original message is emitted on the "message" stream.  The corresponding alert is emitted on the "alerts" stream.  The two are tied together through the alerts UUID.  
 
 ##Message Format
 
@@ -16,6 +16,8 @@ Assuming the original message (with enrichments enabled) has the following forma
 "ip_src_port": xxxx, 
 "ip_dst_port": xxxx, 
 "protocol": xxxx, 
+"timestamp": xxxx.
+"original_string": xxxx,
 "additional-field 1": xxxx,
 },
 "enrichment" : {"geo": xxxx, "whois": xxxx, "hosts": xxxxx, "CIF": "xxxxx"}
@@ -33,6 +35,8 @@ The telemetry message will be tagged with a UUID alert tag like so:
 "ip_src_port": xxxx, 
 "ip_dst_port": xxxx, 
 "protocol": xxxx, 
+"timestamp": xxxx,
+"original_string": xxxx,
 "additional-field 1": xxxx,
 },
 "enrichment" : {"geo": xxxx, "whois": xxxx, "hosts": xxxxx, "CIF": "xxxxx"},
@@ -41,14 +45,28 @@ The telemetry message will be tagged with a UUID alert tag like so:
 }
 ```
 
-The alert will be fired on the "alerts" stream and can be customized to have any format.  The only requirement for the alert is the corresponding UUID tag to tie it back to the telemetry message 
+The alert will be fired on the "alerts" stream and can be customized to have any format as long as it includes the required mandatory fields.  The mandatory fields are:
+
+* timestamp (epoch): The time from the message that triggered the alert
+* description: A human friendly string representation of the alert
+* alert_id: The UUID generated for the alert. This uniquely identifies an alert
+
+There are other standard but not mandatory fields that can be leveraged by opensoc-ui and other alert consumers:
+
+* designated_host: The IP address that corresponds to an asset. Ex. The IP address of the company device associated with the alert.
+* enrichment: A copy of the enrichment data from the message that triggered the alert
+* priority: The priority of the alert. Mustb e set to one of HIGH, MED or LOW
+
+An example of an alert with all mandatory and standard fields would look like so:
 
 ```json
 {
-{
-"alert": UUID
-"content": xxxx
-
+"timestamp": xxxx,
+"alert_id": UUID,
+"description": xxxx,
+"designated_host": xxxx,
+"enrichment": { "geo": xxxx, "whois": xxxx, "cif": xxxx },
+"priority": "MED"
 }
 ```
 
@@ -58,7 +76,7 @@ The bolt can be extended with a variety of alerts adapters.  The ability to stac
 
 The signature of the Alerts bolt is as follows:
 
-```
+``` 
 TelemetryAlertsBolt alerts_bolt = new TelemetryAlertsBolt()
 .withIdentifier(alerts_identifier).withMaxCacheSize(1000)
 .withMaxTimeRetain(3600).withAlertsAdapter(alerts_adapter)
@@ -75,6 +93,7 @@ Java adapters are designed for high volume topologies, but are not easily extens
 
 * com.opensoc.alerts.adapters.AllAlertsAdapter - will tag every single message with the static alert (appropriate for topologies like Sourcefire, etc, where every single message is an alert)
 * com.opensoc.alerts.adapters.HbaseWhiteAndBlacklistAdapter - will read white and blacklists from HBase and fire alerts if source or dest IP are not on the whitelist or if any IP is on the blacklist
+* com.opensoc.alerts.adapters.CIFAlertsAdapter - will alert on messages that have results in enrichment.cif.
 
 ###Grok Adapters
 

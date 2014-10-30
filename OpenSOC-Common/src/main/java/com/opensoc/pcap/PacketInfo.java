@@ -9,6 +9,9 @@ import org.krakenapps.pcap.file.GlobalHeader;
 import org.krakenapps.pcap.packet.PacketHeader;
 import org.krakenapps.pcap.packet.PcapPacket;
 
+import com.opensoc.pcap.Constants;
+import com.opensoc.pcap.PcapUtils;
+
 /**
  * The Class PacketInfo.
  * 
@@ -232,6 +235,28 @@ public class PacketInfo {
   }
 
   /**
+   * Gets the short key
+   * 
+   * 
+   * @return the short key
+   */
+  public String getShortKey() {
+	int sourcePort = 0;
+	int destinationPort = 0;
+	if(Constants.PROTOCOL_UDP == ipv4Packet.getProtocol()) {
+		sourcePort = udpPacket.getSourcePort();
+		destinationPort = udpPacket.getDestinationPort();
+	} else if (Constants.PROTOCOL_TCP == ipv4Packet.getProtocol()) {
+		sourcePort = tcpPacket.getSourcePort();
+		destinationPort = tcpPacket.getDestinationPort();
+	}
+	  
+	return PcapUtils.getShortSessionKey(ipv4Packet.getSourceAddress().getHostAddress(), ipv4Packet.getDestinationAddress().getHostAddress(),
+	    ipv4Packet.getProtocol(), sourcePort, destinationPort);
+			 
+  }
+  
+  /**
    * Gets the json doc.
    * 
    * 
@@ -260,6 +285,7 @@ public class PacketInfo {
    */
   private String getJsonDocUsingSBAppend() {
 
+	
     StringBuffer jsonSb = new StringBuffer(1024);
 
     // global header
@@ -373,28 +399,30 @@ public class PacketInfo {
    */
   private String getJsonIndexDocUsingSBAppend() {
 
-    StringBuffer jsonSb = new StringBuffer(175);
+	Long ts_micro = ((long) packetHeader.getTsSec() * 1000000L) + ((long) packetHeader.getTsUsec());
+	StringBuffer jsonSb = new StringBuffer(175);
 
-    jsonSb.append("{\"pcap_id\":\"").append(getKey());
+	jsonSb.append("{\"pcap_id\":\"").append(getShortKey());
     jsonSb.append("\",\"ip_protocol\":").append(ipv4Packet.getProtocol());
-    jsonSb.append(",\"ts_sec\":").append(packetHeader.getTsSec());
-    jsonSb.append(",\"ts_usec\":").append(packetHeader.getTsUsec());
+    jsonSb.append(",\"ip_id\":").append(ipv4Packet.getId());
+    jsonSb.append(",\"frag_offset\":").append(ipv4Packet.getFragmentOffset());
+    jsonSb.append(",\"ts_micro\":").append(ts_micro);
 
 
     // tcp header
     if (tcpPacket != null) {
-      jsonSb.append(",\"src_addr\":\"").append(tcpPacket.getSourceAddress().getHostAddress());
-      jsonSb.append("\",\"src_port\":").append(tcpPacket.getSourcePort());
-      jsonSb.append(",\"dst_addr\":\"").append(tcpPacket.getDestinationAddress().getHostAddress());
-      jsonSb.append("\",\"dst_port\":").append(tcpPacket.getDestinationPort());
+      jsonSb.append(",\"ip_src_addr\":\"").append(tcpPacket.getSourceAddress().getHostAddress());
+      jsonSb.append("\",\"ip_src_port\":").append(tcpPacket.getSourcePort());
+      jsonSb.append(",\"ip_dst_addr\":\"").append(tcpPacket.getDestinationAddress().getHostAddress());
+      jsonSb.append("\",\"ip_dst_port\":").append(tcpPacket.getDestinationPort());
     }
 
     // udp headers
     if (udpPacket != null) {
-      jsonSb.append(",\"src_addr\":\"").append(udpPacket.getSource().getAddress().getHostAddress());
-      jsonSb.append("\",\"src_port\":").append(udpPacket.getSourcePort());
-      jsonSb.append(",\"dst_addr\":\"").append(udpPacket.getDestination().getAddress().getHostAddress());
-      jsonSb.append("\",\"dst_port\":").append(udpPacket.getDestinationPort());
+      jsonSb.append(",\"ip_src_addr\":\"").append(udpPacket.getSource().getAddress().getHostAddress());
+      jsonSb.append("\",\"ip_src_port\":").append(udpPacket.getSourcePort());
+      jsonSb.append(",\"ip_dst_addr\":\"").append(udpPacket.getDestination().getAddress().getHostAddress());
+      jsonSb.append("\",\"ip_dst_port\":").append(udpPacket.getDestinationPort());
     }
 
     jsonSb.append('}');

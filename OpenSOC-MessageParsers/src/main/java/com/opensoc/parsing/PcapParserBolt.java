@@ -171,40 +171,6 @@ public void execute(Tuple input) {
         	JSONObject message = new JSONObject();
         	//message.put("key", packetInfo.getKey());
         	
-        	if(header.containsKey("src_addr"))
-        	{
-        		String tmp = header.get("src_addr").toString();
-        		header.remove("src_addr");
-        		header.put("ip_src_addr", tmp);
-        	}
-        	
-        	if(header.containsKey("dst_addr"))
-        	{
-        		String tmp = header.get("dst_addr").toString();
-        		header.remove("dst_addr");
-        		header.put("ip_dst_addr", tmp);
-        	}
-        	
-        	if(header.containsKey("src_port"))
-        	{
-        		String tmp = header.get("src_port").toString();
-        		header.remove("src_port");
-        		header.put("ip_src_port", tmp);
-        	}
-        	
-        	if(message.containsKey("dst_port"))
-        	{
-        		String tmp = header.get("dst_port").toString();
-        		header.remove("dst_port");
-        		header.put("ip_dst_port", tmp);
-        	}
-        	if(message.containsKey("ip_protocol"))
-        	{
-        		String tmp = header.get("ip_protocol").toString();
-        		header.remove("ip_protocol");
-        		header.put("protocol", tmp);
-        	}
-        	
         	message.put("message", header);
         	
         	collector.emit("message", new Values(packetInfo.getKey(), message));

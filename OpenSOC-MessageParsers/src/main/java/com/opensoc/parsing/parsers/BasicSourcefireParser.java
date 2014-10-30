@@ -78,8 +78,7 @@ public class BasicSourcefireParser extends AbstractParser implements MessagePars
 			}
 
 			payload.put("timestamp", System.currentTimeMillis());
-			payload.put("original_string",
-					toParse.substring(0, toParse.indexOf("{")));
+			payload.put("original_string", toParse);
 
 			return payload;
 		} catch (Exception e) {

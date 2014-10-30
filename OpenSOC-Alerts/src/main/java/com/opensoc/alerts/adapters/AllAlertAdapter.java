@@ -229,7 +229,7 @@ public class AllAlertAdapter implements AlertsAdapter, Serializable {
 		}
 
 		alert.put("designated_host", host);
-		alert.put("description", content.get("original_string"));
+		alert.put("description", content.get("original_string").toString());
 		alert.put("priority", "MED");	
 
 		String alert_id = generateAlertId(source, dest, 0);

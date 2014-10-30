@@ -17,6 +17,8 @@
 
 package com.opensoc.parsing.parsers;
 
+import java.util.Iterator;
+
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,6 +54,13 @@ public class BasicBroParser extends AbstractParser {
 				throw new Exception("Unable to retrieve key for message: " + raw_message);
 
 			JSONObject payload = (JSONObject) cleaned_message.get(key);
+			
+			String originalString = " |";
+			for( Object k : payload.keySet() ) {
+				originalString = originalString + " " + k.toString() + ":" + payload.get(k).toString();
+			}
+			originalString = key.toUpperCase() + originalString;
+			payload.put("original_string", originalString);
 			
 			if(payload == null)
 				throw new Exception("Unable to retrieve payload for message: " + raw_message);

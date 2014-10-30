@@ -1,6 +1,7 @@
 package com.opensoc.pcap;
 
 import java.text.MessageFormat;
+import org.apache.log4j.Logger;
 
 import org.krakenapps.pcap.decoder.ip.Ipv4Packet;
 import org.krakenapps.pcap.decoder.tcp.TcpPacket;
@@ -50,6 +51,9 @@ public class PacketInfo {
   /** The Constant udpHeaderJsonTemplateSB. */
   private static final StringBuffer udpHeaderJsonTemplateSB = new StringBuffer();
 
+  /** The Constant LOG. */
+  private static final Logger LOG = Logger.getLogger(PacketInfo.class);
+  
   static {
     globalHeaderJsonTemplateSB.append("<\"global_header\":<\"pcap_id\":\"").append("{0}").append('"');
     globalHeaderJsonTemplateSB.append(",\"inc_len\":").append("{1}");
@@ -399,7 +403,7 @@ public class PacketInfo {
    */
   private String getJsonIndexDocUsingSBAppend() {
 
-	Long ts_micro = ((long) packetHeader.getTsSec() * 1000000L) + ((long) packetHeader.getTsUsec());
+	Long ts_micro = getPacketTimeInNanos() / 1000L;
 	StringBuffer jsonSb = new StringBuffer(175);
 
 	jsonSb.append("{\"pcap_id\":\"").append(getShortKey());
@@ -435,13 +439,16 @@ public class PacketInfo {
 	  if ( getGlobalHeader().getMagicNumber() == 0xa1b2c3d4 || getGlobalHeader().getMagicNumber() == 0xd4c3b2a1 )
 	  {
 		  //Time is in micro assemble as nano
+		  LOG.info("Times are in micro according to the magic number");
 		  return getPacketHeader().getTsSec() * 1000000000L + getPacketHeader().getTsUsec() * 1000L ; 
 	  }
 	  else if ( getGlobalHeader().getMagicNumber() == 0xa1b23c4d || getGlobalHeader().getMagicNumber() == 0x4d3cb2a1 ) {
 		//Time is in nano assemble as nano
+		  LOG.info("Times are in nano according to the magic number");
 		  return getPacketHeader().getTsSec() * 1000000000L + getPacketHeader().getTsUsec() ; 
 	  }
-	  //Default assume time is in milli assemble as nano
-	  return getPacketHeader().getTsSec() * 1000000000L + getPacketHeader().getTsUsec() * 1000000L ;  
+	  //Default assume time is in micro assemble as nano
+	  LOG.warn("Unknown magic number. Defaulting to micro");
+	  return getPacketHeader().getTsSec() * 1000000000L + getPacketHeader().getTsUsec() * 1000L ;  
   }
 }

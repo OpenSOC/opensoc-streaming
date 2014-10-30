@@ -215,10 +215,13 @@ public class CIFAlertsAdapter implements AlertsAdapter, Serializable {
 			JSONObject cif = (JSONObject) enrichment.get(enrichment_tag);
 
 			int cnt = 0;
-
+			Object enriched_key = null;
+			
 			for (Object key : cif.keySet()) {
 				JSONObject tmp = (JSONObject) cif.get(key);
 				cnt = cnt + tmp.size();
+				if (tmp.size() > 0)
+					enriched_key = key;
 			}
 
 			if (cnt == 0) {
@@ -245,20 +248,24 @@ public class CIFAlertsAdapter implements AlertsAdapter, Serializable {
 				if (RangeChecker.checkRange(loaded_whitelist, dest))
 					host = dest;
 			}
-
+			
+			JSONObject cifQualifier = (JSONObject) cif.get(enriched_key);
+			
 			alert.put("designated_host", host);
-
-			alert.put("title", "Flagged by CIF");
-			alert.put("priority", "1");
-			alert.put("type", "error");
-
-			alert.put("source", source);
-			alert.put("dest", dest);
-			alert.put("body", "Flagged by CIF");
+			String description = new StringBuilder()
+					.append(host)
+					.append(" communicated with a host (")
+					.append(content.get(enriched_key).toString())
+					.append(") identified as ")
+					.append(cifQualifier.keySet().iterator().next().toString())
+					.append(" by CIF")
+					.toString();	
+			alert.put("description", description);
+			alert.put("priority", "MED");
 
 			String alert_id = generateAlertId(source, dest, 0);
 
-			alert.put("reference_id", alert_id);
+			alert.put("alert_id", alert_id);
 			alerts.put(alert_id, alert);
 
 			alert.put("enrichment", enrichment);

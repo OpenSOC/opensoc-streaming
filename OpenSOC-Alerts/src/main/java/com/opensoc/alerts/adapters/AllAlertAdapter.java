@@ -229,16 +229,12 @@ public class AllAlertAdapter implements AlertsAdapter, Serializable {
 		}
 
 		alert.put("designated_host", host);
-		alert.put("title", "Alert from Topology");
-		alert.put("priority", "4");
-		alert.put("type", "error");
-		alert.put("source", source);
-		alert.put("dest", dest);
-		alert.put("body", content);
+		alert.put("description", content.get("original_string"));
+		alert.put("priority", "MED");	
 
 		String alert_id = generateAlertId(source, dest, 0);
 
-		alert.put("reference_id", alert_id);
+		alert.put("alert_id", alert_id);
 		alerts.put(alert_id, alert);
 
 		alert.put("enrichment", enrichment);

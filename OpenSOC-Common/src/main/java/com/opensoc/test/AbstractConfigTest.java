@@ -90,7 +90,7 @@ public class AbstractConfigTest  extends AbstractTestContext{
          * Constructs a new <code>AbstractTestContext</code> instance.
          * @param name the name of the test case.
          */
-        public AbstractConfigTest(String name,String configName) {
+        public AbstractConfigTest(String name) {
             super(name);
         }
 
@@ -103,7 +103,10 @@ public class AbstractConfigTest  extends AbstractTestContext{
             this.setConfigPath("src/test/resources/config/"+getClass().getSimpleName()+".config");
             try {
                 this.setConfig(new PropertiesConfiguration(this.getConfigPath()));
-                this.setSettings(SettingsLoader.getConfigOptions((PropertiesConfiguration)this.config, this.config.getString(configName) + "."));
+               
+                Map configOptions= SettingsLoader.getConfigOptions((PropertiesConfiguration)this.config, configName+"=");
+                this.setSettings(SettingsLoader.getConfigOptions((PropertiesConfiguration)this.config, configName + "."));
+                this.getSettings().put(configName, (String) configOptions.get(configName));
             } catch (ConfigurationException e) {
                 fail("Config not found !!"+e);
                 e.printStackTrace();

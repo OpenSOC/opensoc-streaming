@@ -194,7 +194,7 @@ public class PcapByteOutputStream implements PcapOutputStream {
         list.add(payload.get());
       }
     } catch (BufferUnderflowException e) {
-      LOG.debug("Ignorable exception while writing packet", e);
+      //LOG.debug("Ignorable exception while writing packet", e);
       payload.reset();
     }
 

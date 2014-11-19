@@ -17,6 +17,7 @@
 
 package com.opensoc.parsing.parsers;
 
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.json.simple.JSONObject;
@@ -28,6 +29,8 @@ public class BasicSourcefireParser extends AbstractParser implements MessagePars
 
 	public static final String hostkey = "host";
 	String domain_name_regex = "([^\\.]+)\\.([a-z]{2}|[a-z]{3}|([a-z]{2}\\.[a-z]{2}))$";
+	String sidRegex = "\\[([0-9]+:[0-9]+:[0-9])\\](.*)$";
+	Pattern sidPattern = Pattern.compile(sidRegex);
 	Pattern pattern = Pattern.compile(domain_name_regex);
 
 	@SuppressWarnings({ "unchecked", "unused" })
@@ -78,8 +81,16 @@ public class BasicSourcefireParser extends AbstractParser implements MessagePars
 			}
 
 			payload.put("timestamp", System.currentTimeMillis());
-			payload.put("original_string",
-					toParse.substring(0, toParse.indexOf("{")));
+			
+			Matcher sidMatcher = sidPattern.matcher(toParse);
+			String originalString = null;
+			if (sidMatcher.find()) {
+				originalString = sidMatcher.group(2);
+			} else {
+				_LOG.warn("Unable to find SID in message: " + toParse);
+				originalString = toParse;
+			}
+			payload.put("original_string", originalString);
 
 			return payload;
 		} catch (Exception e) {

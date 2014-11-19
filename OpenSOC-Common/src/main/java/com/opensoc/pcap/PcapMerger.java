@@ -4,12 +4,16 @@ import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
+
 import org.krakenapps.pcap.packet.PcapPacket;
+import org.krakenapps.pcap.file.GlobalHeader;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -22,6 +26,9 @@ public final class PcapMerger {
 
   /** The Constant LOG. */
   private static final Logger LOG = Logger.getLogger(PcapMerger.class);
+  
+  /** The comparator for PcapPackets */
+  private static PcapPacketComparator PCAP_PACKET_COMPARATOR = new PcapPacketComparator();
 
   /**
    * Instantiates a new pcap merger.
@@ -64,12 +71,14 @@ public final class PcapMerger {
       throws IOException {
     PcapByteInputStream is = null;
     PcapByteOutputStream os = null;
+    ByteArrayOutputStream unsortedBaos = new ByteArrayOutputStream();
+    
     try {
       int i = 1;
       for (byte[] pcap : pcaps) {
         is = new PcapByteInputStream(pcap);
         if (i == 1) {
-          os = new PcapByteOutputStream(baos, is.getGlobalHeader());
+          os = new PcapByteOutputStream(unsortedBaos, is.getGlobalHeader());
         }
 
         writePacket(is, os);
@@ -77,10 +86,11 @@ public final class PcapMerger {
         closeInput(is);
       }
     } finally {
-      if (baos != null) {
-        baos.close();
+      if (unsortedBaos != null) {
+        unsortedBaos.close();
       }
       closeOutput(os);
+      sort(baos, unsortedBaos.toByteArray());
     }
   }
 
@@ -103,7 +113,46 @@ public final class PcapMerger {
     merge(baos, Arrays.asList(pcaps));
 
   }
-
+  
+  /**
+   * Sort the potentially unsorted byte array according to the timestamp
+   * in the packet header
+   * 
+   * @param unsortedBytes
+   * 	a byte array of a pcap file
+   * 
+   * @return byte array of a pcap file with packets in cronological order
+   * 
+   * @throws IOException
+   * 	if there are no source byte arrays, have no read and or write 
+   * 	permission, or anything else.
+   */
+  private static void sort(ByteArrayOutputStream baos, byte[] unsortedBytes) throws IOException {
+	  PcapByteInputStream pcapIs = new PcapByteInputStream(unsortedBytes);
+	  PcapByteOutputStream pcapOs = new PcapByteOutputStream(baos, pcapIs.getGlobalHeader());
+	  PcapPacket packet;
+	  ArrayList<PcapPacket> packetList = new ArrayList<PcapPacket>();
+	  
+	  try {
+		  while (true) {
+			  packet = pcapIs.getPacket();
+			  if (packet == null)
+				  break;
+			  packetList.add(packet);
+			  LOG.debug("Presort packet: " + packet.getPacketHeader().toString());
+		  }
+	  } catch (EOFException e) {
+		  //LOG.debug("Ignoreable exception in sort", e);
+	  }
+	  
+	  Collections.sort(packetList, PCAP_PACKET_COMPARATOR);
+	  for (PcapPacket p : packetList) {
+		  pcapOs.write(p);
+		  LOG.debug("Postsort packet: " + p.getPacketHeader().toString());
+	  }
+	  pcapOs.close();  
+  }
+  
   /**
    * Write packet.
    * 
@@ -127,7 +176,7 @@ public final class PcapMerger {
         os.write(packet);
       }
     } catch (EOFException e) {
-      LOG.debug("Ignorable exception ", e);
+      //LOG.debug("Ignorable exception in writePacket", e);
     }
 
   }

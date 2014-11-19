@@ -50,25 +50,57 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 	protected static final Logger LOG = LoggerFactory
 			.getLogger(HbaseWhiteAndBlacklistAdapter.class);
 
-	public HbaseWhiteAndBlacklistAdapter(String whitelist_table_name,
-			String blacklist_table_name, String quorum, String port,
-			int _MAX_TIME_RETAIN, int _MAX_CACHE_SIZE) {
+	public HbaseWhiteAndBlacklistAdapter(Map<String, String> config) {
 
-		_whitelist_table_name = whitelist_table_name;
-		_blacklist_table_name = blacklist_table_name;
-		_quorum = quorum;
-		_port = port;
+		try {
+			if(!config.containsKey("whitelist_table_name"))
+				throw new Exception("Whitelist table name is missing");
+				
+			_whitelist_table_name = config.get("whitelist_table_name");
+			
+			if(!config.containsKey("blacklist_table_name"))
+				throw new Exception("Blacklist table name is missing");
+			
+			_blacklist_table_name = config.get("blacklist_table_name");
+			
+			if(!config.containsKey("quorum"))
+				throw new Exception("Quorum name is missing");
+			
+			_quorum = config.get("quorum");
+			
+			if(!config.containsKey("port"))
+				throw new Exception("port name is missing");
+			
+			_port = config.get("port");
 
-		cache = CacheBuilder.newBuilder().maximumSize(_MAX_CACHE_SIZE)
-				.expireAfterWrite(_MAX_TIME_RETAIN, TimeUnit.MINUTES).build();
+			if(!config.containsKey("_MAX_CACHE_SIZE"))
+				throw new Exception("_MAX_CACHE_SIZE name is missing");
+			
+			int _MAX_CACHE_SIZE = Integer.parseInt(config
+					.get("_MAX_CACHE_SIZE"));
+			
+			if(!config.containsKey("_MAX_TIME_RETAIN"))
+				throw new Exception("_MAX_TIME_RETAIN name is missing");
+			
+			int _MAX_TIME_RETAIN = Integer.parseInt(config
+					.get("_MAX_TIME_RETAIN"));
+
+			cache = CacheBuilder.newBuilder().maximumSize(_MAX_CACHE_SIZE)
+					.expireAfterWrite(_MAX_TIME_RETAIN, TimeUnit.MINUTES)
+					.build();
+		} catch (Exception e) {
+			System.out.println("Could not initialize Alerts Adapter");
+			e.printStackTrace();
+			System.exit(0);
+		}
 
 	}
 
 	public boolean initialize() {
 
 		conf = HBaseConfiguration.create();
-		conf.set("hbase.zookeeper.quorum", _quorum);
-		conf.set("hbase.zookeeper.property.clientPort", _port);
+		//conf.set("hbase.zookeeper.quorum", _quorum);
+		//conf.set("hbase.zookeeper.property.clientPort", _port);
 
 		LOG.trace("[OpenSOC] Connecting to hbase with conf:" + conf);
 		LOG.trace("[OpenSOC] Whitelist table name: " + _whitelist_table_name);

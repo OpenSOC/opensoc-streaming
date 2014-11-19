@@ -17,6 +17,8 @@
 
 package com.opensoc.parsing.parsers;
 
+import java.util.Iterator;
+
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,9 +55,22 @@ public class BasicBroParser extends AbstractParser {
 
 			JSONObject payload = (JSONObject) cleaned_message.get(key);
 			
+			String originalString = " |";
+			for( Object k : payload.keySet() ) {
+				originalString = originalString + " " + k.toString() + ":" + payload.get(k).toString();
+			}
+			originalString = key.toUpperCase() + originalString;
+			payload.put("original_string", originalString);
+			
 			if(payload == null)
 				throw new Exception("Unable to retrieve payload for message: " + raw_message);
 
+			if (payload.containsKey("ts")) {
+				String ts = payload.remove("ts").toString();
+				payload.put("timestamp", ts);
+				_LOG.trace("[OpenSOC] Added ts to: " + payload);
+			}
+			
 			if (payload.containsKey("id.orig_h")) {
 				String source_ip = payload.remove("id.orig_h").toString();
 				payload.put("ip_src_addr", source_ip);
@@ -82,17 +97,21 @@ public class BasicBroParser extends AbstractParser {
 				String host = payload.get("host").toString().trim();
 				String[] parts = host.split("\\.");
 				int length = parts.length;
-				payload.put("tld", parts[length - 2] + "."
-						+ parts[length - 1]);
-				_LOG.trace("[OpenSOC] Added tld to: " + payload);
+				if ( length >= 2 ) {
+          payload.put("tld", parts[length - 2] + "."
+						  + parts[length - 1]);
+				  _LOG.trace("[OpenSOC] Added tld to: " + payload);
+        }
 			}
 			if (payload.containsKey("query")) {
 				String host = payload.get("query").toString();
 				String[] parts = host.split("\\.");
 				int length = parts.length;
-				payload.put("tld", parts[length - 2] + "."
-						+ parts[length - 1]);
-				_LOG.trace("[OpenSOC] Added tld to: " + payload);
+				if (length >= 2) {
+          payload.put("tld", parts[length - 2] + "."
+						  + parts[length - 1]);
+				  _LOG.trace("[OpenSOC] Added tld to: " + payload);
+        }
 			}
 
 			_LOG.trace("[OpenSOC] Inner message: " + payload);

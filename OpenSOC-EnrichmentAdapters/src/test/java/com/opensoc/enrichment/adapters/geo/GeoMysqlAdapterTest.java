@@ -69,7 +69,6 @@ public class GeoMysqlAdapterTest extends AbstractSchemaTest {
         Properties prop = super.getTestProperties();
         assertNotNull(prop);   
         System.out.println("username ="+(String)prop.get("mysql.username"));
-        this.setMode("global");
         if(skipTests(this.getMode())){
             System.out.println(getClass().getName()+" Skipping Tests !!Local Mode");
             return;//skip tests

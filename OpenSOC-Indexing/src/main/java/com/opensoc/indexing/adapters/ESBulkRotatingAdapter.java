@@ -3,6 +3,7 @@ package com.opensoc.indexing.adapters;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -34,11 +35,11 @@ public class ESBulkRotatingAdapter extends AbstractIndexAdapter {
 	private HttpClient httpclient;
 	private HttpPost post;
 
-	private DateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd.HH");
+	private DateFormat dateFormat;
 
 	public boolean initializeConnection(String ip, int port,
 			String cluster_name, String index_name, String document_name,
-			int bulk_size) {
+			int bulk_size, JSONObject runtime_configuration) {
 
 		_LOG.info("Initializing ESBulkAdapter...");
 
@@ -51,7 +52,16 @@ public class ESBulkRotatingAdapter extends AbstractIndexAdapter {
 			_document_name = document_name;
 
 			_bulk_size = bulk_size - 1;
-
+			
+			if ( runtime_configuration.get("dateformat") != null ) {
+				String date_format = runtime_configuration.get("dateformat").toString();
+				_LOG.trace("[OpenSOC] Setting date format to " + date_format);
+				dateFormat = new SimpleDateFormat(date_format);
+			} else {
+				_LOG.trace("[OpenSOC] Using default date format (yyyy.MM.dd.HH)");
+				dateFormat = new SimpleDateFormat("yyyy.MM.dd.HH");
+			}
+			
 			element_count = 0;
 			index_postfix = dateFormat.format(new Date());
 			running_index_postfix = "NONE";
@@ -147,6 +157,11 @@ public class ESBulkRotatingAdapter extends AbstractIndexAdapter {
 				+ " of bulk size " + _bulk_size);
 
 		return 1;
+	}
+
+	public void setOptionalSettings(Map<String, String> settings) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

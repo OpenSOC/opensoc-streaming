@@ -16,8 +16,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import com.opensoc.pcapservice.PcapScannerHBaseImpl;
-
 // TODO: Auto-generated Javadoc
 /**
  * The Class PcapScannerHBaseImplTest.
@@ -97,7 +95,7 @@ public class PcapScannerHBaseImplTest {
         maxResultSize, startTime, endTime);
 
     // verify
-    Assert.assertTrue(scan.getTimeRange().getMin() == 1376782349234555L);
+    Assert.assertTrue(scan.getTimeRange().getMin() == 1376782349234L);
     Assert.assertTrue(Arrays.equals(scan.getStartRow(), startKey.getBytes()));
     Assert.assertTrue(Arrays.equals(scan.getStopRow(), endKey.getBytes()));
   }

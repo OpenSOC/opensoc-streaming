@@ -1,7 +1,5 @@
 package com.opensoc.helpers.services;
 
-import java.io.File;
-
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;

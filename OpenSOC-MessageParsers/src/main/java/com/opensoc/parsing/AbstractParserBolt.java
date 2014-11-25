@@ -18,9 +18,7 @@
 package com.opensoc.parsing;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.Map;
-import java.util.zip.Deflater;
 
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -105,6 +103,7 @@ public abstract class AbstractParserBolt extends BaseRichBolt {
 	public boolean checkForSchemaCorrectness(JSONObject message) {
 		int correct = 0;
 
+		// Standard but optional fields
 		if (message.containsKey("ip_src_addr")) {
 			correct++;
 			LOG.trace("[OpenSOC] Message contains ip_src_addr");
@@ -125,12 +124,13 @@ public abstract class AbstractParserBolt extends BaseRichBolt {
 			correct++;
 			LOG.trace("[OpenSOC] Message contains protocol");
 		}
-
-		if (correct == 0) {
-			LOG.trace("[OpenSOC] Message conforms to schema: " + message);
+		
+		
+		if (correct == 0 && message.containsKey("original_string")) {
+			LOG.trace("[OpenSOC] Message does not conform to schema: " + message);
 			return false;
 		} else {
-			LOG.trace("[OpenSOC] Message does not conform to schema: "
+			LOG.trace("[OpenSOC] Message conforms to schema: "
 					+ message);
 			return true;
 		}

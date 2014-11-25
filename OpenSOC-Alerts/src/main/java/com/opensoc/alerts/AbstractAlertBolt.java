@@ -95,6 +95,7 @@ public abstract class AbstractAlertBolt extends BaseRichBolt {
 		}
 
 		boolean success = _adapter.initialize();
+		
 		try {
 			if (!success)
 

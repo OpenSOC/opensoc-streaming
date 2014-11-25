@@ -424,8 +424,8 @@ public class PcapGetterHBaseImplTest {
     Assert.isTrue(Arrays.equals(get.getRow(), key.getBytes()));
     // compare in micros as the data creation time unit is set to Micros in
     // properties file.
-    Assert.isTrue(get.getTimeRange().getMin() == startTime * 1000 * 1000);
-    Assert.isTrue(get.getTimeRange().getMax() == endTime * 1000 * 1000);
+    Assert.isTrue(get.getTimeRange().getMin() == startTime * 1000 );
+    Assert.isTrue(get.getTimeRange().getMax() == endTime * 1000 );
   }
 
   /**
@@ -465,7 +465,7 @@ public class PcapGetterHBaseImplTest {
     Assert.notNull(get);
 
     Assert.isTrue(Arrays.equals(get.getRow(), key.getBytes()));
-    Assert.isTrue(get.getTimeRange().getMin() == startTime * 1000 * 1000);
+    Assert.isTrue(get.getTimeRange().getMin() == startTime * 1000 );
     Assert.isTrue(get.getTimeRange().getMax() == Long.valueOf(Long.MAX_VALUE));
   }
 
@@ -488,7 +488,7 @@ public class PcapGetterHBaseImplTest {
 
     Assert.isTrue(Arrays.equals(get.getRow(), key.getBytes()));
     Assert.isTrue(get.getTimeRange().getMin() == 0);
-    Assert.isTrue(get.getTimeRange().getMax() == endTime * 1000 * 1000);
+    Assert.isTrue(get.getTimeRange().getMax() == endTime * 1000 );
   }
 
   /**
@@ -520,12 +520,12 @@ public class PcapGetterHBaseImplTest {
         endTime, maxResultSize);
 
     // verify time range
-    Assert.isTrue(scan.getTimeRange().getMin() == startTime * 1000 * 1000); // compare
+    Assert.isTrue(scan.getTimeRange().getMin() == startTime * 1000 ); // compare
                                                                             // in
-                                                                            // micros
-    Assert.isTrue(scan.getTimeRange().getMax() == endTime * 1000 * 1000); // compare
+                                                                            // millis
+    Assert.isTrue(scan.getTimeRange().getMax() == endTime * 1000 ); // compare
                                                                           // in
-                                                                          // micros
+                                                                          // millis
 
     // verify start and stop rows
     Assert.isTrue(Arrays.equals(scan.getStartRow(), startKey.getBytes()));

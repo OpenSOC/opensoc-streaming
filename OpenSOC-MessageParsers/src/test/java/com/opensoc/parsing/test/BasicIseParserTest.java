@@ -21,17 +21,12 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.URL;
 
-import junit.framework.TestCase;
-
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.github.fge.jackson.JsonLoader;
-import com.github.fge.jsonschema.core.report.ProcessingReport;
-import com.github.fge.jsonschema.main.JsonSchemaFactory;
-import com.github.fge.jsonschema.main.JsonValidator;
 import com.opensoc.parsing.parsers.BasicIseParser;
+import com.opensoc.test.AbstractSchemaTest;
+
 
 /**
  * <ul>
@@ -42,11 +37,13 @@ import com.opensoc.parsing.parsers.BasicIseParser;
  * 
  * @version $Revision: 1.1 $
  */
-public class BasicIseParserTest extends TestCase {
+
+public class BasicIseParserTest extends AbstractSchemaTest {
+    
 	private static String rawMessage = "";
 
 	private static BasicIseParser iseParser = null;
-	private static String schema_string;
+
 
 	/**
 	 * Constructs a new <code>BasicIseParserTest</code> instance.
@@ -88,8 +85,7 @@ public class BasicIseParserTest extends TestCase {
 		
 		URL schema_url = getClass().getClassLoader().getResource(
 				"TestSchemas/IseSchema.json");
-		
-		 schema_string = readSchemaFromFile(schema_url);
+		 super.setSchemaJsonString(super.readSchemaFromFile(schema_url));
 	}
 
 	/*
@@ -121,11 +117,11 @@ public class BasicIseParserTest extends TestCase {
 			System.out.println(line);
 			JSONObject parsed = iseParser.parse(line.getBytes());
 			System.out.println(parsed);
-			assertEquals(true, validateJsonData(schema_string, parsed.toString()));
+
+			assertEquals(true, super.validateJsonData(super.getSchemaJsonString(), parsed.toString()));
 
 		}
 		br.close();
-
 	}
 
 	/**
@@ -136,13 +132,13 @@ public class BasicIseParserTest extends TestCase {
 
 	public static String getRawMessage() {
 		return rawMessage;
+		
 	}
 
 	/**
 	 * Sets the rawMessage.
 	 * 
 	 * @param rawMessage
-	 *            the rawMessage.
 	 */
 
 	public static void setRawMessage(String rawMessage) {
@@ -164,47 +160,15 @@ public class BasicIseParserTest extends TestCase {
 	 * Sets the iseParser.
 	 * 
 	 * @param iseParser
-	 *            the iseParser.
 	 */
+
 
 	public static void setIseParser(BasicIseParser iseParser) {
 
 		BasicIseParserTest.iseParser = iseParser;
 	}
 
-	private boolean validateJsonData(final String jsonSchema, final String jsonData)
-			throws Exception {
 
-		final JsonNode d = JsonLoader.fromString(jsonData);
-		final JsonNode s = JsonLoader.fromString(jsonSchema);
 
-		final JsonSchemaFactory factory = JsonSchemaFactory.byDefault();
-		JsonValidator v = factory.getValidator();
 
-		ProcessingReport report = v.validate(s, d);
-		System.out.println(report);
-		
-		return report.toString().contains("success");
-
-	}
-
-	private String readSchemaFromFile(URL schema_url) throws Exception {
-		BufferedReader br = new BufferedReader(new FileReader(
-				schema_url.getFile()));
-		String line;
-		StringBuilder sb = new StringBuilder();
-		while ((line = br.readLine()) != null) {
-			System.out.println(line);
-			sb.append(line);
-		}
-		br.close();
-
-		String schema_string = sb.toString().replaceAll("\n", "");
-		schema_string = schema_string.replaceAll(" ", "");
-
-		System.out.println("Read in schema: " + schema_string);
-
-		return schema_string;
-
-	}
 }

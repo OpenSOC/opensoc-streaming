@@ -17,6 +17,7 @@
  */
 package com.opensoc.topology.runner;
 
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -633,10 +634,23 @@ public abstract class TopologyRunner {
 		return true;
 	}
 
+	@SuppressWarnings("rawtypes")
 	private boolean initializeAlerts(String topology_name, String name,
 			String alerts_path, JSONObject environment_identifier,
 			JSONObject topology_identifier) {
 		try {
+			
+			Class loaded_class = Class.forName(config.getString("bolt.alerts.adapter"));
+			Constructor constructor = loaded_class.getConstructor(new Class[] { Map.class});
+			
+			Map<String, String> settings = SettingsLoader.getConfigOptions((PropertiesConfiguration)config, config.getString("bolt.alerts.adapter") + ".");
+			
+			System.out.println("Adapter Settings: ");
+			SettingsLoader.printOptionalSettings(settings);
+			
+			AlertsAdapter alerts_adapter = (AlertsAdapter) constructor.newInstance(settings);
+			
+	
 
 			String messageUpstreamComponent = messageComponents
 					.get(messageComponents.size() - 1);
@@ -648,10 +662,7 @@ public abstract class TopologyRunner {
 					.generateAlertsIdentifier(environment_identifier,
 							topology_identifier);
 
-			AlertsAdapter alerts_adapter = new HbaseWhiteAndBlacklistAdapter(
-					"ip_whitelist", "ip_blacklist",
-					config.getString("kafka.zk.list"),
-					config.getString("kafka.zk.port"), 3600, 1000);
+			 
 
 			TelemetryAlertsBolt alerts_bolt = new TelemetryAlertsBolt()
 					.withIdentifier(alerts_identifier).withMaxCacheSize(1000)
@@ -807,6 +818,14 @@ public abstract class TopologyRunner {
 			Class loaded_class = Class.forName(config.getString("bolt.indexing.adapter"));
 			IndexAdapter adapter = (IndexAdapter) loaded_class.newInstance();
 			
+			Map<String, String> settings = SettingsLoader.getConfigOptions((PropertiesConfiguration)config, "optional.settings.bolt.index.search.");
+			
+			if(settings != null && settings.size() > 0)
+			{
+				adapter.setOptionalSettings(settings);
+				System.out.println("[OpenSOC] Index Bolt picket up optional settings:");
+				SettingsLoader.printOptionalSettings(settings);			
+			}
 
 			TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
 					.withIndexIP(config.getString("es.ip"))
@@ -817,7 +836,8 @@ public abstract class TopologyRunner {
 							config.getString("bolt.indexing.documentname"))
 					.withBulk(config.getInt("bolt.indexing.bulk"))
 					.withIndexAdapter(adapter)
-					.withMetricConfiguration(config);
+					.withMetricConfiguration(config)
+					.withRuntimeConfiguration(config);
 
 			builder.setBolt(name, indexing_bolt,
 					config.getInt("bolt.indexing.parallelism.hint"))

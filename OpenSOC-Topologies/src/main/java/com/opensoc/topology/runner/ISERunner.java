@@ -21,7 +21,6 @@ import com.opensoc.filters.GenericMessageFilter;
 import com.opensoc.parser.interfaces.MessageParser;
 import com.opensoc.parsing.AbstractParserBolt;
 import com.opensoc.parsing.TelemetryParserBolt;
-import com.opensoc.parsing.parsers.BasicIseParser;
 import com.opensoc.test.spouts.GenericInternalTestSpout;
 
 public class ISERunner extends TopologyRunner{
@@ -38,7 +37,15 @@ public class ISERunner extends TopologyRunner{
 			System.out.println("[OpenSOC] ------" +  name + " is initializing from " + messageUpstreamComponent);
 
 			
-			Class loaded_class = Class.forName(config.getString("bolt.parser.adapter"));
+			String class_name = config.getString("bolt.parser.adapter");
+			
+			if(class_name == null)
+			{
+				System.out.println("[OpenSOC] Parser adapter not set.  Please set bolt.indexing.adapter in topology.conf");
+				throw new Exception("Parser adapter not set");
+			}
+			
+			Class loaded_class = Class.forName(class_name);
 			MessageParser parser = (MessageParser) loaded_class.newInstance();
 			
 			

@@ -21,6 +21,8 @@
 	<name>OpenSOC-Common</name>
 	<description>Components common to all enrichments</description>
 	<properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>	
 		<kafka.version>0.8.0</kafka.version>
 		<commons.config.version>1.10</commons.config.version>
 		<hbase.version>0.98.5-hadoop2</hbase.version>

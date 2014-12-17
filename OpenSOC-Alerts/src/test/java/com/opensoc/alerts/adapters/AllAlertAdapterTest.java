@@ -68,18 +68,21 @@ public class AllAlertAdapterTest extends AbstractConfigTest {
      * @see junit.framework.TestCase#setUp()
      */
 
+    @SuppressWarnings("unchecked")
     protected void setUp() throws Exception {
           super.setUp("com.opensoc.alerts.adapters.AllAlertAdapter");
           Properties prop = super.getTestProperties();
           assertNotNull(prop);   
-        //this.setMode("global");
+        this.setMode("global");
         if(skipTests(this.getMode())){
             System.out.println(getClass().getName()+" Skipping Tests !!Local Mode");
             return;//skip tests
        }else{      
            Map<String, String> settings = super.getSettings();
-           Class loaded_class = Class.forName("com.opensoc.alerts.adapters.AllAlertAdapter");
-           Constructor constructor = loaded_class.getConstructor(new Class[] { Map.class});
+           @SuppressWarnings("rawtypes")
+        Class loaded_class = Class.forName("com.opensoc.alerts.adapters.AllAlertAdapter");
+           @SuppressWarnings("rawtypes")
+        Constructor constructor = loaded_class.getConstructor(new Class[] { Map.class});
            
            AllAlertAdapterTest.allAlertAdapter = (AllAlertAdapter) constructor.newInstance(settings);
             // AllAlertAdapterTest.allAlertAdapter = new AllAlertAdapter(settings)

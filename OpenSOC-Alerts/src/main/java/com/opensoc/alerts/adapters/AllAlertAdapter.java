@@ -28,6 +28,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.opensoc.alerts.interfaces.AlertsAdapter;
 
+@SuppressWarnings("serial")
 public class AllAlertAdapter implements AlertsAdapter, Serializable {
 
 	HTableInterface blacklist_table;
@@ -93,7 +94,8 @@ public class AllAlertAdapter implements AlertsAdapter, Serializable {
 		}
 	}
 
-	@Override
+	@SuppressWarnings("resource")
+    @Override
 	public boolean initialize() {
 
 		conf = HBaseConfiguration.create();
@@ -193,7 +195,8 @@ public class AllAlertAdapter implements AlertsAdapter, Serializable {
 		return false;
 	}
 
-	@Override
+	@SuppressWarnings("unchecked")
+    @Override
 	public Map<String, JSONObject> alert(JSONObject raw_message) {
 
 		Map<String, JSONObject> alerts = new HashMap<String, JSONObject>();

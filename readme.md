@@ -18,7 +18,7 @@ for the beta software, but will try to respond to requests as promptly as we can
 
 # OpenSOC-Streaming
 
-Extensible set of Storm topologies and topology attributes for streaming, enriching, indexing, and storing telemetry in Hadoop.  General information on OpenSOC is available at www.getopensoc.com
+Extensible set of Storm topologies and topology attributes for streaming, enriching, indexing, and storing telemetry in Hadoop.  General information on OpenSOC is available at http://www.getopensoc.com
 
 For OpenSOC FAQ please read the following wiki entry:  https://github.com/OpenSOC/opensoc-streaming/wiki/OpenSOC-FAQ
 

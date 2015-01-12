@@ -52,6 +52,8 @@ public class GenericInternalTestSpout extends BaseRichSpout {
 	
 	public GenericInternalTestSpout withFilename(String filename)
 	{
+		
+		System.out.println("*************** INITIALIZED WITH   " + filename);
 		_filename = filename;
 		return this;
 	}

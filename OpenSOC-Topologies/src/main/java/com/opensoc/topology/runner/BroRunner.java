@@ -44,8 +44,13 @@ public class BroRunner extends TopologyRunner{
 				throw new Exception("Parser adapter not set");
 			}
 			
-			Class loaded_class = Class.forName(class_name);
-			MessageParser parser = (MessageParser) loaded_class.newInstance();
+			MessageParser parser = null;
+			
+			Class<?> loaded_class = Class.forName(class_name);
+			parser = (MessageParser) loaded_class.newInstance();
+			
+			System.out.println("LOADED CLASS: " + parser.getClass().getCanonicalName());
+			
 			
 			AbstractParserBolt parser_bolt = new TelemetryParserBolt()
 					.withMessageParser(parser)

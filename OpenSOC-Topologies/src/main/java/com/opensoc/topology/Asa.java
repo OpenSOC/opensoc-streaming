@@ -19,10 +19,10 @@ package com.opensoc.topology;
 
 import org.apache.commons.configuration.ConfigurationException;
 
-import com.opensoc.topology.runner.SourcefireRunner;
-import com.opensoc.topology.runner.TopologyRunner;
-
 import backtype.storm.generated.InvalidTopologyException;
+
+import com.opensoc.topology.runner.AsaRunner;
+import com.opensoc.topology.runner.TopologyRunner;
 
 
 /**
@@ -33,7 +33,7 @@ public class Asa{
 	
 	public static void main(String[] args) throws ConfigurationException, Exception, InvalidTopologyException {
 		
-		TopologyRunner runner = new SourcefireRunner();
+		TopologyRunner runner = new AsaRunner();
 		runner.initTopology(args, "asa");
 	}
 	

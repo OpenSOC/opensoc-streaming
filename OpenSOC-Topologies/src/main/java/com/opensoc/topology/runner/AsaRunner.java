@@ -48,6 +48,7 @@ public class AsaRunner extends TopologyRunner{
 			Class loaded_class = Class.forName(class_name);
 			MessageParser parser = (MessageParser) loaded_class.newInstance();
 	        
+			
 	        
 			AbstractParserBolt parser_bolt = new TelemetryParserBolt()
 					.withMessageParser(parser)

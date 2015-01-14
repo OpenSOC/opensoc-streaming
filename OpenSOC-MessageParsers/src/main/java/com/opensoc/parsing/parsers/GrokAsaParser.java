@@ -19,14 +19,17 @@ public class GrokAsaParser extends AbstractParser implements Serializable {
 	private static final long serialVersionUID = 1L;
 	private transient static Grok grok;
 	Map<String,String> patternMap;
+	Map<String,Grok> grokMap;
+	URL pattern_url;
 
 	public GrokAsaParser() throws Exception {
-		URL pattern_url = getClass().getClassLoader().getResource(
+		 pattern_url = getClass().getClassLoader().getResource(
 				"patterns/asa");
 
 		grok = Grok.create(pattern_url.getFile());
 		
 		patternMap = getPatternMap();
+		grokMap = getGrokMap();
 		
 		grok.compile("%{CISCO_TAGGED_SYSLOG}");
 	}
@@ -47,17 +50,31 @@ public class GrokAsaParser extends AbstractParser implements Serializable {
 
 	
 	private Map<String, Object> getMap(String pattern,String text) throws GrokException {
-		 URL pattern_url = getClass().getClassLoader().getResource(
-				"patterns/asa");
-
-		 Grok grok =  Grok.create(pattern_url.getFile());
-		grok.compile("%{"+pattern+"}");
-		Match gm = grok.match(text);
+		 
+		Grok g = grokMap.get(pattern);
+		
+		Match gm = g.match(text);
 		gm.captures();
 		
 		
 		return gm.toMap();
 		
+		
+	}
+	
+	private Map<String,Grok> getGrokMap() throws GrokException   {
+		Map<String,Grok> map = new HashMap<String,Grok>();
+		
+		for(Map.Entry<String, String> entry : patternMap.entrySet()  )
+			   	{
+				Grok grok =  Grok.create(pattern_url.getFile());
+				grok.compile("%{"+entry.getValue()+"}");
+				
+			    map.put(entry.getValue(), grok);
+			
+			   	}
+			
+		return map;
 	}
 	
 	private Map<String, String> getPatternMap() {

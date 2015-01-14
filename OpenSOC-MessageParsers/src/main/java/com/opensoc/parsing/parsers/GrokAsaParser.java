@@ -11,6 +11,8 @@ import oi.thekraken.grok.api.exception.GrokException;
 
 import org.json.simple.JSONObject;
 
+import com.google.common.io.Resources;
+
 public class GrokAsaParser extends AbstractParser implements Serializable {
 
 	/**
@@ -19,14 +21,14 @@ public class GrokAsaParser extends AbstractParser implements Serializable {
 	private static final long serialVersionUID = 1L;
 	private transient static Grok grok;
 	Map<String,String> patternMap;
-	Map<String,Grok> grokMap;
-	URL pattern_url;
+	private transient static Map<String,Grok> grokMap;
+	//URL pattern_url;
+	String url = "/tmp/asa";
 
 	public GrokAsaParser() throws Exception {
-		 pattern_url = getClass().getClassLoader().getResource(
-				"patterns/asa");
+		// pattern_url = Resources.getResource("patterns/asa");
 
-		grok = Grok.create(pattern_url.getFile());
+		grok = Grok.create(url);
 		
 		patternMap = getPatternMap();
 		grokMap = getGrokMap();
@@ -67,7 +69,7 @@ public class GrokAsaParser extends AbstractParser implements Serializable {
 		
 		for(Map.Entry<String, String> entry : patternMap.entrySet()  )
 			   	{
-				Grok grok =  Grok.create(pattern_url.getFile());
+				Grok grok =  Grok.create(url);
 				grok.compile("%{"+entry.getValue()+"}");
 				
 			    map.put(entry.getValue(), grok);

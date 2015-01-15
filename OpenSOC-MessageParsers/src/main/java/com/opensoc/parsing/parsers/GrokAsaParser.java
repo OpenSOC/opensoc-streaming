@@ -174,8 +174,7 @@ public class GrokAsaParser extends AbstractParser implements Serializable {
 
 
 			System.out.println("*******I MAPPED: " + toReturn);
-			System.out.println("*******I PATTERNS: " + grok.getPatterns());
-			System.out.println("*******I regex: " + grok.getNamedRegex());
+
 
 			return toReturn;
 

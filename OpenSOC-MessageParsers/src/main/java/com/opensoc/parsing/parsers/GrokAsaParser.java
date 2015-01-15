@@ -1,5 +1,9 @@
 package com.opensoc.parsing.parsers;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
 import java.net.URL;
 import java.util.HashMap;
@@ -9,9 +13,8 @@ import oi.thekraken.grok.api.Grok;
 import oi.thekraken.grok.api.Match;
 import oi.thekraken.grok.api.exception.GrokException;
 
+import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
-
-import com.google.common.io.Resources;
 
 public class GrokAsaParser extends AbstractParser implements Serializable {
 
@@ -22,13 +25,30 @@ public class GrokAsaParser extends AbstractParser implements Serializable {
 	private transient static Grok grok;
 	Map<String,String> patternMap;
 	private transient static Map<String,Grok> grokMap;
-	//URL pattern_url;
-	String url = "/tmp/asa";
+	private transient static InputStream pattern_url;
+	
+	
+	public static final String PREFIX = "stream2file";
+    public static final String SUFFIX = ".tmp";
 
+    public static File stream2file (InputStream in) throws IOException {
+        final File tempFile = File.createTempFile(PREFIX, SUFFIX);
+        tempFile.deleteOnExit();
+        try (FileOutputStream out = new FileOutputStream(tempFile)) {
+            IOUtils.copy(in, out);
+        }
+        return tempFile;
+    }
+	
 	public GrokAsaParser() throws Exception {
 		// pattern_url = Resources.getResource("patterns/asa");
 
-		grok = Grok.create(url);
+		pattern_url = getClass().getClassLoader().getResourceAsStream(
+				"patterns/asa");
+		String url = "/tmp/asa";
+
+		File file = stream2file(pattern_url);
+		grok = Grok.create(file.getPath());
 		
 		patternMap = getPatternMap();
 		grokMap = getGrokMap();
@@ -64,12 +84,13 @@ public class GrokAsaParser extends AbstractParser implements Serializable {
 		
 	}
 	
-	private Map<String,Grok> getGrokMap() throws GrokException   {
+	private Map<String,Grok> getGrokMap() throws GrokException, IOException   {
 		Map<String,Grok> map = new HashMap<String,Grok>();
 		
 		for(Map.Entry<String, String> entry : patternMap.entrySet()  )
 			   	{
-				Grok grok =  Grok.create(url);
+			File file = stream2file(pattern_url);
+				Grok grok =  Grok.create(file.getPath());
 				grok.compile("%{"+entry.getValue()+"}");
 				
 			    map.put(entry.getValue(), grok);

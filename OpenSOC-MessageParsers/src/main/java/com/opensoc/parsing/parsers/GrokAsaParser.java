@@ -74,13 +74,14 @@ public class GrokAsaParser extends AbstractParser implements Serializable {
 	private Map<String, Object> getMap(String pattern,String text) throws GrokException {
 		 
 		Grok g = grokMap.get(pattern);
-		
+		if(g != null) {
 		Match gm = g.match(text);
 		gm.captures();
-		
-		
 		return gm.toMap();
-		
+		} 
+		else {
+     		return new HashMap<String,Object>();
+		}
 		
 	}
 	
@@ -89,7 +90,7 @@ public class GrokAsaParser extends AbstractParser implements Serializable {
 		
 		for(Map.Entry<String, String> entry : patternMap.entrySet()  )
 			   	{
-			File file = stream2file(pattern_url);
+				File file = stream2file(pattern_url);
 				Grok grok =  Grok.create(file.getPath());
 				grok.compile("%{"+entry.getValue()+"}");
 				
@@ -140,6 +141,9 @@ public class GrokAsaParser extends AbstractParser implements Serializable {
 				map.put("ASA-7-710006","CISCOFW710001_710002_710003_710005_710006"); 
 				map.put("ASA-6-713172","CISCOFW713172");
 				map.put("ASA-4-733100","CISCOFW733100");
+				map.put("ASA-6-305012","CISCOFW305012");
+				map.put("ASA-7-609001","CISCOFW609001");
+				map.put("ASA-7-609002","CISCOFW609002");
 
 				
 		return map;

@@ -163,4 +163,14 @@ CISCOFW710001_710002_710003_710005_710006 : %{WORD:protocol} (?:request|access) 
 CISCOFW713172 : Group = %{GREEDYDATA:group}, IP = %{IP:src_ip}, Automatic NAT Detection Status:\s+Remote end\s*%{DATA:is_remote_natted}\s*behind a NAT device\s+This\s+end\s*%{DATA:is_local_natted}\s*behind a NAT device
 # ASA-4-733100
 CISCOFW733100 : \[\s*%{DATA:drop_type}\s*\] drop %{DATA:drop_rate_id} exceeded. Current burst rate is %{INT:drop_rate_current_burst} per second, max configured rate is %{INT:drop_rate_max_burst}; Current average rate is %{INT:drop_rate_current_avg} per second, max configured rate is %{INT:drop_rate_max_avg}; Cumulative total count is %{INT:drop_total_count}
+
+
+# ASA-6-305012
+CISCOFW305012 : %{CISCO_ACTION:action} %{CISCO_XLATE_TYPE:xlate_type} %{WORD:protocol} translation from %{DATA:src_interface}:%{IP:src_ip}(/%{INT:src_port})?(\(%{DATA:src_fwuser}\))? to %{DATA:src_xlated_interface}:%{IP:src_xlated_ip}/%{DATA:src_xlated_port} duration %{TIME:duration}
+# ASA-7-609001
+CISCOFW609001 : %{CISCO_ACTION:action} %{WORD:protocol} %{DATA:src_interface}:%{IP:src_ip}(/%{INT:src_port})?(\(%{DATA:src_fwuser}\))?
+# ASA-7-609002
+CISCOFW609002 : %{CISCO_ACTION:action} %{WORD:protocol} %{DATA:src_interface}:%{IP:src_ip}(/%{INT:src_port})?(\(%{DATA:src_fwuser}\))? duration %{TIME:duration}
+
+
 #== End Cisco ASA ==

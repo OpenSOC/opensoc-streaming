@@ -141,8 +141,9 @@ public class GeoMysqlAdapter extends AbstractGeoAdapter {
 			jo.put("longitude", resultSet.getString("longitude"));
 			jo.put("dmaCode", resultSet.getString("dmaCode"));
 			jo.put("locID", resultSet.getString("locID"));
-			
-			jo.put("location_point", jo.get("longitude") + "," + jo.get("latitude"));
+
+			jo.put("location_point",
+					jo.get("longitude") + "," + jo.get("latitude"));
 
 			_LOG.debug("Returning enrichment: " + jo);
 

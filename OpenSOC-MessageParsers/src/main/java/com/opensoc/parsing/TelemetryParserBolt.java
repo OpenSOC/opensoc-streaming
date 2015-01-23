@@ -172,6 +172,8 @@ public class TelemetryParserBolt extends AbstractParserBolt {
 
 				if (!filtered) {
 					String ip1 = null;
+					
+					System.out.println("*****Looking at telemetry: " + transformed_message);
 
 					if (transformed_message.containsKey("ip_src_addr"))
 						ip1 = transformed_message.get("ip_src_addr").toString();

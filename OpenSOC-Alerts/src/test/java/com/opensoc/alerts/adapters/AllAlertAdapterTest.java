@@ -73,7 +73,7 @@ public class AllAlertAdapterTest extends AbstractConfigTest {
           super.setUp("com.opensoc.alerts.adapters.AllAlertAdapter");
           Properties prop = super.getTestProperties();
           assertNotNull(prop);   
-        //this.setMode("global");
+       // this.setMode("global");
         if(skipTests(this.getMode())){
             System.out.println(getClass().getName()+" Skipping Tests !!Local Mode");
             return;//skip tests

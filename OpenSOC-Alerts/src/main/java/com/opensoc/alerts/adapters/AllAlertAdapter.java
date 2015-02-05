@@ -21,9 +21,7 @@ import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import org.apache.log4j.Logger;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.opensoc.alerts.interfaces.AlertsAdapter;
@@ -47,7 +45,7 @@ public class AllAlertAdapter implements AlertsAdapter, Serializable {
 	Set<String> loaded_whitelist = new HashSet<String>();
 	Set<String> loaded_blacklist = new HashSet<String>();
 
-	protected static final Logger LOG = LoggerFactory
+	protected static final Logger LOG = Logger
 			.getLogger(AllAlertAdapter.class);
 
 	public AllAlertAdapter(Map<String, String> config) {

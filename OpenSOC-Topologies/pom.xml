@@ -21,6 +21,8 @@
 	<description>OpenSOC Topologies</description>
 
 	<properties>
+ 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>	
 		<storm.hdfs.version>0.9.1.2.1.1.0-385</storm.hdfs.version>
 		<cli.version>20040117.000000</cli.version>
 		<commons.config.version>1.10</commons.config.version>
@@ -35,27 +37,27 @@
 		<dependency>
 			<groupId>com.opensoc</groupId>
 			<artifactId>OpenSOC-Common</artifactId>
-			<version>${parent.version}</version>
+			<version>${project.parent.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.opensoc</groupId>
 			<artifactId>OpenSOC-Alerts</artifactId>
-			<version>${parent.version}</version>
+			<version>${project.parent.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.opensoc</groupId>
 			<artifactId>OpenSOC-EnrichmentAdapters</artifactId>
-			<version>${parent.version}</version>
+			<version>${project.parent.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.opensoc</groupId>
 			<artifactId>OpenSOC-MessageParsers</artifactId>
-			<version>${parent.version}</version>
+			<version>${project.parent.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.opensoc</groupId>
 			<artifactId>OpenSOC-Indexing</artifactId>
-			<version>${parent.version}</version>
+			<version>${project.parent.version}</version>
 		</dependency>
 
 		<dependency>
@@ -67,7 +69,13 @@
 					<groupId>org.slf4j</groupId>
 					<artifactId>slf4j-log4j12</artifactId>
 				</exclusion>
+				<exclusion>
+				   <artifactId>servlet-api</artifactId>
+				   <groupId>javax.servlet</groupId>
+				  </exclusion>	
+			  						
 			</exclusions>
+			
 		</dependency>
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
@@ -78,6 +86,15 @@
 					<groupId>org.slf4j</groupId>
 					<artifactId>slf4j-log4j12</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>asm</groupId>
+					<artifactId>asm</artifactId>
+				</exclusion>
+				<exclusion>
+				   <artifactId>servlet-api</artifactId>
+				   <groupId>javax.servlet</groupId>
+				  </exclusion>			
+							
 			</exclusions>
 		</dependency>
 		<dependency>
@@ -91,6 +108,11 @@
 					<groupId>log4j</groupId>
 					<artifactId>log4j</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>jline</groupId>
+					<artifactId>jline</artifactId>
+				</exclusion>
+			
 			</exclusions>
 		</dependency>
 		<dependency>
@@ -98,6 +120,13 @@
 			<artifactId>storm-core</artifactId>
 			<version>${global_storm_version}</version>
 			<scope>provided</scope>
+			<exclusions>				
+				<exclusion>
+				   <artifactId>servlet-api</artifactId>
+				   <groupId>javax.servlet</groupId>
+				  </exclusion>
+			  
+			</exclusions>			
 		</dependency>
 		<dependency>
 			<groupId>org.apache.storm</groupId>
@@ -110,6 +139,13 @@
 			<version>${global_storm_version}</version>
 			<type>pom</type>
 			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-log4j12</artifactId>
+				</exclusion>
+				
+			</exclusions>			
 		</dependency>
 		
 
@@ -117,6 +153,12 @@
 			<groupId>com.github.ptgoetz</groupId>
 			<artifactId>storm-hbase</artifactId>
 			<version>0.1.2</version>
+			<exclusions>
+            <exclusion>
+				   <artifactId>jasper-runtime</artifactId>
+				   <groupId>tomcat</groupId>
+	         </exclusion>
+	         </exclusions>			
 		</dependency>
 		<!-- dependency> <groupId>com.github.ptgoetz</groupId> <artifactId>storm-hdfs</artifactId> 
 			<version>0.1.2</version> </dependency -->
@@ -151,6 +193,8 @@
 				<version>1.4</version>
 				<configuration>
 					<createDependencyReducedPom>true</createDependencyReducedPom>
+					<minimizeJar>true</minimizeJar>
+					
 				</configuration>
 				<executions>
 					<execution>
@@ -164,6 +208,8 @@
 									<exclude>storm:storm-core:*</exclude>
 									<exclude>storm:storm-lib:*</exclude>
 									<exclude>*slf4j*</exclude>
+									<exclude>*javax.servlet*</exclude>
+									<exclude>*tomcat:jasper-runtime:*</exclude>
 								</excludes>
 							</artifactSet>
 

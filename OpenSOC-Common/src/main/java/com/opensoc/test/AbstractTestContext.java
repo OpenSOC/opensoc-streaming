@@ -52,9 +52,9 @@ public class AbstractTestContext  extends TestCase{
          * Any Object for mavenMode
          * @parameter
          *   expression="${mode}"
-         *   default-value="local"
+         *   default-value="global"
          */
-         private Object mode="local";        
+         private Object mode="global";        
 
         /**
          * Constructs a new <code>AbstractTestContext</code> instance.
@@ -74,7 +74,7 @@ public class AbstractTestContext  extends TestCase{
                     setMode(System.getProperty("mode") );                
                 }else
                 {
-                    setMode("local");
+                    setMode("global");
                 }
             }catch(Exception ex){
                 setMode("local");

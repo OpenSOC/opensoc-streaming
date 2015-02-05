@@ -29,9 +29,9 @@
 	</properties>
 	<repositories>
 		<repository>
-			<id>Kraken-Repo</id>
-			<name>Kraken Repository</name>
-			<url>http://download.krakenapps.org</url>
+			<id>OpenSOC-Kraken-Repo</id>
+			<name>OpenSOC Kraken Repository</name>
+			<url>https://raw.github.com/opensoc/kraken/mvn-repo</url>
 		</repository>
 	</repositories>
 	<dependencies>
@@ -45,6 +45,15 @@
 			<artifactId>storm-core</artifactId>
 			<version>${global_storm_version}</version>
 			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+				
+				   <artifactId>servlet-api</artifactId>
+				
+				   <groupId>javax.servlet</groupId>
+				
+				  </exclusion>
+			</exclusions>			
 		</dependency>
 		<dependency>
 			<groupId>org.apache.kafka</groupId>
@@ -84,7 +93,7 @@
 		<dependency>
 			<groupId>org.krakenapps</groupId>
 			<artifactId>kraken-pcap</artifactId>
-			<version>1.5.0</version>
+			<version>1.7.1</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>

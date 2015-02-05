@@ -83,7 +83,7 @@
 					<systemProperties>
 						<property>
 							<name>mode</name>
-							<value>local</value>
+							<value>global</value>
 						</property>
 					</systemProperties>
 				</configuration>

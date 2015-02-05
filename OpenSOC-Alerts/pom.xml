@@ -41,6 +41,12 @@
 			<artifactId>storm-core</artifactId>
 			<version>${global_storm_version}</version>
 			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+				   <artifactId>servlet-api</artifactId>
+				   <groupId>javax.servlet</groupId>
+				  </exclusion>
+		    </exclusions>					
 		</dependency>
 		<dependency>
 			<groupId>org.apache.kafka</groupId>
@@ -71,6 +77,15 @@
 			<groupId>commons-validator</groupId>
 			<artifactId>commons-validator</artifactId>
 			<version>${commons.validator.version}</version>
+			<exclusions>
+				<exclusion>
+				
+				<groupId>commons-beanutils</groupId>
+				
+				<artifactId>commons-beanutils</artifactId>
+				
+				</exclusion>
+			</exclusions>
 		</dependency>
 	</dependencies>
 	<build>

@@ -76,6 +76,10 @@ public class CIFHbaseAdapterTest extends AbstractTestContext {
         Properties prop = super.getTestProperties();
         assertNotNull(prop);
         
+        if(skipTests(this.getMode())){
+            return;//skip tests
+        }
+        
         String[] zk = prop.get("kafka.zk.list").toString().split(",");
         
         for(String z : zk)

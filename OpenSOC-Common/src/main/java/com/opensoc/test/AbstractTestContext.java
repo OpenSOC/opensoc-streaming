@@ -54,7 +54,7 @@ public class AbstractTestContext  extends TestCase{
          *   expression="${mode}"
          *   default-value="global"
          */
-         private Object mode="global";        
+         private Object mode="local";        
 
         /**
          * Constructs a new <code>AbstractTestContext</code> instance.
@@ -74,7 +74,7 @@ public class AbstractTestContext  extends TestCase{
                     setMode(System.getProperty("mode") );                
                 }else
                 {
-                    setMode("global");
+                    setMode("local");
                 }
             }catch(Exception ex){
                 setMode("local");

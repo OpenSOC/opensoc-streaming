@@ -7,6 +7,7 @@ import org.json.simple.JSONObject;
 
 public class ErrorGenerator {
 
+	@SuppressWarnings("unchecked")
 	public static JSONObject generateErrorMessage(String message, String exception)
 	{
 		JSONObject error_message = new JSONObject();

@@ -20,6 +20,8 @@
 	<artifactId>OpenSOC-EnrichmentAdapters</artifactId>
 
 	<properties>
+       <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>		
 		<mysql.version>5.1.31</mysql.version>
 		<slf4j.version>1.7.7</slf4j.version>
 		<hbase.client.version>0.96.1-hadoop2</hbase.client.version>
@@ -30,7 +32,7 @@
 		<dependency>
 			<groupId>com.opensoc</groupId>
 			<artifactId>OpenSOC-Common</artifactId>
-			<version>${parent.version}</version>
+			<version>${project.parent.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -62,12 +64,24 @@
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-hdfs</artifactId>
 			<version>${global_hadoop_version}</version>
+			  <exclusions>
+				<exclusion>
+				   <artifactId>servlet-api</artifactId>
+				   <groupId>javax.servlet</groupId>
+				  </exclusion>
+		    </exclusions>					
 		</dependency>
 		<dependency>
 			<groupId>org.apache.storm</groupId>
 			<artifactId>storm-core</artifactId>
 			<version>${global_storm_version}</version>
 			<scope>provided</scope>
+			  <exclusions>
+				<exclusion>
+				   <artifactId>servlet-api</artifactId>
+				   <groupId>javax.servlet</groupId>
+				  </exclusion>
+		    </exclusions>					
 		</dependency>
 		<dependency>
 			<groupId>com.google.guava</groupId>
@@ -78,6 +92,12 @@
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-common</artifactId>
 			<version>${global_hadoop_version}</version>
+			<exclusions>
+				<exclusion>
+				   <artifactId>servlet-api</artifactId>
+				   <groupId>javax.servlet</groupId>
+				  </exclusion>
+		    </exclusions>			
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
@@ -100,7 +120,7 @@
 					<systemProperties>
 						<property>
 							<name>mode</name>
-							<value>local</value>
+							<value>global</value>
 						</property>
 					</systemProperties>
 				</configuration>

@@ -28,6 +28,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.opensoc.alerts.interfaces.AlertsAdapter;
 
+@SuppressWarnings("serial")
 public class CIFAlertsAdapter implements AlertsAdapter, Serializable {
 
 	String enrichment_tag;
@@ -99,7 +100,8 @@ public class CIFAlertsAdapter implements AlertsAdapter, Serializable {
 		}
 	}
 
-	@Override
+	@SuppressWarnings("resource")
+    @Override
 	public boolean initialize() {
 
 		conf = HBaseConfiguration.create();
@@ -193,7 +195,8 @@ public class CIFAlertsAdapter implements AlertsAdapter, Serializable {
 		return true;
 	}
 
-	@Override
+	@SuppressWarnings("unchecked")
+    @Override
 	public Map<String, JSONObject> alert(JSONObject raw_message) {
 
 		System.out.println("LOOKING FOR ENRICHMENT TAG: " + enrichment_tag);

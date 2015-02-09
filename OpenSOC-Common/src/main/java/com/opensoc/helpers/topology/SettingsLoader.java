@@ -15,6 +15,7 @@ import org.json.simple.parser.ParseException;
 
 public class SettingsLoader {
 
+	@SuppressWarnings("unchecked")
 	public static JSONObject loadEnvironmentIdnetifier(String config_path)
 			throws ConfigurationException {
 		Configuration config = new PropertiesConfiguration(config_path);
@@ -31,6 +32,7 @@ public class SettingsLoader {
 		return identifier;
 	}
 
+	@SuppressWarnings("unchecked")
 	public static JSONObject loadTopologyIdnetifier(String config_path)
 			throws ConfigurationException {
 		Configuration config = new PropertiesConfiguration(config_path);
@@ -52,6 +54,7 @@ public class SettingsLoader {
 				+ env.get("instance") + "_" + topo.get("topology") + "_" + topo.get("topology_instance"));
 	}
 	
+	@SuppressWarnings("unchecked")
 	public static JSONObject generateAlertsIdentifier(JSONObject env, JSONObject topo)
 	{
 		JSONObject identifier = new JSONObject();
@@ -67,7 +70,7 @@ public class SettingsLoader {
 		alert_rules.setDelimiterParsingDisabled(true);
 		alert_rules.load(config_path);
 
-		int number_of_rules = alert_rules.getList("rule.pattern").size();
+		//int number_of_rules = alert_rules.getList("rule.pattern").size();
 
 		String[] patterns = alert_rules.getStringArray("rule.pattern");
 		String[] alerts = alert_rules.getStringArray("rule.alert");

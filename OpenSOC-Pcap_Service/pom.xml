@@ -12,9 +12,8 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<flume.version>1.4.0.2.0.6.0-76</flume.version>
 		<hadoop.version>2.2.0.2.0.6.0-76</hadoop.version>
-		<maven.compiler.source>${jdk.version}</maven.compiler.source>
-		<maven.compiler.target>${jdk.version}</maven.compiler.target>
-
+		<maven.compiler.target>1.7</maven.compiler.target>
+		<maven.compiler.source>1.7</maven.compiler.source>
 		<storm.version>0.9.2-incubating</storm.version>
 		<kafka.version>0.8.0</kafka.version>
 		<slf4j.version>1.7.5</slf4j.version>

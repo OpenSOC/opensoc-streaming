@@ -117,7 +117,7 @@ public class ThreatIntelLoader {
 		
 		JSONArray intelArray = (JSONArray) intel.get("intel");
 		
-		tempPut.add(Bytes.toBytes((String) intel.get("cf")),
+		tempPut.add(Bytes.toBytes("intel"),
 					Bytes.toBytes((String) intel.get("cq")),
 					Bytes.toBytes(intelArray.toString()));
 		

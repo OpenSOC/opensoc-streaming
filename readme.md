@@ -1,18 +1,18 @@
-#Current Build
+# Current Build
 
-The latest build of OpenSOC-Streaming is 0.3BETA.  We are still in the process of merging/porting additional
-features from our production code base into this open source release.  This release will be followed by
-a number of additional beta releases until the port is complete.  We will also work on getting additional 
-documentation and user/developer guides to the community as soon as we can.  At this time we offer no support
-for the beta software, but will try to respond to requests as promptly as we can.
+The latest usuable build of OpenSOC-Streaming is 0.5BETA.
+
+We are still in the process of merging/porting additional features from our production code base into this open source release. This release will be followed by a number of additional beta releases until the port is complete. We will also work on getting additional documentation and user/developer guides to the community as soon as we can. At this time we offer no support for the beta software, but will try to respond to requests as promptly as we can.
+
 
 # OpenSOC-Streaming
 
-Extensible set of Storm topologies and topology attributes for streaming, enriching, indexing, and storing telemetry in Hadoop.  General information on OpenSOC is available at www.getopensoc.com
+An extensible set of Storm topologies and topology attributes for streaming, enriching, indexing, and storing telemetry in Hadoop. General information on OpenSOC is available at https://opensoc.github.io/ .
 
-For OpenSOC FAQ please read the following wiki entry:  https://github.com/OpenSOC/opensoc-streaming/wiki/OpenSOC-FAQ
+For OpenSOC FAQ, please read the following wiki entry: https://github.com/OpenSOC/opensoc-streaming/wiki/OpenSOC-FAQ
 
 
-#Documentation
+# Documentation
 
-Please see documentation within each individual module for description and usage instructions for how to use it.  Sample topologies are provided under OpenSOC_Topologies to get you started with the framework.  We pre-assume knowledge of Hadoop, Storm, Kafka, and HBase.
+Please see the documentation within each individual module for a description and usage instructions. Sample topologies are provided under OpenSOC_Topologies to get you started with the framework. We pre-assume knowledge of Hadoop, Storm, Kafka, and HBase.
+

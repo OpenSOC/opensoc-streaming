@@ -31,8 +31,6 @@
 		<global_guava_version>18.0</global_guava_version>
 		<global_json_schema_validator_version>2.2.5</global_json_schema_validator_version>
 		<global_slf4j_version>1.7.7</global_slf4j_version>
-		<maven.compiler.target>1.6</maven.compiler.target>
-		<maven.compiler.source>1.6</maven.compiler.source>
 	</properties>
 	<licenses>
 		<license>

@@ -8,13 +8,12 @@ package com.opensoc.parsing.test;
 import java.util.Iterator;
 import java.util.Map;
 
-import junit.framework.TestCase;
-
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import com.opensoc.parsing.parsers.BasicSourcefireParser;
+import com.opensoc.test.AbstractConfigTest;
 
 /**
  * <ul>
@@ -24,10 +23,21 @@ import com.opensoc.parsing.parsers.BasicSourcefireParser;
  * </ul>
  * @version $Revision: 1.0 $
  */
-public class BasicSourcefireParserTest extends TestCase
+public class BasicSourcefireParserTest extends AbstractConfigTest
 	{
 
-	//private  static String sourceFireString = "";
+	
+     /**
+     * Constructs a new <code>BasicSourcefireParserTest</code> instance.
+     * @throws Exception
+     */
+     
+    public BasicSourcefireParserTest() throws Exception {
+        
+    }
+
+
+    //private  static String sourceFireString = "";
 	private static String[] sourceFireStrings;
 	private BasicSourcefireParser sourceFireParser=null;
 

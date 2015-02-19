@@ -8,14 +8,12 @@ package com.opensoc.parsing.test;
 import java.util.Iterator;
 import java.util.Map;
 
-import junit.framework.TestCase;
-
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import com.opensoc.parsing.parsers.BasicFireEyeParser;
-import com.opensoc.parsing.parsers.BasicSourcefireParser;
+import com.opensoc.test.AbstractConfigTest;
 
 /**
  * <ul>
@@ -25,13 +23,26 @@ import com.opensoc.parsing.parsers.BasicSourcefireParser;
  * </ul>
  * @version $Revision: 1.0 $
  */
-public class BasicFireEyeParserTest extends TestCase
-	{
+public class BasicFireEyeParserTest extends AbstractConfigTest
+{
+   /**
+    * The inputStrings.
+    */
+    private static String[] inputStrings;
+ 
+   /**
+    * The parser.
+    */
+    private BasicFireEyeParser parser=null;
 
-	//private  static String sourceFireString = "";
-	private static String[] inputStrings;
-	private BasicFireEyeParser parser=null;
-
+	
+   /**
+    * Constructs a new <code>BasicFireEyeParserTest</code> instance.
+    * @throws Exception
+    */ 
+    public BasicFireEyeParserTest() throws Exception {
+        super();
+    }
 
 
 	/**
@@ -44,22 +55,15 @@ public class BasicFireEyeParserTest extends TestCase
 	 * @throws java.lang.Exception
 	 */
 	public static void tearDownAfterClass() throws Exception {
-		setInputStrings(null);
 	}
 
 	/**
 	 * @throws java.lang.Exception
 	 */
 	public void setUp() throws Exception {
-		setInputStrings(new String[] {
-				"<164>fenotify-851983.alert: CEF:0|FireEye|CMS|7.2.1.244420|DM|domain-match|1|rt=Feb 09 2015 12:28:26 UTC dvc=10.201.78.57 cn3Label=cncPort cn3=53 cn2Label=sid cn2=80494706 shost=dev001srv02.example.com proto=udp cs5Label=cncHost cs5=mfdclk001.org dvchost=DEVFEYE1 spt=54527 dvc=10.100.25.16 smac=00:00:0c:07:ac:00 cn1Label=vlan cn1=0 externalId=851983 cs4Label=link cs4=https://DEVCMS01.example.com/event_stream/events_for_bot?ev_id\\=851983 dmac=00:1d:a2:af:32:a1 cs1Label=sname cs1=Trojan.Generic.DNS ",
-				"<164>fenotify-851987.alert: CEF:0|FireEye|CMS|7.2.1.244420|DM|domain-match|1|rt=Feb 09 2015 12:33:41 UTC dvc=10.201.78.113 cn3Label=cncPort cn3=53 cn2Label=sid cn2=80494706 shost=dev001srv02.example.com proto=udp cs5Label=cncHost cs5=mfdclk001.org dvchost=DEVFEYE1 spt=51218 dvc=10.100.25.16 smac=00:00:0c:07:ac:00 cn1Label=vlan cn1=0 externalId=851987 cs4Label=link cs4=https://DEVCMS01.example.com/event_stream/events_for_bot?ev_id\\=851987 dmac=00:1d:a2:af:32:a1 cs1Label=sname cs1=Trojan.Generic.DNS",
-				"<164>fenotify-3483808.2.alert: 1::~~User-Agent: WinHttpClient::~~Host: www.microads.me::~~Connection: Keep-Alive::~~::~~GET /files/microads/update/InjectScript.js HTTP/1.1::~~User-Agent: WinHttpClient::~~Host: www.microads.me::~~Connection: Keep-Alive::~~::~~GET /files/microads/update/InjectScript.js HTTP/1.1::~~User-Agent: WinHttpClient::~~Host: www.microads.me::~~Connection: Keep-Alive::~~::~~GET /files/microads/update/InjectScript.js HTTP/1.1::~~User-Agent: WinHttpClient::~~Host: www.microads.me::~~Connection: Keep-Alive::~~::~~GET /files/microads/update/InjectScript.js HTTP/1.1::~~User-Agent: WinHttpClient::~~Host: www.microads.me::~~Connection: Keep-Alive::~~::~~GET /files/microads/update/InjectScript.js HTTP/1.1::~~User-Agent: WinHttpClient::~~Host: www.microads.me::~~Connection: Keep-Alive::~~::~~GET /files/microads/update/InjectScript.js HTTP/1.1::~~User-Agent: WinHttpClient::~~Host: www.microads.me::~~Connection: Keep-Alive::~~::~~GET /files/microads/update/InjectScript.js HTTP",
-				"<164>fenotify-793972.2.alert: ontrol: no-cache::~~::~~ dmac=00:1d:a2:af:32:a1 cs1Label=sname cs1=Exploit.Kit.Magnitude"
-		});
-		for (String inputString : getInputStrings())
-			assertNotNull(inputString);
-		parser = new BasicFireEyeParser();		
+        super.setUp("com.opensoc.parsing.test.BasicFireEyeParserTest");
+        setInputStrings(super.readTestDataFromFile(this.getConfig().getString("logFile")));
+        parser = new BasicFireEyeParser();  
 	}
 
 	/**
@@ -69,6 +73,7 @@ public class BasicFireEyeParserTest extends TestCase
 	 */
 	public void tearDown() throws Exception {
 		parser = null;
+        setInputStrings(null);		
 	}
 
 	/**
@@ -107,7 +112,6 @@ public class BasicFireEyeParserTest extends TestCase
 	public static String[] getInputStrings() {
 		return inputStrings;
 	}
-
 		
 	/**
 	 * Sets SourceFire Input String
@@ -115,4 +119,21 @@ public class BasicFireEyeParserTest extends TestCase
 	public static void setInputStrings(String[] strings) {
 		BasicFireEyeParserTest.inputStrings = strings;
 	}
+	
+    /**
+     * Returns the parser.
+     * @return the parser.
+     */
+    public BasicFireEyeParser getParser() {
+        return parser;
+    }
+
+    /**
+     * Sets the parser.
+     * @param parser the parser.
+     */
+     public void setParser(BasicFireEyeParser parser) {
+    
+        this.parser = parser;
+     }
 }

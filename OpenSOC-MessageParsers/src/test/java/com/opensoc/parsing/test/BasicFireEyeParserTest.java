@@ -79,7 +79,7 @@ public class BasicFireEyeParserTest extends AbstractConfigTest
 	/**
 	 * Test method for {@link com.opensoc.parsing.parsers.BasicFireEyeParser#parse(java.lang.String)}.
 	 */
-	@SuppressWarnings({ "rawtypes", "unused" })
+	@SuppressWarnings({ "rawtypes"})
 	public void testParse() {
 		for (String inputString : getInputStrings()) {
 			JSONObject parsed = parser.parse(inputString.getBytes());
@@ -100,7 +100,7 @@ public class BasicFireEyeParserTest extends AbstractConfigTest
 			while (iter.hasNext()) {
 				Map.Entry entry = (Map.Entry) iter.next();
 				String key = (String) entry.getKey();
-				String value = (String) json.get("syslog").toString();
+				String value = (String) json.get(key).toString();
 				assertNotNull(value);
 			}
 		}

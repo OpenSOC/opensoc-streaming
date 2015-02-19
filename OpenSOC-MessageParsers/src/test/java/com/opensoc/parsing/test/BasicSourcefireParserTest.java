@@ -24,25 +24,27 @@ import com.opensoc.test.AbstractConfigTest;
  * @version $Revision: 1.0 $
  */
 public class BasicSourcefireParserTest extends AbstractConfigTest
-	{
-
-	
+{
      /**
+     * The sourceFireStrings.
+     */    
+    private static String[] sourceFireStrings;
+    
+     /**
+     * The sourceFireParser.
+     */
+    private BasicSourcefireParser sourceFireParser=null;
+
+
+    /**
      * Constructs a new <code>BasicSourcefireParserTest</code> instance.
      * @throws Exception
      */
      
     public BasicSourcefireParserTest() throws Exception {
-        
+        super();  
     }
-
-
-    //private  static String sourceFireString = "";
-	private static String[] sourceFireStrings;
-	private BasicSourcefireParser sourceFireParser=null;
-
-
-
+    
 	/**
 	 * @throws java.lang.Exception
 	 */
@@ -60,14 +62,9 @@ public class BasicSourcefireParserTest extends AbstractConfigTest
 	 * @throws java.lang.Exception
 	 */
 	public void setUp() throws Exception {
-		setSourceFireStrings(new String[] {
-				"SFIMS: [Primary Detection Engine (a7213248-6423-11e3-8537-fac6a92b7d9d)][MTD Access Control] Connection Type: Start, User: Unknown, Client: Unknown, Application Protocol: Unknown, Web App: Unknown, Firewall Rule Name: MTD Access Control, Firewall Rule Action: Allow, Firewall Rule Reasons: Unknown, URL Category: Unknown, URL_Reputation: Risk unknown, URL: Unknown, Interface Ingress: s1p1, Interface Egress: N/A, Security Zone Ingress: Unknown, Security Zone Egress: N/A, Security Intelligence Matching IP: None, Security Intelligence Category: None, {TCP} 72.163.0.129:60517 -> 10.1.128.236:443",
-				"snort: [1:3192:2] WEB-CLIENT Windows Media Player directory traversal via Content-Disposition attempt [Classification: Attempted User Privilege Gain] [Priority: 1] {TCP} 46.149.110.103:80 -> 192.168.56.102:1073",
-				"SFIMS: Correlation Event: Open Soc Log Forwarding/Opensoc Log Forwarding at Thu Oct 23 04:55:39 2014 UTC: [1:19123:7] \"MALWARE-CNC Dropper Win.Trojan.Cefyns.A variant outbound connection\" [Impact: Unknown] From \"172.19.50.7\" at Thu Oct 23 04:55:38 2014 UTC [Classification: A Network Trojan was Detected] [Priority: 1] {tcp} 139.230.245.23:52078->72.52.4.91:80"
-		});
-		for (String sourceFireString : getSourceFireStrings())
-			assertNotNull(sourceFireString);
-		sourceFireParser = new BasicSourcefireParser();		
+        super.setUp("com.opensoc.parsing.test.BasicSoureceFireParserTest");
+        setSourceFireStrings(super.readTestDataFromFile(this.getConfig().getString("logFile")));
+        sourceFireParser = new BasicSourcefireParser();
 	}
 
 	/**
@@ -85,6 +82,7 @@ public class BasicSourcefireParserTest extends AbstractConfigTest
 	@SuppressWarnings({ "rawtypes", "unused" })
 	public void testParse() {
 		for (String sourceFireString : getSourceFireStrings()) {
+		    byte[] srcBytes = sourceFireString.getBytes();
 			JSONObject parsed = sourceFireParser.parse(sourceFireString.getBytes());
 			assertNotNull(parsed);
 		
@@ -123,4 +121,22 @@ public class BasicSourcefireParserTest extends AbstractConfigTest
 	public static void setSourceFireStrings(String[] strings) {
 		BasicSourcefireParserTest.sourceFireStrings = strings;
 	}
+    /**
+    * Returns the sourceFireParser.
+    * @return the sourceFireParser.
+    */
+   
+   public BasicSourcefireParser getSourceFireParser() {
+       return sourceFireParser;
+   }
+
+   /**
+    * Sets the sourceFireParser.
+    * @param sourceFireParser the sourceFireParser.
+    */
+   
+   public void setSourceFireParser(BasicSourcefireParser sourceFireParser) {
+   
+       this.sourceFireParser = sourceFireParser;
+   }	
 }

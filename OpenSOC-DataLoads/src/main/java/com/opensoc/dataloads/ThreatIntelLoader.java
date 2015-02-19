@@ -115,10 +115,10 @@ public class ThreatIntelLoader {
 		
 		Put tempPut = new Put(Bytes.toBytes((String) intel.get("indicator")));
 		
-		JSONArray intelArray = (JSONArray) intel.get("source");
+		JSONArray intelArray = (JSONArray) intel.get("data");
 		
 		tempPut.add(Bytes.toBytes("source"),
-					Bytes.toBytes((String) intel.get("cq")),
+					Bytes.toBytes((String) intel.get("source")),
 					Bytes.toBytes(intelArray.toString()));
 		
 		return tempPut;

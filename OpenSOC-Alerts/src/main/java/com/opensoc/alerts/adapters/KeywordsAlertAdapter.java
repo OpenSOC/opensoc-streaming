@@ -40,7 +40,6 @@ public class KeywordsAlertAdapter extends AbstractAlertAdapter {
 	String _topologyname;
 	Configuration conf = null;
 
-	Cache<String, String> cache;
 	String _topology_name;
 
 	Set<String> loaded_whitelist = new HashSet<String>();
@@ -90,9 +89,8 @@ public class KeywordsAlertAdapter extends AbstractAlertAdapter {
 			int _MAX_TIME_RETAIN = Integer.parseInt(config
 					.get("_MAX_TIME_RETAIN"));
 
-			cache = CacheBuilder.newBuilder().maximumSize(_MAX_CACHE_SIZE)
-					.expireAfterWrite(_MAX_TIME_RETAIN, TimeUnit.MINUTES)
-					.build();
+			generateCache(_MAX_CACHE_SIZE, _MAX_TIME_RETAIN);
+			
 		} catch (Exception e) {
 			System.out.println("Could not initialize Alerts Adapter");
 			e.printStackTrace();

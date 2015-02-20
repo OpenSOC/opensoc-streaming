@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 
 import org.json.simple.JSONObject;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 
@@ -80,10 +81,26 @@ public class BasicFireEyeParser extends AbstractParser implements Serializable {
 			Multimap<String, String> multiMap =  formatMain(syslog) ;
 			
 			for(String key : multiMap.keySet()) {
-				toReturn.put(key, multiMap.get(key));
+				
+				String value =Joiner.on(",").join( multiMap.get(key));
+				toReturn.put(key, value);
 			}
 			
 			}
+			
+			String ip_src_addr = (String) toReturn.get("dvc");
+			String ip_src_port = (String) toReturn.get("src_port");
+			String ip_dst_addr = (String) toReturn.get("dst_ip");
+			String ip_dst_port = (String) toReturn.get("dst_port");
+			
+			if(ip_src_addr != null)
+				toReturn.put("ip_src_addr", ip_src_addr);
+			if(ip_src_port != null)
+				toReturn.put("ip_src_port", ip_src_port);
+			if(ip_dst_addr != null)
+				toReturn.put("ip_dst_addr", ip_dst_addr);
+			if(ip_dst_port != null)
+				toReturn.put("ip_dst_port", ip_dst_port);
 			
 			return toReturn;
 

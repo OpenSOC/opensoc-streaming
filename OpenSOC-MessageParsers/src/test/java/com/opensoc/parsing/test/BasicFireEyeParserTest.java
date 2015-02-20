@@ -100,6 +100,7 @@ public class BasicFireEyeParserTest extends AbstractConfigTest
 			while (iter.hasNext()) {
 				Map.Entry entry = (Map.Entry) iter.next();
 				String key = (String) entry.getKey();
+				System.out.println("Key:"+key);
 				String value = (String) json.get(key).toString();
 				assertNotNull(value);
 			}

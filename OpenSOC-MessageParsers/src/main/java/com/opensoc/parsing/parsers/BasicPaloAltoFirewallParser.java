@@ -78,9 +78,14 @@ public class BasicPaloAltoFirewallParser extends AbstractParser implements Messa
 			
 			parseMessage(toParse,outputMessage);
 			
-			outputMessage.put("timestamp", System.currentTimeMillis());
-			
-
+				outputMessage.put("timestamp", System.currentTimeMillis());
+				outputMessage.put("ip_src_addr", outputMessage.remove("source_address"));
+				outputMessage.put("ip_src_port", outputMessage.remove("source_port"));
+				outputMessage.put("ip_dst_addr", outputMessage.remove("destination_address"));
+				outputMessage.put("ip_dst_port", outputMessage.remove("destination_port"));
+				outputMessage.put("protocol", outputMessage.remove("ip_protocol"));
+				
+				
 			return outputMessage;
 		} catch (Exception e) {
 			e.printStackTrace();

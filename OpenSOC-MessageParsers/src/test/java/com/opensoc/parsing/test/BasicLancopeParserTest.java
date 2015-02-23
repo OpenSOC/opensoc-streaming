@@ -16,13 +16,13 @@
  */
 package com.opensoc.parsing.test;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Map;
 
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import com.opensoc.parsing.parsers.BasicLancopeParser;
 import com.opensoc.test.AbstractSchemaTest;
@@ -36,9 +36,17 @@ import com.opensoc.test.AbstractSchemaTest;
  * @version $Revision: 1.1 $
  */
 public class BasicLancopeParserTest extends AbstractSchemaTest {
+    
+    /**
+     * The inputStrings.
+     */
+     private static String[] inputStrings;    
 
-    private  static String rawMessage = "";
-    private static BasicLancopeParser lancopeParser=null;   
+
+    /**
+     * The parser.
+     */
+    private static BasicLancopeParser parser=null;   
 
     /**
      * Constructs a new <code>BasicLancopeParserTest</code> instance.
@@ -53,8 +61,7 @@ public class BasicLancopeParserTest extends AbstractSchemaTest {
      
      * @throws java.lang.Exception
      */
-    protected static void setUpBeforeClass() throws Exception {
-        setRawMessage("{\"message\":\"<131>Jul 17 15:59:01 smc-01 StealthWatch[12365]: 2014-07-17T15:58:30Z 10.40.10.254 0.0.0.0 Minor High Concern Index The host's concern index has either exceeded the CI threshold or rapidly increased. Observed 36.55M points. Policy maximum allows up to 20M points.\",\"@version\":\"1\",\"@timestamp\":\"2014-07-17T15:56:05.992Z\",\"type\":\"syslog\",\"host\":\"10.122.196.201\"}");        
+    protected static void setUpBeforeClass() throws Exception {        
     }
 
     /**
@@ -70,10 +77,9 @@ public class BasicLancopeParserTest extends AbstractSchemaTest {
      */
 
     protected void setUp() throws Exception {
-        super.setUp();
-        setRawMessage("{\"message\":\"<131>Jul 17 15:59:01 smc-01 StealthWatch[12365]: 2014-07-17T15:58:30Z 10.40.10.254 0.0.0.0 Minor High Concern Index The host's concern index has either exceeded the CI threshold or rapidly increased. Observed 36.55M points. Policy maximum allows up to 20M points.\",\"@version\":\"1\",\"@timestamp\":\"2014-07-17T15:56:05.992Z\",\"type\":\"syslog\",\"host\":\"10.122.196.201\"}");        
-        assertNotNull(getRawMessage());
-        BasicLancopeParserTest.setLancopeParser(new BasicLancopeParser());   
+        super.setUp("com.opensoc.parsing.test.BasicLancopeParserTest");
+        setInputStrings(super.readTestDataFromFile(this.getConfig().getString("logFile")));
+        BasicLancopeParserTest.setParser(new BasicLancopeParser());   
         
         URL schema_url = getClass().getClassLoader().getResource(
             "TestSchemas/LancopeSchema.json");
@@ -95,61 +101,60 @@ public class BasicLancopeParserTest extends AbstractSchemaTest {
      * @throws IOException 
      */
     public void testParse() throws IOException, Exception {
-        URL log_url = getClass().getClassLoader().getResource("LancopeSample.log");
+        
+        for (String inputString : getInputStrings()) {
+            JSONObject parsed = parser.parse(inputString.getBytes());
+            assertNotNull(parsed);
+        
+            System.out.println(parsed);
+            JSONParser parser = new JSONParser();
 
-        BufferedReader br;
-        try {
-            br = new BufferedReader(new FileReader(log_url.getFile()));
-            String line = "";
-            while ((line = br.readLine()) != null) {
-                System.out.println(line);
-                assertNotNull(line);
-                JSONObject parsed =  lancopeParser.parse(line.getBytes());
-                System.out.println(parsed);
-                assertEquals(true, validateJsonData(super.getSchemaJsonString(), parsed.toString()));
+            Map<?, ?> json=null;
+            try {
+                json = (Map<?, ?>) parser.parse(parsed.toJSONString());
+                assertEquals(true, validateJsonData(super.getSchemaJsonString(), json.toString()));
+            } catch (ParseException e) {
+                e.printStackTrace();
             }
-            br.close();  
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            
         }
     }
-    
-    /**
-     * Returns the rawMessage.
-     * @return the rawMessage.
-     */
-    
-    public static String getRawMessage() {
-        return BasicLancopeParserTest.rawMessage;
-    }
 
     /**
-     * Sets the rawMessage.
-     * @param rawMessage the rawMessage.
-     */
-    
-    public static void setRawMessage(String rawMessage) {
-    
-        BasicLancopeParserTest.rawMessage = rawMessage;
-    }
-    /**
-     * Returns the lancopeParser.
-     * @return the lancopeParser.
-     */
-    
-    public static BasicLancopeParser getLancopeParser() {
-        return lancopeParser;
-    }
+    * Returns the parser.
+    * @return the parser.
+    */
+   
+   public static BasicLancopeParser getParser() {
+       return parser;
+   }
 
-    /**
-     * Sets the lancopeParser.
-     * @param lancopeParser the lancopeParser.
-     */
-    
-    public static void setLancopeParser(BasicLancopeParser lancopeParser) {
-    
-        BasicLancopeParserTest.lancopeParser = lancopeParser;
-    }
+   /**
+    * Sets the parser.
+    * @param parser the parser.
+    */
+   
+   public static void setParser(BasicLancopeParser parser) {
+   
+       BasicLancopeParserTest.parser = parser;
+   }
+
+   /**
+    * Returns the inputStrings.
+    * @return the inputStrings.
+    */
+   
+   public static String[] getInputStrings() {
+       return inputStrings;
+   }
+
+   /**
+    * Sets the inputStrings.
+    * @param inputStrings the inputStrings.
+    */
+   
+   public static void setInputStrings(String[] inputStrings) {
+   
+       BasicLancopeParserTest.inputStrings = inputStrings;
+   }   
 }
 

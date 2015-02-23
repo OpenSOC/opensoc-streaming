@@ -39,7 +39,7 @@ import com.github.fge.jsonschema.main.JsonValidator;
  * </ul>
  * @version $Revision: 1.1 $
  */
-public class AbstractSchemaTest  extends AbstractTestContext{
+public class AbstractSchemaTest  extends AbstractConfigTest{
         
         
          /**

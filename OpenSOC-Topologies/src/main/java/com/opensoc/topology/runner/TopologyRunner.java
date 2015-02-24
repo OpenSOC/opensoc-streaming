@@ -553,8 +553,13 @@ public abstract class TopologyRunner {
 					+ " is initializing from " + messageUpstreamComponent);
 
 			List<String> geo_keys = new ArrayList<String>();
-			geo_keys.add(config.getString("source.ip"));
-			geo_keys.add(config.getString("dest.ip"));
+			
+			String[] keys_from_settings = config.getString(
+					"bolt.enrichment.geo.source").split(",");
+
+			for (String key : keys_from_settings)
+				geo_keys.add(key);
+			
 
 			GeoMysqlAdapter geo_adapter = new GeoMysqlAdapter(
 					config.getString("mysql.ip"), config.getInt("mysql.port"),

@@ -31,6 +31,7 @@ import org.apache.hadoop.hbase.client.Result;
 import org.json.simple.JSONObject;
 
 import com.google.common.base.Joiner;
+import com.opensoc.tldextractor.BasicTldExtractor;
 
 public class WhoisHBaseAdapter extends AbstractWhoisAdapter {
 
@@ -42,6 +43,7 @@ public class WhoisHBaseAdapter extends AbstractWhoisAdapter {
 	private String _table_name;
 	private String _quorum;
 	private String _port;
+	private BasicTldExtractor tldex = new BasicTldExtractor();
 
 	public WhoisHBaseAdapter(String table_name, String quorum, String port) {
 		_table_name = table_name;
@@ -93,7 +95,7 @@ public class WhoisHBaseAdapter extends AbstractWhoisAdapter {
 	@SuppressWarnings({ "unchecked", "deprecation" })
 	public JSONObject enrich(String metadataIn) {
 		
-		String metadata = format(metadataIn);
+		String metadata = tldex.extract2LD(metadataIn);
 
 		LOG.trace("[OpenSOC] Pinging HBase For:" + metadata);
 
@@ -121,13 +123,13 @@ public class WhoisHBaseAdapter extends AbstractWhoisAdapter {
 
 	}
 	
-	private String format(String input) {
-		String output = input;
-		String[] tokens = input.split("\\.");
-		if(tokens.length > 2) {
-			output = Joiner.on(".").join(Arrays.copyOfRange(tokens, 1, tokens.length));;
-		}
-		return output;
-	}
+//	private String format(String input) {
+//		String output = input;
+//		String[] tokens = input.split("\\.");
+//		if(tokens.length > 2) {
+//			output = Joiner.on(".").join(Arrays.copyOfRange(tokens, 1, tokens.length));;
+//		}
+//		return output;
+//	}
 
 }

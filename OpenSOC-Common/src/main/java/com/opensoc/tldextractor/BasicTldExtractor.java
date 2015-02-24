@@ -17,7 +17,7 @@ public class BasicTldExtractor {
     try {
       ArrayList<String> terms = new ArrayList<String>();
 
-      BufferedReader br = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("effective_tld_names.dat")));
+      BufferedReader br = new BufferedReader(new InputStreamReader(getClass().getClassLoader().getResourceAsStream("effective_tld_names.dat")));
       String s = null;
       while ((s = br.readLine()) != null) {
         s = s.trim();

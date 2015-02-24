@@ -775,7 +775,7 @@ public abstract class TopologyRunner {
 
 			List<String> whois_keys = new ArrayList<String>();
 			String[] keys_from_settings = config.getString(
-					"bolt.enrichment.whois.source").split(",");
+					"bolt.enrichment.whois.fields").split(",");
 
 			for (String key : keys_from_settings)
 				whois_keys.add(key);
@@ -871,8 +871,8 @@ public abstract class TopologyRunner {
 
 			cif_keys.add(config.getString("source.ip"));
 			cif_keys.add(config.getString("dest.ip"));
-			cif_keys.add(config.getString("bolt.enrichment.cif.host"));
-			cif_keys.add(config.getString("bolt.enrichment.cif.email"));
+			cif_keys.add(config.getString("bolt.enrichment.cif.fields.host"));
+			cif_keys.add(config.getString("bolt.enrichment.cif.fields.email"));
 
 			GenericEnrichmentBolt cif_enrichment = new GenericEnrichmentBolt()
 					.withEnrichmentTag(

@@ -3,6 +3,9 @@ package com.opensoc.parsing.parsers;
 
 import org.json.simple.JSONObject;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
 import com.opensoc.parser.interfaces.MessageParser;
 
 public class BasicPaloAltoFirewallParser extends AbstractParser implements MessageParser{
@@ -42,6 +45,7 @@ public class BasicPaloAltoFirewallParser extends AbstractParser implements Messa
 	
 	//Threat
 	public static final String URL  = "url";
+	public static final String HOST  = "host";
 	public static final String ThreatContentName  = "threat_content_name";
 	public static final String Category  = "category";
 	public static final String Direction  = "direction";
@@ -137,6 +141,12 @@ public class BasicPaloAltoFirewallParser extends AbstractParser implements Messa
 			
 			if("THREAT".equals(type.toUpperCase())) {
 				outputMessage.put(URL, tokens[31]);
+				try {
+					URL url = new URL(tokens[31]);
+					outputMessage.put(HOST, url.getHost());
+				} catch (MalformedURLException e) {
+					e.printStackTrace();
+				}
 				outputMessage.put(ThreatContentName, tokens[32]);
 				outputMessage.put(Category, tokens[33]);
 				outputMessage.put(Direction, tokens[34]);

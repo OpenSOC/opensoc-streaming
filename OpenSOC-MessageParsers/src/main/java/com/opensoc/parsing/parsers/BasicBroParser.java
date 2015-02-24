@@ -97,25 +97,26 @@ public class BasicBroParser extends AbstractParser {
 				payload.put("ip_dst_port", dest_port);
 				_LOG.trace("[OpenSOC] Added ip_dst_port to: " + payload);
 			}
-			if (payload.containsKey("host")) {
-
-				String host = payload.get("host").toString().trim();
-				String tld = tldex.extractTLD(host);
-
-				payload.put("tld", tld);
-				_LOG.trace("[OpenSOC] Added tld to: " + payload);
-
-			}
-			if (payload.containsKey("query")) {
-				String host = payload.get("query").toString();
-				String[] parts = host.split("\\.");
-				int length = parts.length;
-				if (length >= 2) {
-					payload.put("tld", parts[length - 2] + "."
-							+ parts[length - 1]);
-					_LOG.trace("[OpenSOC] Added tld to: " + payload);
-				}
-			}
+			
+//			if (payload.containsKey("host")) {
+//
+//				String host = payload.get("host").toString().trim();
+//				String tld = tldex.extractTLD(host);
+//
+//				payload.put("tld", tld);
+//				_LOG.trace("[OpenSOC] Added tld to: " + payload);
+//
+//			}
+//			if (payload.containsKey("query")) {
+//				String host = payload.get("query").toString();
+//				String[] parts = host.split("\\.");
+//				int length = parts.length;
+//				if (length >= 2) {
+//					payload.put("tld", parts[length - 2] + "."
+//							+ parts[length - 1]);
+//					_LOG.trace("[OpenSOC] Added tld to: " + payload);
+//				}
+//			}
 
 			_LOG.trace("[OpenSOC] Inner message: " + payload);
 

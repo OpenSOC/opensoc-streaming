@@ -18,6 +18,7 @@
 package com.opensoc.enrichment.adapters.whois;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
@@ -28,6 +29,8 @@ import org.apache.hadoop.hbase.client.HConnectionManager;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Result;
 import org.json.simple.JSONObject;
+
+import com.google.common.base.Joiner;
 
 public class WhoisHBaseAdapter extends AbstractWhoisAdapter {
 
@@ -88,11 +91,13 @@ public class WhoisHBaseAdapter extends AbstractWhoisAdapter {
 	}
 
 	@SuppressWarnings({ "unchecked", "deprecation" })
-	public JSONObject enrich(String metadata) {
+	public JSONObject enrich(String metadataIn) {
+		
+		String metadata = format(metadataIn);
 
 		LOG.trace("[OpenSOC] Pinging HBase For:" + metadata);
 
-
+        
 		JSONObject output = new JSONObject();
 		JSONObject payload = new JSONObject();
 
@@ -114,6 +119,15 @@ public class WhoisHBaseAdapter extends AbstractWhoisAdapter {
 
 		return output;
 
+	}
+	
+	private String format(String input) {
+		String output = input;
+		String[] tokens = input.split("\\.");
+		if(tokens.length > 2) {
+			output = Joiner.on(".").join(Arrays.copyOfRange(tokens, 1, tokens.length));;
+		}
+		return output;
 	}
 
 }

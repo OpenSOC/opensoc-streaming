@@ -885,16 +885,11 @@ public abstract class TopologyRunner {
 
 			List<String> threat_keys = new ArrayList<String>();
 
-			String[] ipFields = config.getString("bolt.enrichment.threat.fields.ip").split(",");
-			for (String f : ipFields) {
+			String[] fields = config.getString("bolt.enrichment.threat.fields").split(",");
+			for (String f : fields) {
 				threat_keys.add(f);
 			}
 			
-			String[] hostFields = config.getString("bolt.enrichment.threat.fields.host").split(",");
-			for (String f : hostFields) {
-				threat_keys.add(f);
-			}
-
 			
 			GenericEnrichmentBolt threat_enrichment = new GenericEnrichmentBolt()
 					.withEnrichmentTag(

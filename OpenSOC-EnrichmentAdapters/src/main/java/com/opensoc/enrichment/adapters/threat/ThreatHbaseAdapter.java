@@ -77,17 +77,15 @@ public class ThreatHbaseAdapter extends AbstractThreatAdapter {
 
 			
 			byte[] source_family = Bytes.toBytes("source");
-			List<String> cqList = new ArrayList<String>();
 			
 			Map<byte[], byte[]> sourceFamilyMap = rs.getFamilyMap(source_family);
 			
-			for (byte[] k : sourceFamilyMap.keySet()) {
-				
-				cqList.add(Bytes.toString(k));
+			for (Map.Entry<byte[], byte[]> entry  : sourceFamilyMap.entrySet()) {
+				String k = Bytes.toString(entry.getKey());
+				String v = Bytes.toString(entry.getValue());
+				output.put(k,v);
             }
 			
-			for (KeyValue kv : rs.raw())
-				output.put(new String(kv.getQualifier()), "Y");
 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

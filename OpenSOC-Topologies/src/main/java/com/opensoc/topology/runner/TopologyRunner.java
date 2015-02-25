@@ -255,6 +255,21 @@ public abstract class TopologyRunner {
 			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
 					"bolt.enrichment.cif");
 		}
+		
+		if (config.getBoolean("bolt.enrichment.threat.enabled", false)) {
+			String component_name = config.getString(
+					"bolt.enrichment.threat.name", "DefaultThreatEnrichmentBolt");
+
+			success = initializeThreatEnrichment(topology_name, component_name);
+			messageComponents.add(component_name);
+			errorComponents.add(component_name);
+
+			System.out.println("[OpenSOC] ------Component " + component_name
+					+ " initialized with the following settings:");
+
+			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
+					"bolt.enrichment.threat");
+		}
 
 		if (config.getBoolean("bolt.alerts.enabled", false)) {
 			String component_name = config.getString("bolt.alerts.name",
@@ -849,6 +864,64 @@ public abstract class TopologyRunner {
 					.fieldsGrouping(messageUpstreamComponent, "message",
 							new Fields("key"))
 					.setNumTasks(config.getInt("bolt.indexing.num.tasks"));
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.exit(0);
+		}
+
+		return true;
+	}
+	
+	
+	private boolean initializeThreatEnrichment(String topology_name, String name) {
+		try {
+
+			String messageUpstreamComponent = messageComponents
+					.get(messageComponents.size() - 1);
+
+			System.out.println("[OpenSOC] ------" + name
+					+ " is initializing from " + messageUpstreamComponent);
+
+			List<String> threat_keys = new ArrayList<String>();
+
+			String[] ipFields = config.getString("bolt.enrichment.threat.fields.ip").split(",");
+			for (String f : ipFields) {
+				threat_keys.add(f);
+			}
+			
+			String[] hostFields = config.getString("bolt.enrichment.threat.fields.host").split(",");
+			for (String f : hostFields) {
+				threat_keys.add(f);
+			}
+
+			String[] emailFields = config.getString("bolt.enrichment.threat.fields.email").split(",");
+			for (String f : emailFields) {
+				threat_keys.add(f);
+			}
+			
+			GenericEnrichmentBolt threat_enrichment = new GenericEnrichmentBolt()
+					.withEnrichmentTag(
+							config.getString("bolt.enrichment.threat.enrichment_tag"))
+					.withAdapter(
+							new CIFHbaseAdapter(config
+									.getString("kafka.zk.list"), config
+									.getString("kafka.zk.port"), config
+									.getString("bolt.enrichment.threat.tablename")))
+					.withOutputFieldName(topology_name)
+					.withEnrichmentTag("Threat_Enrichment")
+					.withKeys(threat_keys)
+					.withMaxTimeRetain(
+							config.getInt("bolt.enrichment.threat.MAX_TIME_RETAIN"))
+					.withMaxCacheSize(
+							config.getInt("bolt.enrichment.threat.MAX_CACHE_SIZE"))
+					.withMetricConfiguration(config);
+
+			builder.setBolt(name, threat_enrichment,
+					config.getInt("bolt.enrichment.threat.parallelism.hint"))
+					.fieldsGrouping(messageUpstreamComponent, "message",
+							new Fields("key"))
+					.setNumTasks(config.getInt("bolt.enrichment.threat.num.tasks"));
 
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Get;
@@ -77,17 +79,21 @@ public class ThreatHbaseAdapter extends AbstractThreatAdapter {
 
 			
 			byte[] source_family = Bytes.toBytes("source");
+			JSONParser parser = new JSONParser();
 			
 			Map<byte[], byte[]> sourceFamilyMap = rs.getFamilyMap(source_family);
 			
 			for (Map.Entry<byte[], byte[]> entry  : sourceFamilyMap.entrySet()) {
 				String k = Bytes.toString(entry.getKey());
-				String v = Bytes.toString(entry.getValue());
-				output.put(k,v);
+				
+				output.put(k,parser.parse(Bytes.toString(entry.getValue())));
             }
 			
 
 		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

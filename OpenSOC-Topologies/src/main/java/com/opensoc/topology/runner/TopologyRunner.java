@@ -895,10 +895,6 @@ public abstract class TopologyRunner {
 				threat_keys.add(f);
 			}
 
-			String[] emailFields = config.getString("bolt.enrichment.threat.fields.email").split(",");
-			for (String f : emailFields) {
-				threat_keys.add(f);
-			}
 			
 			GenericEnrichmentBolt threat_enrichment = new GenericEnrichmentBolt()
 					.withEnrichmentTag(

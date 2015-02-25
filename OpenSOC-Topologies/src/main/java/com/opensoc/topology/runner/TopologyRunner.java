@@ -555,7 +555,7 @@ public abstract class TopologyRunner {
 			List<String> geo_keys = new ArrayList<String>();
 			
 			String[] keys_from_settings = config.getString(
-					"bolt.enrichment.geo.source").split(",");
+					"bolt.enrichment.geo.fields").split(",");
 
 			for (String key : keys_from_settings)
 				geo_keys.add(key);
@@ -869,11 +869,21 @@ public abstract class TopologyRunner {
 
 			List<String> cif_keys = new ArrayList<String>();
 
-			cif_keys.add(config.getString("source.ip"));
-			cif_keys.add(config.getString("dest.ip"));
-			cif_keys.add(config.getString("bolt.enrichment.cif.fields.host"));
-			cif_keys.add(config.getString("bolt.enrichment.cif.fields.email"));
+			String[] ipFields = config.getString("bolt.enrichment.cif.fields.ip").split(",");
+			for (String f : ipFields) {
+				cif_keys.add(f);
+			}
+			
+			String[] hostFields = config.getString("bolt.enrichment.cif.fields.host").split(",");
+			for (String f : hostFields) {
+				cif_keys.add(f);
+			}
 
+			String[] emailFields = config.getString("bolt.enrichment.cif.fields.email").split(",");
+			for (String f : emailFields) {
+				cif_keys.add(f);
+			}
+			
 			GenericEnrichmentBolt cif_enrichment = new GenericEnrichmentBolt()
 					.withEnrichmentTag(
 							config.getString("bolt.enrichment.cif.enrichment_tag"))

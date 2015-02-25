@@ -555,7 +555,7 @@ public abstract class TopologyRunner {
 			List<String> geo_keys = new ArrayList<String>();
 			
 			String[] keys_from_settings = config.getString(
-					"bolt.enrichment.geo.source").split(",");
+					"bolt.enrichment.geo.fields").split(",");
 
 			for (String key : keys_from_settings)
 				geo_keys.add(key);

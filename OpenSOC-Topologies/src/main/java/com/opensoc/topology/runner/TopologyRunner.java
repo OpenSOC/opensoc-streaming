@@ -886,7 +886,7 @@ public abstract class TopologyRunner {
 
 			List<String> threat_keys = new ArrayList<String>();
 
-			String[] fields = config.getString("bolt.enrichment.threat.fields").split(",");
+			String[] fields = config.getStringArray("bolt.enrichment.threat.fields");
 			for (String f : fields) {
 				System.out.println("[OpenSOC] Adding key: " + f);
 				threat_keys.add(f);

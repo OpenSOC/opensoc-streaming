@@ -895,7 +895,7 @@ public abstract class TopologyRunner {
 					.withEnrichmentTag(
 							config.getString("bolt.enrichment.threat.enrichment_tag"))
 					.withAdapter(
-							new CIFHbaseAdapter(config
+							new ThreatHbaseAdatper(config
 									.getString("kafka.zk.list"), config
 									.getString("kafka.zk.port"), config
 									.getString("bolt.enrichment.threat.tablename")))

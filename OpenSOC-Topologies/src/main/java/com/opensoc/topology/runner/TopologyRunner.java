@@ -19,6 +19,7 @@ package com.opensoc.topology.runner;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -568,15 +569,10 @@ public abstract class TopologyRunner {
 			System.out.println("[OpenSOC] ------" + name
 					+ " is initializing from " + messageUpstreamComponent);
 
-			List<String> geo_keys = new ArrayList<String>();
 			
-			String[] keys_from_settings = config.getString(
-					"bolt.enrichment.geo.fields").split(",");
-
-			for (String key : keys_from_settings)
-				geo_keys.add(key);
+			String[] keys_from_settings = config.getStringArray("bolt.enrichment.geo.fields");
+			List<String> geo_keys = new ArrayList<String>(Arrays.asList(keys_from_settings));
 			
-
 			GeoMysqlAdapter geo_adapter = new GeoMysqlAdapter(
 					config.getString("mysql.ip"), config.getInt("mysql.port"),
 					config.getString("mysql.username"),
@@ -789,12 +785,8 @@ public abstract class TopologyRunner {
 			System.out.println("[OpenSOC] ------" + name
 					+ " is initializing from " + messageUpstreamComponent);
 
-			List<String> whois_keys = new ArrayList<String>();
-			String[] keys_from_settings = config.getString(
-					"bolt.enrichment.whois.fields").split(",");
-
-			for (String key : keys_from_settings)
-				whois_keys.add(key);
+			String[] keys_from_settings = config.getString("bolt.enrichment.whois.fields").split(",");
+			List<String> whois_keys = new ArrayList<String>(Arrays.asList(keys_from_settings));
 
 			EnrichmentAdapter whois_adapter = new WhoisHBaseAdapter(
 					config.getString("bolt.enrichment.whois.hbase.table.name"),
@@ -884,15 +876,9 @@ public abstract class TopologyRunner {
 			System.out.println("[OpenSOC] ------" + name
 					+ " is initializing from " + messageUpstreamComponent);
 
-			List<String> threat_keys = new ArrayList<String>();
-
 			String[] fields = config.getStringArray("bolt.enrichment.threat.fields");
-			for (String f : fields) {
-				System.out.println("[OpenSOC] Adding key: " + f);
-				threat_keys.add(f);
-			}
-			
-			
+			List<String> threat_keys = new ArrayList<String>(Arrays.asList(fields));
+
 			GenericEnrichmentBolt threat_enrichment = new GenericEnrichmentBolt()
 					.withEnrichmentTag(
 							config.getString("bolt.enrichment.threat.enrichment_tag"))
@@ -935,20 +921,14 @@ public abstract class TopologyRunner {
 
 			List<String> cif_keys = new ArrayList<String>();
 
-			String[] ipFields = config.getString("bolt.enrichment.cif.fields.ip").split(",");
-			for (String f : ipFields) {
-				cif_keys.add(f);
-			}
+			String[] ipFields = config.getStringArray("bolt.enrichment.cif.fields.ip");
+			cif_keys.addAll(Arrays.asList(ipFields));
 			
-			String[] hostFields = config.getString("bolt.enrichment.cif.fields.host").split(",");
-			for (String f : hostFields) {
-				cif_keys.add(f);
-			}
-
-			String[] emailFields = config.getString("bolt.enrichment.cif.fields.email").split(",");
-			for (String f : emailFields) {
-				cif_keys.add(f);
-			}
+			String[] hostFields = config.getStringArray("bolt.enrichment.cif.fields.host");
+			cif_keys.addAll(Arrays.asList(hostFields));
+			
+			String[] emailFields = config.getStringArray("bolt.enrichment.cif.fields.email");
+			cif_keys.addAll(Arrays.asList(emailFields));
 			
 			GenericEnrichmentBolt cif_enrichment = new GenericEnrichmentBolt()
 					.withEnrichmentTag(
@@ -959,7 +939,6 @@ public abstract class TopologyRunner {
 									.getString("kafka.zk.port"), config
 									.getString("bolt.enrichment.cif.tablename")))
 					.withOutputFieldName(topology_name)
-					.withEnrichmentTag("CIF_Enrichment")
 					.withKeys(cif_keys)
 					.withMaxTimeRetain(
 							config.getInt("bolt.enrichment.cif.MAX_TIME_RETAIN"))

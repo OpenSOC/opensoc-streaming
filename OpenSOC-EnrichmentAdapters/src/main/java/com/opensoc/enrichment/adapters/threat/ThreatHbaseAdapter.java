@@ -125,19 +125,6 @@ public class ThreatHbaseAdapter extends AbstractThreatAdapter {
 		return false;
 	}
 
-	@Override
-	public String enrichByIP(String metadata) {
-		return null;
-	}
-
-	@Override
-	public String enrichByDomain(String metadata) {
-		return null;
-	}
-
-	@Override
-	public String enrichByEmail(String metadata) {
-		return null;
-	}
+	
 
 }

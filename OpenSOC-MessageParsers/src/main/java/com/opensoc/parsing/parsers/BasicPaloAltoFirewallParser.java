@@ -145,7 +145,6 @@ public class BasicPaloAltoFirewallParser extends AbstractParser implements Messa
 					URL url = new URL(tokens[31]);
 					outputMessage.put(HOST, url.getHost());
 				} catch (MalformedURLException e) {
-					e.printStackTrace();
 				}
 				outputMessage.put(ThreatContentName, tokens[32]);
 				outputMessage.put(Category, tokens[33]);

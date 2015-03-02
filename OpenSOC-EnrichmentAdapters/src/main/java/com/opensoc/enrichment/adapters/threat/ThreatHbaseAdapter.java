@@ -69,27 +69,26 @@ public class ThreatHbaseAdapter extends AbstractThreatAdapter {
 	protected Map getThreatObject(String key) {
 
 		LOGGER.debug("=======Pinging HBase For:" + key);
-
-		Get get = new Get(key.getBytes());
+		
+		Get get = new Get(Bytes.toBytes(key));
 		Result rs;
 		Map output = new HashMap();
 
 		try {
 			rs = table.get(get);
 
-			
-			byte[] source_family = Bytes.toBytes("source");
-			JSONParser parser = new JSONParser();
-			
-			Map<byte[], byte[]> sourceFamilyMap = rs.getFamilyMap(source_family);
-			
-			for (Map.Entry<byte[], byte[]> entry  : sourceFamilyMap.entrySet()) {
-				String k = Bytes.toString(entry.getKey());
+			if (!rs.isEmpty()) {
+				byte[] source_family = Bytes.toBytes("source");
+				JSONParser parser = new JSONParser();
 				
-				output.put(k,parser.parse(Bytes.toString(entry.getValue())));
-            }
-			
-
+				Map<byte[], byte[]> sourceFamilyMap = rs.getFamilyMap(source_family);
+				
+				for (Map.Entry<byte[], byte[]> entry  : sourceFamilyMap.entrySet()) {
+					String k = Bytes.toString(entry.getKey());
+					LOGGER.debug("=======Found intel from source: " + k);
+					output.put(k,parser.parse(Bytes.toString(entry.getValue())));
+	            }
+			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

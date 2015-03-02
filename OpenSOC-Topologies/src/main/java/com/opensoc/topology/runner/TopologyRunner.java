@@ -62,6 +62,7 @@ import com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter;
 import com.opensoc.enrichment.adapters.geo.GeoMysqlAdapter;
 import com.opensoc.enrichment.adapters.host.HostFromPropertiesFileAdapter;
 import com.opensoc.enrichment.adapters.whois.WhoisHBaseAdapter;
+import com.opensoc.enrichment.adapters.threat.ThreatHbaseAdapter;
 import com.opensoc.enrichment.common.GenericEnrichmentBolt;
 import com.opensoc.enrichment.interfaces.EnrichmentAdapter;
 import com.opensoc.hbase.HBaseBolt;
@@ -885,8 +886,9 @@ public abstract class TopologyRunner {
 
 			List<String> threat_keys = new ArrayList<String>();
 
-			String[] fields = config.getString("bolt.enrichment.threat.fields").split(",");
+			String[] fields = config.getStringArray("bolt.enrichment.threat.fields");
 			for (String f : fields) {
+				System.out.println("[OpenSOC] Adding key: " + f);
 				threat_keys.add(f);
 			}
 			
@@ -895,12 +897,12 @@ public abstract class TopologyRunner {
 					.withEnrichmentTag(
 							config.getString("bolt.enrichment.threat.enrichment_tag"))
 					.withAdapter(
-							new CIFHbaseAdapter(config
+							new ThreatHbaseAdapter(config
 									.getString("kafka.zk.list"), config
 									.getString("kafka.zk.port"), config
 									.getString("bolt.enrichment.threat.tablename")))
 					.withOutputFieldName(topology_name)
-					.withEnrichmentTag("Threat_Enrichment")
+					.withEnrichmentTag(config.getString("bolt.enrichment.threat.enrichment_tag"))
 					.withKeys(threat_keys)
 					.withMaxTimeRetain(
 							config.getInt("bolt.enrichment.threat.MAX_TIME_RETAIN"))

@@ -179,7 +179,7 @@ public class AbstractConfigTest  extends AbstractTestContext{
             }
             br.close();
             String[] inputData = new String[inputDataLines.size()];
-            inputData = (String[]) inputDataLines.toArray(inputData);
+            inputData = inputDataLines.toArray(inputData);
 
             return inputData;
         }          

@@ -840,17 +840,22 @@ public abstract class TopologyRunner {
 				SettingsLoader.printOptionalSettings(settings);			
 			}
 
+			// dateFormat defaults to hourly if not specified
+			String dateFormat = "yyyy.MM.dd.hh";
+			if (config.containsKey("bolt.indexing.timestamp")) {
+				dateFormat = config.getString("bolt.indexing.timesatmp");
+			}
 			TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
 					.withIndexIP(config.getString("es.ip"))
 					.withIndexPort(config.getInt("es.port"))
 					.withClusterName(config.getString("es.clustername"))
 					.withIndexName(config.getString("bolt.indexing.indexname"))
+					.withIndexTimestamp(dateFormat)
 					.withDocumentName(
 							config.getString("bolt.indexing.documentname"))
 					.withBulk(config.getInt("bolt.indexing.bulk"))
 					.withIndexAdapter(adapter)
-					.withMetricConfiguration(config)
-					.withRuntimeConfiguration(config);
+					.withMetricConfiguration(config);
 
 			builder.setBolt(name, indexing_bolt,
 					config.getInt("bolt.indexing.parallelism.hint"))

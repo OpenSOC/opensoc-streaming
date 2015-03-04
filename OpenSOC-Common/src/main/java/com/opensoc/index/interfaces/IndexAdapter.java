@@ -7,7 +7,7 @@ import org.json.simple.JSONObject;
 public interface IndexAdapter {
 
 	boolean initializeConnection(String ip, int port, String cluster_name,
-			String index_name, String document_name, int bulk, JSONObject runtime_configuration) throws Exception;
+			String index_name, String document_name, int bulk, String date_format) throws Exception;
 
 	int bulkIndex(JSONObject raw_message);
 

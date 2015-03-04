@@ -255,13 +255,13 @@ public class ThreatAlertsAdapter implements AlertsAdapter, Serializable {
 			JSONObject threatQualifier = (JSONObject) threat.get(enriched_key);
 			
 			alert.put("designated_host", host);
-			String description = new StringBuilder()
-					.append(host)
-					.append(" communicated with a host (")
+			String description =
+
+					new StringBuilder()
+					.append("Threat Intelligence match for ")
 					.append(content.get(enriched_key).toString())
-					.append(") identified as ")
+					.append(" from source: ")
 					.append(threatQualifier.keySet().iterator().next().toString())
-					.append(" by Threat")
 					.toString();	
 			alert.put("description", description);
 			alert.put("priority", "MED");

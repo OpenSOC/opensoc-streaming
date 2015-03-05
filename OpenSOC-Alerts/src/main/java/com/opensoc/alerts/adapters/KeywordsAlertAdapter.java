@@ -58,7 +58,7 @@ public class KeywordsAlertAdapter extends AbstractAlertAdapter {
 			
 			keywordList = Arrays.asList(config.get("keywords").split(","));
 			
-			if(!config.containsKey("exceptions")) {
+			if(config.containsKey("exceptions")) {
 				keywordExceptionList = Arrays.asList(config.get("exceptions").split(","));
 			} else {
 				keywordExceptionList = new ArrayList<String>();

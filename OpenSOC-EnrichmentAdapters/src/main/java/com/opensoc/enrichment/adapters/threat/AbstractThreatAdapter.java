@@ -32,8 +32,5 @@ public abstract class AbstractThreatAdapter implements EnrichmentAdapter,Seriali
 			.getLogger(AbstractThreatAdapter.class);
 	
 	abstract public boolean initializeAdapter();
-	abstract public String enrichByIP(String metadata);
-	abstract public String enrichByDomain(String metadata);
-	abstract public String enrichByEmail(String metadata);
 
 }

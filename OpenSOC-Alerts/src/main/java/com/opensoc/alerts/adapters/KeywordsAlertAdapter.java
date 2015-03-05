@@ -46,6 +46,7 @@ public class KeywordsAlertAdapter extends AbstractAlertAdapter {
 	Set<String> loaded_blacklist = new HashSet<String>();
 
 	List<String> keywordList;
+	List<String> keywordExceptionList;
 	
 	protected static final Logger LOG = Logger.getLogger(AllAlertAdapter.class);
 	
@@ -57,6 +58,12 @@ public class KeywordsAlertAdapter extends AbstractAlertAdapter {
 			
 			keywordList = Arrays.asList(config.get("keywords").split(","));
 			
+			if(!config.containsKey("exceptions")) {
+				keywordExceptionList = Arrays.asList(config.get("exceptions").split(","));
+			} else {
+				keywordExceptionList = new ArrayList<String>();
+			}
+				
 			if(!config.containsKey("whitelist_table_name"))
 				throw new Exception("Whitelist table name is missing");
 				
@@ -214,6 +221,14 @@ public class KeywordsAlertAdapter extends AbstractAlertAdapter {
 
 		for (String keyword : keywordList) {
 			if (content.toString().contains(keyword)) {
+				
+				//check it doesn't have an "exception" keyword in it
+				for (String exception : keywordExceptionList) {
+					if (content.toString().contains(exception)) {
+						return null;
+					}
+				}
+				
 				JSONObject alert = new JSONObject();
 
 				String source = "unknown";

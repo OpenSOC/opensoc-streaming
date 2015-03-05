@@ -843,7 +843,7 @@ public abstract class TopologyRunner {
 			// dateFormat defaults to hourly if not specified
 			String dateFormat = "yyyy.MM.dd.hh";
 			if (config.containsKey("bolt.indexing.timestamp")) {
-				dateFormat = config.getString("bolt.indexing.timesatmp");
+				dateFormat = config.getString("bolt.indexing.timestamp");
 			}
 			TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
 					.withIndexIP(config.getString("es.ip"))

@@ -56,10 +56,10 @@ public class KeywordsAlertAdapter extends AbstractAlertAdapter {
 			if(!config.containsKey("keywords"))
 				throw new Exception("Keywords are missing");
 			
-			keywordList = Arrays.asList(config.get("keywords").split(","));
+			keywordList = Arrays.asList(config.get("keywords").split("\\|"));
 			
-			if(config.containsKey("exceptions")) {
-				keywordExceptionList = Arrays.asList(config.get("exceptions").split(","));
+			if(	config.containsKey("exceptions")) {
+				keywordExceptionList = Arrays.asList(config.get("exceptions").split("\\|"));
 			} else {
 				keywordExceptionList = new ArrayList<String>();
 			}
@@ -225,10 +225,12 @@ public class KeywordsAlertAdapter extends AbstractAlertAdapter {
 				//check it doesn't have an "exception" keyword in it
 				for (String exception : keywordExceptionList) {
 					if (content.toString().contains(exception)) {
+						LOG.info("[OpenSOC] KeywordAlertsAdapter: Omitting alert due to exclusion: " + exception);
 						return null;
 					}
 				}
 				
+				LOG.info("[OpenSOC] KeywordAlertsAdapter: Found match for " + keyword);
 				JSONObject alert = new JSONObject();
 
 				String source = "unknown";

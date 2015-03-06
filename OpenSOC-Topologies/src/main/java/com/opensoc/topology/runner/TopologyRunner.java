@@ -503,6 +503,11 @@ public abstract class TopologyRunner {
 			Class loaded_class = Class.forName(config.getString("bolt.error.indexing.adapter"));
 			IndexAdapter adapter = (IndexAdapter) loaded_class.newInstance();
 
+			String dateFormat = "yyyy.MM";
+			if (config.containsKey("bolt.alerts.indexing.timestamp")) {
+				dateFormat = config.getString("bolt.alerts.indexing.timestamp");
+			}
+			
 			TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
 					.withIndexIP(config.getString("es.ip"))
 					.withIndexPort(config.getInt("es.port"))
@@ -511,6 +516,7 @@ public abstract class TopologyRunner {
 							config.getString("bolt.error.indexing.indexname"))
 					.withDocumentName(
 							config.getString("bolt.error.indexing.documentname"))
+					.withIndexTimestamp(dateFormat)
 					.withBulk(config.getInt("bolt.error.indexing.bulk"))
 					.withIndexAdapter(adapter)
 					.withMetricConfiguration(config);
@@ -712,6 +718,10 @@ public abstract class TopologyRunner {
 		Class loaded_class = Class.forName(config.getString("bolt.alerts.indexing.adapter"));
 		IndexAdapter adapter = (IndexAdapter) loaded_class.newInstance();
 
+		String dateFormat = "yyyy.MM.dd";
+		if (config.containsKey("bolt.alerts.indexing.timestamp")) {
+			dateFormat = config.getString("bolt.alerts.indexing.timestamp");
+		}
 		TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
 				.withIndexIP(config.getString("es.ip"))
 				.withIndexPort(config.getInt("es.port"))
@@ -720,6 +730,7 @@ public abstract class TopologyRunner {
 						config.getString("bolt.alerts.indexing.indexname"))
 				.withDocumentName(
 						config.getString("bolt.alerts.indexing.documentname"))
+				.withIndexTimestamp(dateFormat)
 				.withBulk(config.getInt("bolt.alerts.indexing.bulk"))
 				.withIndexAdapter(adapter)
 				.withMetricConfiguration(config);
@@ -840,17 +851,22 @@ public abstract class TopologyRunner {
 				SettingsLoader.printOptionalSettings(settings);			
 			}
 
+			// dateFormat defaults to hourly if not specified
+			String dateFormat = "yyyy.MM.dd.hh";
+			if (config.containsKey("bolt.indexing.timestamp")) {
+				dateFormat = config.getString("bolt.indexing.timestamp");
+			}
 			TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
 					.withIndexIP(config.getString("es.ip"))
 					.withIndexPort(config.getInt("es.port"))
 					.withClusterName(config.getString("es.clustername"))
 					.withIndexName(config.getString("bolt.indexing.indexname"))
+					.withIndexTimestamp(dateFormat)
 					.withDocumentName(
 							config.getString("bolt.indexing.documentname"))
 					.withBulk(config.getInt("bolt.indexing.bulk"))
 					.withIndexAdapter(adapter)
-					.withMetricConfiguration(config)
-					.withRuntimeConfiguration(config);
+					.withMetricConfiguration(config);
 
 			builder.setBolt(name, indexing_bolt,
 					config.getInt("bolt.indexing.parallelism.hint"))

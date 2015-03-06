@@ -220,6 +220,7 @@ public class GrokAsaParser extends AbstractParser implements Serializable {
 			toReturn.remove("SECOND");
 			
 			toReturn.put("ip_src_addr", toReturn.remove("IPORHOST"));
+			toReturn.put("original_string", toParse);
 
 			return toReturn;
 

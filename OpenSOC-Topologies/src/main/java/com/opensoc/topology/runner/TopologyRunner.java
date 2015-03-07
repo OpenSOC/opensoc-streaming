@@ -405,8 +405,7 @@ public abstract class TopologyRunner {
 		} else {
 
 			conf.setNumWorkers(config.getInt("num.workers"));
-			conf.setNumAckerts(con:wq
-					fig.getInt("num.ackers"));
+			conf.setNumAckers(config.getInt("num.ackers"));
 			StormSubmitter.submitTopology(topology_name, conf,
 					builder.createTopology());
 		}

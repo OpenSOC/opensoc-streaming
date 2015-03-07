@@ -103,31 +103,12 @@ public abstract class AbstractParserBolt extends BaseRichBolt {
 	public boolean checkForSchemaCorrectness(JSONObject message) {
 		int correct = 0;
 
-		// Standard but optional fields
-		if (message.containsKey("ip_src_addr")) {
-			correct++;
-			LOG.trace("[OpenSOC] Message contains ip_src_addr");
-		}
-		if (message.containsKey("ip_dst_addr")) {
-			correct++;
-			LOG.trace("[OpenSOC] Message contains ip_dst_addr");
-		}
-		if (message.containsKey("ip_src_port")) {
-			correct++;
-			LOG.trace("[OpenSOC] Message contains ip_src_port");
-		}
-		if (message.containsKey("ip_dst_port")) {
-			correct++;
-			LOG.trace("[OpenSOC] Message contains ip_dst_port");
-		}
-		if (message.containsKey("protocol")) {
-			correct++;
-			LOG.trace("[OpenSOC] Message contains protocol");
-		}
 		
-		
-		if (correct == 0 && message.containsKey("original_string")) {
-			LOG.trace("[OpenSOC] Message does not conform to schema: " + message);
+		if (!(message.containsKey("original_string"))) {
+			LOG.trace("[OpenSOC] Message does not have original_string: " + message);
+			return false;
+		} else if (!(message.containsKey("timestamp"))) { 
+			LOG.trace("[OpenSOC] Message does not have timestamp: " + message);
 			return false;
 		} else {
 			LOG.trace("[OpenSOC] Message conforms to schema: "

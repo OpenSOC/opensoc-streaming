@@ -183,10 +183,8 @@ public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 		} catch (Exception e) {
 			
 			e.printStackTrace();
-			
-			String error_as_string = org.apache.commons.lang.exception.ExceptionUtils.getStackTrace(e);
-			
-			JSONObject error = ErrorGenerator.generateErrorMessage(new String("bulk index problem"), error_as_string);
+					
+			JSONObject error = ErrorGenerator.generateErrorMessage(new String("bulk index problem"), e);
 			_collector.emit("error", new Values(error));
 		}
 
@@ -235,9 +233,8 @@ public class TelemetryIndexingBolt extends AbstractIndexingBolt {
 				_collector.fail(setElement);
 				failCounter.inc();
 				
-				String error_as_string = org.apache.commons.lang.exception.ExceptionUtils.getStackTrace(e);
 				
-				JSONObject error = ErrorGenerator.generateErrorMessage(new String("bulk index problem"), error_as_string);
+				JSONObject error = ErrorGenerator.generateErrorMessage(new String("bulk index problem"), e);
 				_collector.emit("error", new Values(error));
 			}
 			tuple_queue.clear();

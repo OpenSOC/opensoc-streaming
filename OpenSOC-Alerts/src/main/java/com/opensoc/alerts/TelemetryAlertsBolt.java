@@ -243,11 +243,9 @@ public class TelemetryAlertsBolt extends AbstractAlertBolt {
 			 * if (metricConfiguration != null) { failCounter.inc(); }
 			 */
 
-			String error_as_string = org.apache.commons.lang.exception.ExceptionUtils
-					.getStackTrace(e);
 
 			JSONObject error = ErrorGenerator.generateErrorMessage(
-					"Alerts problem: " + original_message, error_as_string);
+					"Alerts problem: " + original_message, e);
 			_collector.emit("error", new Values(error));
 		}
 	}

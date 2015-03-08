@@ -239,7 +239,7 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 				failCounter.inc();
 			}
 			
-			JSONObject error = ErrorGenerator.generateErrorMessage("Enrichment problem: " + in_json, e.toString());
+			JSONObject error = ErrorGenerator.generateErrorMessage("Enrichment problem: " + in_json, e);
 			_collector.emit("error", new Values(error));
 		}
 		

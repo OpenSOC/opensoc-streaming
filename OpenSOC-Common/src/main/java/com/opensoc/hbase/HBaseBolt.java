@@ -71,12 +71,9 @@ public class HBaseBolt implements IRichBolt {
     try {
       this.connector.getTable().put(conf.getPutFromTuple(input));
     } catch (IOException ex) {
-    	
-        String error_as_string = org.apache.commons.lang.exception.ExceptionUtils
-  				.getStackTrace(ex);
 
   		JSONObject error = ErrorGenerator.generateErrorMessage(
-  				"Alerts problem: " + input.getBinary(0), error_as_string);
+  				"Alerts problem: " + input.getBinary(0), ex);
   		collector.emit("error", new Values(error));
   		
       throw new RuntimeException(ex);

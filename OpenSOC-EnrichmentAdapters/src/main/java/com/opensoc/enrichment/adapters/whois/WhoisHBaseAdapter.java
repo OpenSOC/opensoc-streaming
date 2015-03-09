@@ -115,7 +115,8 @@ public class WhoisHBaseAdapter extends AbstractWhoisAdapter {
 			output.put("whois", payload);
 
 		} catch (IOException e) {
-			output.put(metadata, "{}");
+			payload.put(metadata, "{}");
+			output.put("whois", payload);
 			e.printStackTrace();
 		}
 

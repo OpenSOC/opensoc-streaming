@@ -25,5 +25,6 @@ MINUTE (?:[0-5][0-9])
 SECOND (?:(?:[0-5]?[0-9]|60)(?:[:.,][0-9]+)?)
 TIME (?!<[0-9])%{HOUR}:%{MINUTE}(?::%{SECOND})(?![0-9])
 
+CISCOTIMESTAMP %{MONTH} +%{MONTHDAY}(?: %{YEAR})? %{TIME}
 
 FIREAMP ^<%{POSINT:syslog_pri}>%{CISCOTIMESTAMP:timestamp} %{DATA:msg_id} SFIMS:%{DATA:fireamp_message} Sha256:%{DATA:sha} Disposition:%{DATA:disposition} name: %{DATA:name} IP Addresses: %{IP:dest_ip}<-%{IP:src_ip}

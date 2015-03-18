@@ -55,6 +55,7 @@ import backtype.storm.spout.SchemeAsMultiScheme;
 import backtype.storm.topology.BoltDeclarer;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.tuple.Fields;
+import com.esotericsoftware.kryo.serializers.MapSerializer;
 
 import com.opensoc.alerts.TelemetryAlertsBolt;
 import com.opensoc.alerts.adapters.HbaseWhiteAndBlacklistAdapter;
@@ -146,7 +147,7 @@ public abstract class TopologyRunner {
 		builder = new TopologyBuilder();
 
 		conf = new Config();
-		conf.registerSerialization(JSONObject.class, JSONKryoSerializer.class);
+		conf.registerSerialization(JSONObject.class, MapSerializer.class);
 		conf.setDebug(debug);
 
 		System.out.println("[OpenSOC] Initializing Spout: " + topology_name);

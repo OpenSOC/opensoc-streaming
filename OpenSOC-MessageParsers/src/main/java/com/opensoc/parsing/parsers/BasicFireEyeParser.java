@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -22,31 +23,19 @@ import oi.thekraken.grok.api.exception.GrokException;
 public class BasicFireEyeParser extends AbstractParser implements Serializable {
 
 	private static final long serialVersionUID = 6328907550159134550L;
-	private transient static OpenSOCGrok grok;
-	private transient static InputStream pattern_url;
+	//private transient static OpenSOCGrok grok;
+	//private transient static InputStream pattern_url;
 	
 	public BasicFireEyeParser() throws Exception {
-		pattern_url = getClass().getClassLoader().getResourceAsStream(
-				"patterns/fireeye");
-
-		File file = ParserUtils.stream2file(pattern_url);
-		grok = OpenSOCGrok.create(file.getPath());
-		
-		grok.compile("%{FIREEYE_BASE}");
+//		pattern_url = getClass().getClassLoader().getResourceAsStream(
+//				"patterns/fireeye");
+//
+//		File file = ParserUtils.stream2file(pattern_url);
+//		grok = OpenSOCGrok.create(file.getPath());
+//		
+//		grok.compile("%{FIREEYE_BASE}");
 	}
 
-	public BasicFireEyeParser(String filepath) throws Exception {
-
-		grok = OpenSOCGrok.create(filepath);
-		grok.compile("%{FIREEYE_BASE}");
-
-	}
-	
-	public BasicFireEyeParser(String filepath, String pattern) throws Exception {
-
-		grok = OpenSOCGrok.create(filepath);
-		grok.compile("%{" + pattern + "}");
-	}
 	
 	
 	@Override
@@ -60,23 +49,26 @@ public class BasicFireEyeParser extends AbstractParser implements Serializable {
 
 			//System.out.println("Received message: " + toParse);
 
-			OpenSOCMatch gm = grok.match(toParse);
-			gm.captures();
+			//OpenSOCMatch gm = grok.match(toParse);
+			//gm.captures();
 
 			toReturn = new JSONObject();
+			
+			String[] mTokens = toParse.split(" ");
 
-			toReturn.putAll(gm.toMap());
+			//toReturn.putAll(gm.toMap());
 
-			String id = toReturn.get("uid").toString();
+			String id = mTokens[0];
 			
 			// We are not parsing the fedata for multi part message as we cannot determine how we can split the message and how many multi part messages can there be. 
 			// The message itself will be stored in the response. 
 			
 			
 			String[] tokens = id.split("\\.");
-			if(tokens.length == 1 ) {
+			if(tokens.length == 2 ) {
 		     
-			String syslog = toReturn.get("syslog").toString();
+				String[] array = Arrays.copyOfRange(mTokens, 1, mTokens.length-1);
+			String syslog = Joiner.on(" ").join(array);
 			
 			Multimap<String, String> multiMap =  formatMain(syslog) ;
 			
@@ -102,6 +94,7 @@ public class BasicFireEyeParser extends AbstractParser implements Serializable {
 			if(ip_dst_port != null)
 				toReturn.put("ip_dst_port", ip_dst_port);
 			
+			System.out.println(toReturn);
 			return toReturn;
 
 		} catch (Exception e) {

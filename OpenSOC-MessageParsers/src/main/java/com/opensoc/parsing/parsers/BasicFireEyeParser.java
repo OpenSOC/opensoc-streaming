@@ -22,7 +22,7 @@ import oi.thekraken.grok.api.exception.GrokException;
 public class BasicFireEyeParser extends AbstractParser implements Serializable {
 
 	private static final long serialVersionUID = 6328907550159134550L;
-	private transient static Grok grok;
+	private transient static OpenSOCGrok grok;
 	private transient static InputStream pattern_url;
 	
 	public BasicFireEyeParser() throws Exception {
@@ -30,21 +30,21 @@ public class BasicFireEyeParser extends AbstractParser implements Serializable {
 				"patterns/fireeye");
 
 		File file = ParserUtils.stream2file(pattern_url);
-		grok = Grok.create(file.getPath());
+		grok = OpenSOCGrok.create(file.getPath());
 		
 		grok.compile("%{FIREEYE_BASE}");
 	}
 
-	public BasicFireEyeParser(String filepath) throws GrokException {
+	public BasicFireEyeParser(String filepath) throws Exception {
 
-		grok = Grok.create(filepath);
+		grok = OpenSOCGrok.create(filepath);
 		grok.compile("%{FIREEYE_BASE}");
 
 	}
 	
-	public BasicFireEyeParser(String filepath, String pattern) throws GrokException {
+	public BasicFireEyeParser(String filepath, String pattern) throws Exception {
 
-		grok = Grok.create(filepath);
+		grok = OpenSOCGrok.create(filepath);
 		grok.compile("%{" + pattern + "}");
 	}
 	
@@ -60,7 +60,7 @@ public class BasicFireEyeParser extends AbstractParser implements Serializable {
 
 			//System.out.println("Received message: " + toParse);
 
-			Match gm = grok.match(toParse);
+			OpenSOCMatch gm = grok.match(toParse);
 			gm.captures();
 
 			toReturn = new JSONObject();

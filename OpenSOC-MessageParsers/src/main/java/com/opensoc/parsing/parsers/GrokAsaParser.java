@@ -27,7 +27,7 @@ public class GrokAsaParser extends AbstractParser implements Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	private transient static Grok grok;
+	private transient static OpenSOCGrok grok;
 	Map<String, String> patternMap;
 	private transient static Map<String, Grok> grokMap;
 	private transient static InputStream pattern_url;
@@ -51,7 +51,7 @@ public class GrokAsaParser extends AbstractParser implements Serializable {
 				"patterns/asa");
 
 		File file = stream2file(pattern_url);
-		grok = Grok.create(file.getPath());
+		grok = OpenSOCGrok.create(file.getPath());
 
 		patternMap = getPatternMap();
 		grokMap = getGrokMap();
@@ -59,17 +59,17 @@ public class GrokAsaParser extends AbstractParser implements Serializable {
 		grok.compile("%{CISCO_TAGGED_SYSLOG}");
 	}
 
-	public GrokAsaParser(String filepath) throws GrokException {
+	public GrokAsaParser(String filepath) throws Exception {
 
-		grok = Grok.create(filepath);
+		grok = OpenSOCGrok.create(filepath);
 		// grok.getNamedRegexCollection().put("ciscotag","CISCOFW302013_302014_302015_302016");
 		grok.compile("%{CISCO_TAGGED_SYSLOG}");
 
 	}
 
-	public GrokAsaParser(String filepath, String pattern) throws GrokException {
+	public GrokAsaParser(String filepath, String pattern) throws Exception {
 
-		grok = Grok.create(filepath);
+		grok = OpenSOCGrok.create(filepath);
 		grok.compile("%{" + pattern + "}");
 	}
 
@@ -191,7 +191,7 @@ public class GrokAsaParser extends AbstractParser implements Serializable {
 
 			System.out.println("Received message: " + toParse);
 
-			Match gm = grok.match(toParse);
+			OpenSOCMatch gm = grok.match(toParse);
 			gm.captures();
 
 			toReturn = new JSONObject();

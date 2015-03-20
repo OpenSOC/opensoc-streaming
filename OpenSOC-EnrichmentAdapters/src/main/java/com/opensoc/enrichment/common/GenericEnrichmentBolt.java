@@ -186,6 +186,11 @@ public class GenericEnrichmentBolt extends AbstractEnrichmentBolt {
 							+ "not present in message " + message);
 					continue;
 				}
+				
+				// If the field is empty, no need to enrich
+				if ( jsonvalue.length() == 0) {
+					continue;
+				}
 
 				JSONObject enrichment = cache.getUnchecked(jsonvalue);
 				LOG.trace("[OpenSOC] Enriched: " + jsonkey + " -> "

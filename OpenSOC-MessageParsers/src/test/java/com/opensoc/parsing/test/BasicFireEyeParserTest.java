@@ -85,7 +85,6 @@ public class BasicFireEyeParserTest extends AbstractConfigTest
 			JSONObject parsed = parser.parse(inputString.getBytes());
 			assertNotNull(parsed);
 		
-			System.out.println(parsed);
 			JSONParser parser = new JSONParser();
 
 			Map json=null;
@@ -96,11 +95,13 @@ public class BasicFireEyeParserTest extends AbstractConfigTest
 			}
 			Iterator iter = json.entrySet().iterator();
 			
+			assertNotNull(json);
+			assertFalse(json.isEmpty());
+			
 
 			while (iter.hasNext()) {
 				Map.Entry entry = (Map.Entry) iter.next();
 				String key = (String) entry.getKey();
-				System.out.println("Key:"+key);
 				String value = (String) json.get(key).toString();
 				assertNotNull(value);
 			}

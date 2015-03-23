@@ -167,7 +167,7 @@ public class BasicFireEyeParser extends AbstractParser implements Serializable {
 			for (String key : multiMap.keySet()) {
 
 				String value = Joiner.on(",").join(multiMap.get(key));
-				toReturn.put(key, value);
+				toReturn.put(key, value.trim());
 			}
 
 		}

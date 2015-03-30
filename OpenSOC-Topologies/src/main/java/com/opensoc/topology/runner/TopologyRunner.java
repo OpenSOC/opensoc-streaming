@@ -179,8 +179,8 @@ public abstract class TopologyRunner {
 					"spout.kafka");
 		}
 
-		if (config.getBoolean("parser.bolt.enabled", true)) {
-			String component_name = config.getString("parser.bolt.name",
+		if (config.getBoolean("bolt.parser.enabled", true)) {
+			String component_name = config.getString("bolt.parser.name",
 					"DefaultTopologyParserBot");
 
 			success = initializeParsingBolt(topology_name, component_name);
@@ -193,7 +193,7 @@ public abstract class TopologyRunner {
 					+ " initialized with the following settings:");
 
 			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
-					"parser.bolt");
+					"bolt.parser");
 		}
 
 		if (config.getBoolean("bolt.enrichment.geo.enabled", false)) {

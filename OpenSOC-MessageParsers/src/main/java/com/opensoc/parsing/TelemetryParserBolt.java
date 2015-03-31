@@ -125,6 +125,11 @@ public class TelemetryParserBolt extends AbstractParserBolt {
 			LOG.info("[OpenSOC] Metric reporter is not initialized");
 		}
 		this.registerCounters();
+		
+		if(_parser != null)
+		_parser.init();
+		
+		
 	}
 
 	@SuppressWarnings("unchecked")

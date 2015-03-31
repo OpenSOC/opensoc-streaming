@@ -180,7 +180,6 @@ public class GrokAsaParser extends AbstractParser implements Serializable {
 	public void init() {
 		// pattern_url = Resources.getResource("patterns/asa");
 
-				System.out.println("Dilip Constructor is invoked !!!!!!!!!!!!!!!!!!!");
 				pattern_url = getClass().getClassLoader().getResourceAsStream(
 						"patterns/asa");
 

@@ -177,6 +177,8 @@ public class BasicPaloAltoFirewallParser extends AbstractParser implements Messa
 			}
 			
 		}
+
+		
 		
 
 }

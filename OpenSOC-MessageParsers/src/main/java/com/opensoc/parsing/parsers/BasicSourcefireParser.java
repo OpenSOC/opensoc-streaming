@@ -29,8 +29,9 @@ public class BasicSourcefireParser extends AbstractParser implements MessagePars
 
 	public static final String hostkey = "host";
 	String domain_name_regex = "([^\\.]+)\\.([a-z]{2}|[a-z]{3}|([a-z]{2}\\.[a-z]{2}))$";
-	String sidRegex = "\\[([0-9]+:[0-9]+:[0-9])\\](.*)$";
-	Pattern sidPattern = Pattern.compile(sidRegex);
+	String sidRegex = "(.*)(\\[[0-9]+:[0-9]+:[0-9]\\])(.*)$";
+	//String sidRegex = "(\\[[0-9]+:[0-9]+:[0-9]\\])(.*)$";
+	Pattern sidPattern = Pattern.compile(sidRegex);	
 	Pattern pattern = Pattern.compile(domain_name_regex);
 
 	@SuppressWarnings({ "unchecked", "unused" })
@@ -84,13 +85,16 @@ public class BasicSourcefireParser extends AbstractParser implements MessagePars
 			
 			Matcher sidMatcher = sidPattern.matcher(toParse);
 			String originalString = null;
+			String signatureId = "";
 			if (sidMatcher.find()) {
-				originalString = sidMatcher.group(2);
+				signatureId = sidMatcher.group(2);
+				originalString = sidMatcher.group(1) +" "+ sidMatcher.group(2) + " " + sidMatcher.group(3);
 			} else {
 				_LOG.warn("Unable to find SID in message: " + toParse);
 				originalString = toParse;
 			}
 			payload.put("original_string", originalString);
+			payload.put("signature_id", signatureId);
 
 			return payload;
 		} catch (Exception e) {

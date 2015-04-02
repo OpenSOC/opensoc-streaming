@@ -35,15 +35,15 @@ import com.opensoc.test.AbstractConfigTest;
 public class BroParserTest extends AbstractConfigTest {
 	
 	
-	 /**
-	 * The broJsonString.
+	/**
+	 * The inputStrings.
 	 */
-	private static String broJsonString="";
+	private static String[] inputStrings;
 
      /**
      * The parser.
      */
-    private static BasicBroParser parser=null;
+    private BasicBroParser parser=null;
 	
     /**
      * Constructs a new <code>BroParserTest</code> instance.
@@ -64,7 +64,6 @@ public class BroParserTest extends AbstractConfigTest {
 	 * @throws java.lang.Exception
 	 */
 	public static void tearDownAfterClass() throws Exception {
-		setBroJsonString("");
 	}
 
 	/**
@@ -72,7 +71,7 @@ public class BroParserTest extends AbstractConfigTest {
 	 */
 	public void setUp() throws Exception {
         super.setUp("com.opensoc.parsing.test.BroParserTest");
-        setBroJsonString(super.readTestDataFromFile(this.getConfig().getString("logFile"))[0]);
+        setInputStrings(super.readTestDataFromFile(this.getConfig().getString("logFile")));
         parser = new BasicBroParser();  
 	}
 	
@@ -84,53 +83,53 @@ public class BroParserTest extends AbstractConfigTest {
 	@SuppressWarnings({ "unused", "rawtypes" })
 	public void testParse() throws ParseException {
 
+		for (String inputString : getInputStrings()) {
+			JSONObject cleanJson = parser.parse(inputString.getBytes());
+			assertNotNull(cleanJson);
+			System.out.println(cleanJson);
 
-		BasicBroParser broparser = new BasicBroParser();
-		assertNotNull(getBroJsonString());
-		JSONObject cleanJson = broparser.parse(getBroJsonString().getBytes());
-        assertNotNull(cleanJson);		
-		System.out.println(cleanJson);
+			Pattern p = Pattern.compile("[^\\._a-z0-9 ]",
+					Pattern.CASE_INSENSITIVE);
 
+			JSONParser parser = new JSONParser();
 
-		Pattern p = Pattern.compile("[^\\._a-z0-9 ]", Pattern.CASE_INSENSITIVE);
+			Map json = (Map) cleanJson;
+			Map output = new HashMap();
+			Iterator iter = json.entrySet().iterator();
 
-		JSONParser parser = new JSONParser();
+			while (iter.hasNext()) {
+				Map.Entry entry = (Map.Entry) iter.next();
+				String key = (String) entry.getKey();
 
-		Map json = (Map) cleanJson;
-		Map output = new HashMap();
-		Iterator iter = json.entrySet().iterator();
-
-		while (iter.hasNext()) {
-			Map.Entry entry = (Map.Entry) iter.next();
-			String key = (String) entry.getKey();
-
-			Matcher m = p.matcher(key);
-			boolean b = m.find();
-			// Test False
-			assertFalse(b);
+				Matcher m = p.matcher(key);
+				boolean b = m.find();
+				// Test False
+				assertFalse(b);
+			}
 		}
 
 	}
 
-    /**
-     * Return BroPaser JSON String
-     */
-	public static String getBroJsonString() {
-		return BroParserTest.broJsonString;
+	/**
+	 * Returns Input String
+	 */
+	public static String[] getInputStrings() {
+		return inputStrings;
 	}
 
-    /**
-     * Sets BroPaser JSON String
-     */
-	public static void setBroJsonString(String broJsonString) {
-		BroParserTest.broJsonString = broJsonString;
+	/**
+	 * Sets SourceFire Input String
+	 */
+	public static void setInputStrings(String[] strings) {
+		BroParserTest.inputStrings = strings;
 	}
+	
     /**
      * Returns the parser.
      * @return the parser.
      */
     
-    public static BasicBroParser getParser() {
+    public BasicBroParser getParser() {
         return parser;
     }
 
@@ -140,8 +139,8 @@ public class BroParserTest extends AbstractConfigTest {
      * @param parser the parser.
      */
     
-    public static void setParser(BasicBroParser parser) {
+    public void setParser(BasicBroParser parser) {
     
-        BroParserTest.parser = parser;
+        this.parser = parser;
     }	
 }

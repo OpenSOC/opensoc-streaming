@@ -30,7 +30,11 @@ import oi.thekraken.grok.api.exception.GrokException;
 public class BasicFireEyeParser extends AbstractParser implements Serializable {
 
 	private static final long serialVersionUID = 6328907550159134550L;
-
+	//String tsRegex = "(.*)([a-z][A-Z]+)\\s+(\\d+)\\s+(\\d+\\:\\d+\\:\\d+)\\s+(\\d+\\.\\d+\\.\\d+\\.\\d+)(.*)$";
+	String tsRegex ="([a-zA-Z]{3})\\s+(\\d+)\\s+(\\d+\\:\\d+\\:\\d+)\\s+(\\d+\\.\\d+\\.\\d+\\.\\d+)";
+	
+	
+	Pattern tsPattern = Pattern.compile(tsRegex);
 	// private transient static OpenSOCGrok grok;
 	// private transient static InputStream pattern_url;
 
@@ -119,21 +123,23 @@ public class BasicFireEyeParser extends AbstractParser implements Serializable {
 
 	private long getTimeStamp(String toParse,String delimiter) throws ParseException {
 		
-		
-		 String[] tokens = toParse.split(" ");
-			
-			String timeStamp = "";
-		
-			String month = tokens[0].replace(delimiter, "");
-			String day = tokens[1];
-			String time = tokens[2];
-			
-			
-		long ts = convertToEpoch(month, day, time, true);
-			
+		long ts = 0;
+		String month = null;
+		String day = null;
+		String time = null;
+		Matcher tsMatcher = tsPattern.matcher(toParse);
+		if (tsMatcher.find()) {
+			month = tsMatcher.group(1);
+			day = tsMatcher.group(2);
+			time = tsMatcher.group(3);
+	
+				} else {
+			_LOG.warn("Unable to find timestamp in message: " + toParse);
+			ts = convertToEpoch(month, day, time, true);
+		}
+
 			return ts;
-			
-		
+	
 	}
 
 	private JSONObject parseMessage(String toParse) {
@@ -144,8 +150,9 @@ public class BasicFireEyeParser extends AbstractParser implements Serializable {
 		// gm.captures();
 
 		JSONObject toReturn = new JSONObject();
-
-		String[] mTokens = toParse.split(" ");
+		//toParse = toParse.replaceAll("  ", " ");
+		String[] mTokens = toParse.split("\\s+");
+	 //mTokens = toParse.split(" ");
 
 		// toReturn.putAll(gm.toMap());
 

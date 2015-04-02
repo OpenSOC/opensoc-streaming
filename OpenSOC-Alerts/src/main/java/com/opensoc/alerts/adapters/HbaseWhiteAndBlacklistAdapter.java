@@ -73,20 +73,20 @@ public class HbaseWhiteAndBlacklistAdapter implements AlertsAdapter,
 			
 			_port = config.get("port");
 
-			if(!config.containsKey("_MAX_CACHE_SIZE"))
-				throw new Exception("_MAX_CACHE_SIZE name is missing");
+			if(!config.containsKey("_MAX_CACHE_SIZE_OBJECTS_NUM"))
+				throw new Exception("_MAX_CACHE_SIZE_OBJECTS_NUM name is missing");
 			
-			int _MAX_CACHE_SIZE = Integer.parseInt(config
-					.get("_MAX_CACHE_SIZE"));
+			int _MAX_CACHE_SIZE_OBJECTS_NUM = Integer.parseInt(config
+					.get("_MAX_CACHE_SIZE_OBJECTS_NUM"));
 			
-			if(!config.containsKey("_MAX_TIME_RETAIN"))
-				throw new Exception("_MAX_TIME_RETAIN name is missing");
+			if(!config.containsKey("_MAX_TIME_RETAIN_MINUTES"))
+				throw new Exception("_MAX_TIME_RETAIN_MINUTES name is missing");
 			
-			int _MAX_TIME_RETAIN = Integer.parseInt(config
-					.get("_MAX_TIME_RETAIN"));
+			int _MAX_TIME_RETAIN_MINUTES = Integer.parseInt(config
+					.get("_MAX_TIME_RETAIN_MINUTES"));
 
-			cache = CacheBuilder.newBuilder().maximumSize(_MAX_CACHE_SIZE)
-					.expireAfterWrite(_MAX_TIME_RETAIN, TimeUnit.MINUTES)
+			cache = CacheBuilder.newBuilder().maximumSize(_MAX_CACHE_SIZE_OBJECTS_NUM)
+					.expireAfterWrite(_MAX_TIME_RETAIN_MINUTES, TimeUnit.MINUTES)
 					.build();
 		} catch (Exception e) {
 			System.out.println("Could not initialize Alerts Adapter");

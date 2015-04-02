@@ -593,9 +593,9 @@ public abstract class TopologyRunner {
 					.withOutputFieldName(topology_name)
 					.withAdapter(geo_adapter)
 					.withMaxTimeRetain(
-							config.getInt("bolt.enrichment.geo.MAX_TIME_RETAIN"))
+							config.getInt("bolt.enrichment.geo.MAX_TIME_RETAIN_MINUTES"))
 					.withMaxCacheSize(
-							config.getInt("bolt.enrichment.geo.MAX_CACHE_SIZE"))
+							config.getInt("bolt.enrichment.geo.MAX_CACHE_SIZE_OBJECTS_NUM"))
 					.withKeys(geo_keys).withMetricConfiguration(config);
 
 			builder.setBolt(name, geo_enrichment,
@@ -638,9 +638,9 @@ public abstract class TopologyRunner {
 							config.getString("bolt.enrichment.host.enrichment_tag"))
 					.withAdapter(host_adapter)
 					.withMaxTimeRetain(
-							config.getInt("bolt.enrichment.host.MAX_TIME_RETAIN"))
+							config.getInt("bolt.enrichment.host.MAX_TIME_RETAIN_MINUTES"))
 					.withMaxCacheSize(
-							config.getInt("bolt.enrichment.host.MAX_CACHE_SIZE"))
+							config.getInt("bolt.enrichment.host.MAX_CACHE_SIZE_OBJECTS_NUM"))
 					.withOutputFieldName(topology_name).withKeys(hosts_keys)
 					.withMetricConfiguration(config);
 
@@ -812,9 +812,9 @@ public abstract class TopologyRunner {
 					.withOutputFieldName(topology_name)
 					.withAdapter(whois_adapter)
 					.withMaxTimeRetain(
-							config.getInt("bolt.enrichment.whois.MAX_TIME_RETAIN"))
+							config.getInt("bolt.enrichment.whois.MAX_TIME_RETAIN_MINUTES"))
 					.withMaxCacheSize(
-							config.getInt("bolt.enrichment.whois.MAX_CACHE_SIZE"))
+							config.getInt("bolt.enrichment.whois.MAX_CACHE_SIZE_OBJECTS_NUM"))
 					.withKeys(whois_keys).withMetricConfiguration(config);
 
 			builder.setBolt(name, whois_enrichment,
@@ -909,9 +909,9 @@ public abstract class TopologyRunner {
 					.withEnrichmentTag(config.getString("bolt.enrichment.threat.enrichment_tag"))
 					.withKeys(threat_keys)
 					.withMaxTimeRetain(
-							config.getInt("bolt.enrichment.threat.MAX_TIME_RETAIN"))
+							config.getInt("bolt.enrichment.threat.MAX_TIME_RETAIN_MINUTES"))
 					.withMaxCacheSize(
-							config.getInt("bolt.enrichment.threat.MAX_CACHE_SIZE"))
+							config.getInt("bolt.enrichment.threat.MAX_CACHE_SIZE_OBJECTS_NUM"))
 					.withMetricConfiguration(config);
 
 			builder.setBolt(name, threat_enrichment,
@@ -959,9 +959,9 @@ public abstract class TopologyRunner {
 					.withOutputFieldName(topology_name)
 					.withKeys(cif_keys)
 					.withMaxTimeRetain(
-							config.getInt("bolt.enrichment.cif.MAX_TIME_RETAIN"))
+							config.getInt("bolt.enrichment.cif.MAX_TIME_RETAIN_MINUTES"))
 					.withMaxCacheSize(
-							config.getInt("bolt.enrichment.cif.MAX_CACHE_SIZE"))
+							config.getInt("bolt.enrichment.cif.MAX_CACHE_SIZE_OBJECTS_NUM"))
 					.withMetricConfiguration(config);
 
 			builder.setBolt(name, cif_enrichment,

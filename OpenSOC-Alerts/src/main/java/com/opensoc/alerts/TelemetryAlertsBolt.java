@@ -119,24 +119,24 @@ public class TelemetryAlertsBolt extends AbstractAlertBolt {
 	}
 
 	/**
-	 * @param MAX_CACHE_SIZE
+	 * @param MAX_CACHE_SIZE_OBJECTS_NUM
 	 *            Maximum size of cache before flushing
 	 * @return Instance of this class
 	 */
 
-	public TelemetryAlertsBolt withMaxCacheSize(int MAX_CACHE_SIZE) {
-		_MAX_CACHE_SIZE = MAX_CACHE_SIZE;
+	public TelemetryAlertsBolt withMaxCacheSize(int MAX_CACHE_SIZE_OBJECTS_NUM) {
+		_MAX_CACHE_SIZE_OBJECTS_NUM = MAX_CACHE_SIZE_OBJECTS_NUM;
 		return this;
 	}
 
 	/**
-	 * @param MAX_TIME_RETAIN
+	 * @param MAX_TIME_RETAIN_MINUTES
 	 *            Maximum time to retain cached entry before expiring
 	 * @return Instance of this class
 	 */
 
-	public TelemetryAlertsBolt withMaxTimeRetain(int MAX_TIME_RETAIN) {
-		_MAX_TIME_RETAIN = MAX_TIME_RETAIN;
+	public TelemetryAlertsBolt withMaxTimeRetain(int MAX_TIME_RETAIN_MINUTES) {
+		_MAX_TIME_RETAIN_MINUTES = MAX_TIME_RETAIN_MINUTES;
 		return this;
 	}
 
@@ -144,8 +144,8 @@ public class TelemetryAlertsBolt extends AbstractAlertBolt {
 	void doPrepare(Map conf, TopologyContext topologyContext,
 			OutputCollector collector) throws IOException {
 
-		cache = CacheBuilder.newBuilder().maximumSize(_MAX_CACHE_SIZE)
-				.expireAfterWrite(_MAX_TIME_RETAIN, TimeUnit.MINUTES).build();
+		cache = CacheBuilder.newBuilder().maximumSize(_MAX_CACHE_SIZE_OBJECTS_NUM)
+				.expireAfterWrite(_MAX_TIME_RETAIN_MINUTES, TimeUnit.MINUTES).build();
 
 		LOG.info("[OpenSOC] Preparing TelemetryAlert Bolt...");
 

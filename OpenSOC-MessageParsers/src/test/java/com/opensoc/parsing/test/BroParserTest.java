@@ -11,9 +11,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import junit.framework.TestCase;
-
 import com.opensoc.parsing.parsers.BasicBroParser;
+import com.opensoc.test.AbstractConfigTest;
 
 /**
  * <ul>
@@ -23,15 +22,34 @@ import com.opensoc.parsing.parsers.BasicBroParser;
  * </ul>
  * @version $Revision: 1.0 $
  */
-public class BroParserTest extends TestCase {
+
+ /**
+ * <ul>
+ * <li>Title: </li>
+ * <li>Description: </li>
+ * <li>Created: Feb 20, 2015 </li>
+ * </ul>
+ * @author $Author: $
+ * @version $Revision: 1.1 $
+ */
+public class BroParserTest extends AbstractConfigTest {
 	
+	
+	 /**
+	 * The broJsonString.
+	 */
 	private static String broJsonString="";
-	private static BasicBroParser broParser=null;
+
+     /**
+     * The parser.
+     */
+    private static BasicBroParser parser=null;
 	
     /**
      * Constructs a new <code>BroParserTest</code> instance.
+     * @throws Exception 
      */
-    public BroParserTest() {
+    public BroParserTest() throws Exception {
         super();
     }	
 
@@ -40,7 +58,6 @@ public class BroParserTest extends TestCase {
 	 * @throws java.lang.Exception
 	 */
 	public static void setUpBeforeClass() throws Exception {
-		
 	}
 
 	/**
@@ -54,9 +71,9 @@ public class BroParserTest extends TestCase {
 	 * @throws java.lang.Exception
 	 */
 	public void setUp() throws Exception {
-	    setBroJsonString("{\"http\":{\"ts\":1402307733473,\"uid\":\"CTo78A11g7CYbbOHvj\",\"id.orig_h\":\"192.249.113.37\",\"id.orig_p\":58808,\"id.resp_h\":\"72.163.4.161\",\"id.resp_p\":80,\"trans_depth\":1,\"method\":\"GET\",\"host\":\"www.cisco.com\",\"uri\":\"/\",\"user_agent\":\"curl/7.22.0 (x86_64-pc-linux-gnu) libcurl/7.22.0 OpenSSL/1.0.1 zlib/1.2.3.4 libidn/1.23 librtmp/2.3\",\"request_body_len\":0,\"response_body_len\":25523,\"status_code\":200,\"status_msg\":\"OK\",\"tags\":[],\"resp_fuids\":[\"FJDyMC15lxUn5ngPfd\"],\"resp_mime_types\":[\"text/html\"]}}");	    
-		assertNotNull(getBroJsonString());
-		BroParserTest.setBroParser(new BasicBroParser());		
+        super.setUp("com.opensoc.parsing.test.BroParserTest");
+        setBroJsonString(super.readTestDataFromFile(this.getConfig().getString("logFile"))[0]);
+        parser = new BasicBroParser();  
 	}
 	
 	/**
@@ -94,18 +111,7 @@ public class BroParserTest extends TestCase {
 		}
 
 	}
-    /**
-     * Returns the instance of BroParser
-     */
-	public static BasicBroParser getBroParser() {
-		return broParser;
-	}
-    /**
-     * Sets the instance of BroParser
-     */
-	public static void setBroParser(BasicBroParser broParser) {
-		BroParserTest.broParser = broParser;
-	}
+
     /**
      * Return BroPaser JSON String
      */
@@ -118,5 +124,24 @@ public class BroParserTest extends TestCase {
      */
 	public static void setBroJsonString(String broJsonString) {
 		BroParserTest.broJsonString = broJsonString;
-	}	
+	}
+    /**
+     * Returns the parser.
+     * @return the parser.
+     */
+    
+    public static BasicBroParser getParser() {
+        return parser;
+    }
+
+
+    /**
+     * Sets the parser.
+     * @param parser the parser.
+     */
+    
+    public static void setParser(BasicBroParser parser) {
+    
+        BroParserTest.parser = parser;
+    }	
 }

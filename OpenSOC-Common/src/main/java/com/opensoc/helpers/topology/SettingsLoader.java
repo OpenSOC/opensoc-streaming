@@ -15,6 +15,7 @@ import org.json.simple.parser.ParseException;
 
 public class SettingsLoader {
 
+	@SuppressWarnings("unchecked")
 	public static JSONObject loadEnvironmentIdnetifier(String config_path)
 			throws ConfigurationException {
 		Configuration config = new PropertiesConfiguration(config_path);
@@ -31,6 +32,7 @@ public class SettingsLoader {
 		return identifier;
 	}
 
+	@SuppressWarnings("unchecked")
 	public static JSONObject loadTopologyIdnetifier(String config_path)
 			throws ConfigurationException {
 		Configuration config = new PropertiesConfiguration(config_path);
@@ -52,6 +54,7 @@ public class SettingsLoader {
 				+ env.get("instance") + "_" + topo.get("topology") + "_" + topo.get("topology_instance"));
 	}
 	
+	@SuppressWarnings("unchecked")
 	public static JSONObject generateAlertsIdentifier(JSONObject env, JSONObject topo)
 	{
 		JSONObject identifier = new JSONObject();
@@ -67,7 +70,7 @@ public class SettingsLoader {
 		alert_rules.setDelimiterParsingDisabled(true);
 		alert_rules.load(config_path);
 
-		int number_of_rules = alert_rules.getList("rule.pattern").size();
+		//int number_of_rules = alert_rules.getList("rule.pattern").size();
 
 		String[] patterns = alert_rules.getStringArray("rule.pattern");
 		String[] alerts = alert_rules.getStringArray("rule.alert");
@@ -114,5 +117,33 @@ public class SettingsLoader {
 			}
 		}
 
+	}
+	
+	public static void printOptionalSettings(Map<String, String> settings)
+	{
+		for(String setting: settings.keySet())
+		{
+			System.out.println("[OpenSOC] Optional Setting: " + setting + " -> " +settings.get(setting));
+		}
+
+	}
+	
+	public static Map<String, String> getConfigOptions(PropertiesConfiguration config, String path_fragment)
+	{
+		Iterator<String> itr = config.getKeys();
+		Map<String, String> settings = new HashMap<String, String>();
+		
+		while(itr.hasNext())
+		{
+			String key = itr.next();
+			
+			if(key.contains(path_fragment))
+			{
+				String tmp_key = key.replace(path_fragment, "");
+				settings.put(tmp_key, config.getString(key));
+			}
+		}
+
+		return settings;
 	}
 }

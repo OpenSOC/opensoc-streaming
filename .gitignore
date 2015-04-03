@@ -12,4 +12,6 @@ copy/
 .project
 .settings/
 
-OpenSOC-Topologies/pom.xml
+#IntelliJ
+.idea
+*.iml

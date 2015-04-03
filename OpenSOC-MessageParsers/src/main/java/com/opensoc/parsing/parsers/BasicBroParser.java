@@ -17,8 +17,7 @@
 
 package com.opensoc.parsing.parsers;
 
-import java.util.Iterator;
-
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,12 +80,26 @@ public class BasicBroParser extends AbstractParser {
 				String source_ip = payload.remove("id.orig_h").toString();
 				payload.put("ip_src_addr", source_ip);
 				_LOG.trace("[OpenSOC] Added ip_src_addr to: " + payload);
+			} else if (payload.containsKey("tx_hosts")) {
+				JSONArray txHosts = (JSONArray) payload.remove("tx_hosts");
+				if (txHosts != null && !txHosts.isEmpty()) {
+					payload.put("ip_src_addr", txHosts.get(0));
+					_LOG.trace("[OpenSOC] Added ip_src_addr to: " + payload);
+				}
 			}
+			
 			if (payload.containsKey("id.resp_h")) {
 				String source_ip = payload.remove("id.resp_h").toString();
 				payload.put("ip_dst_addr", source_ip);
 				_LOG.trace("[OpenSOC] Added ip_dst_addr to: " + payload);
+			} else if (payload.containsKey("rx_hosts")) {
+				JSONArray rxHosts = (JSONArray) payload.remove("rx_hosts");
+				if (rxHosts != null && !rxHosts.isEmpty()) {
+					payload.put("ip_dst_addr", rxHosts.get(0));
+					_LOG.trace("[OpenSOC] Added ip_dst_addr to: " + payload);
+				}
 			}
+			
 			if (payload.containsKey("id.orig_p")) {
 				String source_port = payload.remove("id.orig_p").toString();
 				payload.put("ip_src_port", source_port);

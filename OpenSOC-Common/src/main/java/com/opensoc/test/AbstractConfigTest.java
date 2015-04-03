@@ -18,8 +18,10 @@
  */
 package com.opensoc.test;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Map;
 
 import org.apache.commons.configuration.Configuration;
@@ -163,9 +165,24 @@ public class AbstractConfigTest  extends AbstractTestContext{
             System.out.println("Read in schema: " + schema_string);
 
             return schema_string;
-
         }        
-        
+  
+        protected String[] readTestDataFromFile(String test_data_url) throws Exception {
+            BufferedReader br = new BufferedReader(new FileReader(
+                    new File(test_data_url)));
+            ArrayList<String> inputDataLines = new ArrayList<String>();
+           
+            String line;
+            while ((line = br.readLine()) != null) {
+                System.out.println(line);
+                inputDataLines.add(line.toString().replaceAll("\n", ""));
+            }
+            br.close();
+            String[] inputData = new String[inputDataLines.size()];
+            inputData = inputDataLines.toArray(inputData);
+
+            return inputData;
+        }          
        /**
         * Skip Tests
         */

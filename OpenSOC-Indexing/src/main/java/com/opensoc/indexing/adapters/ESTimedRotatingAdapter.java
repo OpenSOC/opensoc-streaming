@@ -46,7 +46,7 @@ public class ESTimedRotatingAdapter extends AbstractIndexAdapter implements
 	@Override
 	public boolean initializeConnection(String ip, int port,
 			String cluster_name, String index_name, String document_name,
-			int bulk_size, JSONObject runtime_configuration) throws Exception {
+			int bulk_size, String date_format) throws Exception {
 
 		bulk_set = new HashBag();
 
@@ -60,15 +60,8 @@ public class ESTimedRotatingAdapter extends AbstractIndexAdapter implements
 			_document_name = document_name;
 			_bulk_size = bulk_size;
 			
-			
-			if ( runtime_configuration.get("dateformat") != null) {
-				String date_format = runtime_configuration.get("dateformat").toString();
-				_LOG.trace("[OpenSOC] Setting date format to " + date_format);
-				dateFormat = new SimpleDateFormat(date_format);
-			} else {
-				_LOG.trace("[OpenSOC] Using default date format (yyyy.MM.dd.HH)");
-				dateFormat = new SimpleDateFormat("yyyy.MM.dd.HH");
-			}
+
+			dateFormat = new SimpleDateFormat(date_format);
 
 			System.out.println("Bulk indexing is set to: " + _bulk_size);
 

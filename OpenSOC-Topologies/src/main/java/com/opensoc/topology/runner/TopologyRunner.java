@@ -19,6 +19,7 @@ package com.opensoc.topology.runner;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +55,7 @@ import backtype.storm.spout.SchemeAsMultiScheme;
 import backtype.storm.topology.BoltDeclarer;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.tuple.Fields;
+import com.esotericsoftware.kryo.serializers.MapSerializer;
 
 import com.opensoc.alerts.TelemetryAlertsBolt;
 import com.opensoc.alerts.adapters.HbaseWhiteAndBlacklistAdapter;
@@ -62,6 +64,7 @@ import com.opensoc.enrichment.adapters.cif.CIFHbaseAdapter;
 import com.opensoc.enrichment.adapters.geo.GeoMysqlAdapter;
 import com.opensoc.enrichment.adapters.host.HostFromPropertiesFileAdapter;
 import com.opensoc.enrichment.adapters.whois.WhoisHBaseAdapter;
+import com.opensoc.enrichment.adapters.threat.ThreatHbaseAdapter;
 import com.opensoc.enrichment.common.GenericEnrichmentBolt;
 import com.opensoc.enrichment.interfaces.EnrichmentAdapter;
 import com.opensoc.hbase.HBaseBolt;
@@ -144,7 +147,7 @@ public abstract class TopologyRunner {
 		builder = new TopologyBuilder();
 
 		conf = new Config();
-		conf.registerSerialization(JSONObject.class, JSONKryoSerializer.class);
+		conf.registerSerialization(JSONObject.class, MapSerializer.class);
 		conf.setDebug(debug);
 
 		System.out.println("[OpenSOC] Initializing Spout: " + topology_name);
@@ -176,8 +179,8 @@ public abstract class TopologyRunner {
 					"spout.kafka");
 		}
 
-		if (config.getBoolean("parser.bolt.enabled", true)) {
-			String component_name = config.getString("parser.bolt.name",
+		if (config.getBoolean("bolt.parser.enabled", true)) {
+			String component_name = config.getString("bolt.parser.name",
 					"DefaultTopologyParserBot");
 
 			success = initializeParsingBolt(topology_name, component_name);
@@ -190,7 +193,7 @@ public abstract class TopologyRunner {
 					+ " initialized with the following settings:");
 
 			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
-					"parser.bolt");
+					"bolt.parser");
 		}
 
 		if (config.getBoolean("bolt.enrichment.geo.enabled", false)) {
@@ -254,6 +257,21 @@ public abstract class TopologyRunner {
 
 			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
 					"bolt.enrichment.cif");
+		}
+		
+		if (config.getBoolean("bolt.enrichment.threat.enabled", false)) {
+			String component_name = config.getString(
+					"bolt.enrichment.threat.name", "DefaultThreatEnrichmentBolt");
+
+			success = initializeThreatEnrichment(topology_name, component_name);
+			messageComponents.add(component_name);
+			errorComponents.add(component_name);
+
+			System.out.println("[OpenSOC] ------Component " + component_name
+					+ " initialized with the following settings:");
+
+			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
+					"bolt.enrichment.threat");
 		}
 
 		if (config.getBoolean("bolt.alerts.enabled", false)) {
@@ -388,6 +406,7 @@ public abstract class TopologyRunner {
 		} else {
 
 			conf.setNumWorkers(config.getInt("num.workers"));
+			conf.setNumAckers(config.getInt("num.ackers"));
 			StormSubmitter.submitTopology(topology_name, conf,
 					builder.createTopology());
 		}
@@ -486,6 +505,11 @@ public abstract class TopologyRunner {
 			Class loaded_class = Class.forName(config.getString("bolt.error.indexing.adapter"));
 			IndexAdapter adapter = (IndexAdapter) loaded_class.newInstance();
 
+			String dateFormat = "yyyy.MM";
+			if (config.containsKey("bolt.alerts.indexing.timestamp")) {
+				dateFormat = config.getString("bolt.alerts.indexing.timestamp");
+			}
+			
 			TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
 					.withIndexIP(config.getString("es.ip"))
 					.withIndexPort(config.getInt("es.port"))
@@ -494,6 +518,7 @@ public abstract class TopologyRunner {
 							config.getString("bolt.error.indexing.indexname"))
 					.withDocumentName(
 							config.getString("bolt.error.indexing.documentname"))
+					.withIndexTimestamp(dateFormat)
 					.withBulk(config.getInt("bolt.error.indexing.bulk"))
 					.withIndexAdapter(adapter)
 					.withMetricConfiguration(config);
@@ -552,10 +577,10 @@ public abstract class TopologyRunner {
 			System.out.println("[OpenSOC] ------" + name
 					+ " is initializing from " + messageUpstreamComponent);
 
-			List<String> geo_keys = new ArrayList<String>();
-			geo_keys.add(config.getString("source.ip"));
-			geo_keys.add(config.getString("dest.ip"));
-
+			
+			String[] keys_from_settings = config.getStringArray("bolt.enrichment.geo.fields");
+			List<String> geo_keys = new ArrayList<String>(Arrays.asList(keys_from_settings));
+			
 			GeoMysqlAdapter geo_adapter = new GeoMysqlAdapter(
 					config.getString("mysql.ip"), config.getInt("mysql.port"),
 					config.getString("mysql.username"),
@@ -568,9 +593,9 @@ public abstract class TopologyRunner {
 					.withOutputFieldName(topology_name)
 					.withAdapter(geo_adapter)
 					.withMaxTimeRetain(
-							config.getInt("bolt.enrichment.geo.MAX_TIME_RETAIN"))
+							config.getInt("bolt.enrichment.geo.MAX_TIME_RETAIN_MINUTES"))
 					.withMaxCacheSize(
-							config.getInt("bolt.enrichment.geo.MAX_CACHE_SIZE"))
+							config.getInt("bolt.enrichment.geo.MAX_CACHE_SIZE_OBJECTS_NUM"))
 					.withKeys(geo_keys).withMetricConfiguration(config);
 
 			builder.setBolt(name, geo_enrichment,
@@ -613,9 +638,9 @@ public abstract class TopologyRunner {
 							config.getString("bolt.enrichment.host.enrichment_tag"))
 					.withAdapter(host_adapter)
 					.withMaxTimeRetain(
-							config.getInt("bolt.enrichment.host.MAX_TIME_RETAIN"))
+							config.getInt("bolt.enrichment.host.MAX_TIME_RETAIN_MINUTES"))
 					.withMaxCacheSize(
-							config.getInt("bolt.enrichment.host.MAX_CACHE_SIZE"))
+							config.getInt("bolt.enrichment.host.MAX_CACHE_SIZE_OBJECTS_NUM"))
 					.withOutputFieldName(topology_name).withKeys(hosts_keys)
 					.withMetricConfiguration(config);
 
@@ -695,6 +720,10 @@ public abstract class TopologyRunner {
 		Class loaded_class = Class.forName(config.getString("bolt.alerts.indexing.adapter"));
 		IndexAdapter adapter = (IndexAdapter) loaded_class.newInstance();
 
+		String dateFormat = "yyyy.MM.dd";
+		if (config.containsKey("bolt.alerts.indexing.timestamp")) {
+			dateFormat = config.getString("bolt.alerts.indexing.timestamp");
+		}
 		TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
 				.withIndexIP(config.getString("es.ip"))
 				.withIndexPort(config.getInt("es.port"))
@@ -703,6 +732,7 @@ public abstract class TopologyRunner {
 						config.getString("bolt.alerts.indexing.indexname"))
 				.withDocumentName(
 						config.getString("bolt.alerts.indexing.documentname"))
+				.withIndexTimestamp(dateFormat)
 				.withBulk(config.getInt("bolt.alerts.indexing.bulk"))
 				.withIndexAdapter(adapter)
 				.withMetricConfiguration(config);
@@ -768,12 +798,8 @@ public abstract class TopologyRunner {
 			System.out.println("[OpenSOC] ------" + name
 					+ " is initializing from " + messageUpstreamComponent);
 
-			List<String> whois_keys = new ArrayList<String>();
-			String[] keys_from_settings = config.getString(
-					"bolt.enrichment.whois.source").split(",");
-
-			for (String key : keys_from_settings)
-				whois_keys.add(key);
+			String[] keys_from_settings = config.getString("bolt.enrichment.whois.fields").split(",");
+			List<String> whois_keys = new ArrayList<String>(Arrays.asList(keys_from_settings));
 
 			EnrichmentAdapter whois_adapter = new WhoisHBaseAdapter(
 					config.getString("bolt.enrichment.whois.hbase.table.name"),
@@ -786,9 +812,9 @@ public abstract class TopologyRunner {
 					.withOutputFieldName(topology_name)
 					.withAdapter(whois_adapter)
 					.withMaxTimeRetain(
-							config.getInt("bolt.enrichment.whois.MAX_TIME_RETAIN"))
+							config.getInt("bolt.enrichment.whois.MAX_TIME_RETAIN_MINUTES"))
 					.withMaxCacheSize(
-							config.getInt("bolt.enrichment.whois.MAX_CACHE_SIZE"))
+							config.getInt("bolt.enrichment.whois.MAX_CACHE_SIZE_OBJECTS_NUM"))
 					.withKeys(whois_keys).withMetricConfiguration(config);
 
 			builder.setBolt(name, whois_enrichment,
@@ -827,23 +853,72 @@ public abstract class TopologyRunner {
 				SettingsLoader.printOptionalSettings(settings);			
 			}
 
+			// dateFormat defaults to hourly if not specified
+			String dateFormat = "yyyy.MM.dd.hh";
+			if (config.containsKey("bolt.indexing.timestamp")) {
+				dateFormat = config.getString("bolt.indexing.timestamp");
+			}
 			TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
 					.withIndexIP(config.getString("es.ip"))
 					.withIndexPort(config.getInt("es.port"))
 					.withClusterName(config.getString("es.clustername"))
 					.withIndexName(config.getString("bolt.indexing.indexname"))
+					.withIndexTimestamp(dateFormat)
 					.withDocumentName(
 							config.getString("bolt.indexing.documentname"))
 					.withBulk(config.getInt("bolt.indexing.bulk"))
 					.withIndexAdapter(adapter)
-					.withMetricConfiguration(config)
-					.withRuntimeConfiguration(config);
+					.withMetricConfiguration(config);
 
 			builder.setBolt(name, indexing_bolt,
 					config.getInt("bolt.indexing.parallelism.hint"))
 					.fieldsGrouping(messageUpstreamComponent, "message",
 							new Fields("key"))
 					.setNumTasks(config.getInt("bolt.indexing.num.tasks"));
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.exit(0);
+		}
+
+		return true;
+	}
+	
+	
+	private boolean initializeThreatEnrichment(String topology_name, String name) {
+		try {
+
+			String messageUpstreamComponent = messageComponents
+					.get(messageComponents.size() - 1);
+
+			System.out.println("[OpenSOC] ------" + name
+					+ " is initializing from " + messageUpstreamComponent);
+
+			String[] fields = config.getStringArray("bolt.enrichment.threat.fields");
+			List<String> threat_keys = new ArrayList<String>(Arrays.asList(fields));
+
+			GenericEnrichmentBolt threat_enrichment = new GenericEnrichmentBolt()
+					.withEnrichmentTag(
+							config.getString("bolt.enrichment.threat.enrichment_tag"))
+					.withAdapter(
+							new ThreatHbaseAdapter(config
+									.getString("kafka.zk.list"), config
+									.getString("kafka.zk.port"), config
+									.getString("bolt.enrichment.threat.tablename")))
+					.withOutputFieldName(topology_name)
+					.withEnrichmentTag(config.getString("bolt.enrichment.threat.enrichment_tag"))
+					.withKeys(threat_keys)
+					.withMaxTimeRetain(
+							config.getInt("bolt.enrichment.threat.MAX_TIME_RETAIN_MINUTES"))
+					.withMaxCacheSize(
+							config.getInt("bolt.enrichment.threat.MAX_CACHE_SIZE_OBJECTS_NUM"))
+					.withMetricConfiguration(config);
+
+			builder.setBolt(name, threat_enrichment,
+					config.getInt("bolt.enrichment.threat.parallelism.hint"))
+					.fieldsGrouping(messageUpstreamComponent, "message",
+							new Fields("key"))
+					.setNumTasks(config.getInt("bolt.enrichment.threat.num.tasks"));
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -864,11 +939,15 @@ public abstract class TopologyRunner {
 
 			List<String> cif_keys = new ArrayList<String>();
 
-			cif_keys.add(config.getString("source.ip"));
-			cif_keys.add(config.getString("dest.ip"));
-			cif_keys.add(config.getString("bolt.enrichment.cif.host"));
-			cif_keys.add(config.getString("bolt.enrichment.cif.email"));
-
+			String[] ipFields = config.getStringArray("bolt.enrichment.cif.fields.ip");
+			cif_keys.addAll(Arrays.asList(ipFields));
+			
+			String[] hostFields = config.getStringArray("bolt.enrichment.cif.fields.host");
+			cif_keys.addAll(Arrays.asList(hostFields));
+			
+			String[] emailFields = config.getStringArray("bolt.enrichment.cif.fields.email");
+			cif_keys.addAll(Arrays.asList(emailFields));
+			
 			GenericEnrichmentBolt cif_enrichment = new GenericEnrichmentBolt()
 					.withEnrichmentTag(
 							config.getString("bolt.enrichment.cif.enrichment_tag"))
@@ -878,12 +957,11 @@ public abstract class TopologyRunner {
 									.getString("kafka.zk.port"), config
 									.getString("bolt.enrichment.cif.tablename")))
 					.withOutputFieldName(topology_name)
-					.withEnrichmentTag("CIF_Enrichment")
 					.withKeys(cif_keys)
 					.withMaxTimeRetain(
-							config.getInt("bolt.enrichment.cif.MAX_TIME_RETAIN"))
+							config.getInt("bolt.enrichment.cif.MAX_TIME_RETAIN_MINUTES"))
 					.withMaxCacheSize(
-							config.getInt("bolt.enrichment.cif.MAX_CACHE_SIZE"))
+							config.getInt("bolt.enrichment.cif.MAX_CACHE_SIZE_OBJECTS_NUM"))
 					.withMetricConfiguration(config);
 
 			builder.setBolt(name, cif_enrichment,

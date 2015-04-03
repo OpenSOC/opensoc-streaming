@@ -55,9 +55,9 @@ GenericEnrichmentBolt geo_enrichment = new GenericEnrichmentBolt()
 config.getString("bolt.enrichment.geo.enrichment_tag"))
 .withAdapter(geo_adapter)
 .withMaxTimeRetain(
-config.getInt("bolt.enrichment.geo.MAX_TIME_RETAIN"))
+config.getInt("bolt.enrichment.geo.MAX_TIME_RETAIN_MINUTES"))
 .withMaxCacheSize(
-config.getInt("bolt.enrichment.geo.MAX_CACHE_SIZE"))
+config.getInt("bolt.enrichment.geo.MAX_CACHE_SIZE_OBJECTS_NUM"))
 .withKeys(geo_keys).withMetricConfiguration(config);
 
 ```

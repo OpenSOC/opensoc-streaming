@@ -11,3 +11,7 @@ copy/
 .classpath
 .project
 .settings/
+
+#IntelliJ
+.idea
+*.iml

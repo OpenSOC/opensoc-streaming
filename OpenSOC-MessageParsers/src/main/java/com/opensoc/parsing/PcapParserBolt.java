@@ -203,11 +203,9 @@ public void execute(Tuple input) {
       e.printStackTrace();
       LOG.error("Exception while processing tuple", e);
       
-      String error_as_string = org.apache.commons.lang.exception.ExceptionUtils
-				.getStackTrace(e);
 
 		JSONObject error = ErrorGenerator.generateErrorMessage(
-				"Alerts problem: " + input.getBinary(0), error_as_string);
+				"Alerts problem: " + input.getBinary(0), e);
 		collector.emit("error", new Values(error));
 		
       return;

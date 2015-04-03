@@ -203,7 +203,7 @@ public class TelemetryParserBolt extends AbstractParserBolt {
 
 			JSONObject error = ErrorGenerator.generateErrorMessage(
 					"Parsing problem: " + new String(original_message),
-					e.toString());
+					e);
 			_collector.emit("error", new Values(error));
 		}
 	}

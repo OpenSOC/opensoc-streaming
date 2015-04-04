@@ -106,74 +106,74 @@ public class BasicPaloAltoFirewallParser extends AbstractParser implements Messa
 			String type = tokens[3].trim();
 			
 			//populate common objects
-			outputMessage.put(PaloAltoDomain, tokens[0]);
-			outputMessage.put(ReceiveTime, tokens[1]);
-			outputMessage.put(SerialNum, tokens[2]);
+			outputMessage.put(PaloAltoDomain, tokens[0].trim());
+			outputMessage.put(ReceiveTime, tokens[1].trim());
+			outputMessage.put(SerialNum, tokens[2].trim());
 			outputMessage.put(Type, type);
-			outputMessage.put(ThreatContentType, tokens[4]);
-			outputMessage.put(ConfigVersion, tokens[5]);
-			outputMessage.put(GenerateTime, tokens[6]);
-			outputMessage.put(SourceAddress, tokens[7]);
-			outputMessage.put(DestinationAddress, tokens[8]);
-			outputMessage.put(NATSourceIP, tokens[9]);
-			outputMessage.put(NATDestinationIP, tokens[10]);
-			outputMessage.put(Rule, tokens[11]);
-			outputMessage.put(SourceUser, tokens[12]);
-			outputMessage.put(DestinationUser, tokens[13]);
-			outputMessage.put(Application, tokens[14]);
-			outputMessage.put(VirtualSystem, tokens[15]);
-			outputMessage.put(SourceZone, tokens[16]);
-			outputMessage.put(DestinationZone, tokens[17]);
-			outputMessage.put(InboundInterface, tokens[18]);
-			outputMessage.put(OutboundInterface, tokens[19]);
-			outputMessage.put(LogAction, tokens[20]);
-			outputMessage.put(TimeLogged, tokens[21]);
-			outputMessage.put(SessionID, tokens[22]);
-			outputMessage.put(RepeatCount, tokens[23]);
-			outputMessage.put(SourcePort, tokens[24]);
-			outputMessage.put(DestinationPort, tokens[25]);
-			outputMessage.put(NATSourcePort, tokens[26]);
-			outputMessage.put(NATDestinationPort, tokens[27]);
-			outputMessage.put(Flags, tokens[28]);
-			outputMessage.put(IPProtocol, tokens[29]);
-			outputMessage.put(Action, tokens[30]);
+			outputMessage.put(ThreatContentType, tokens[4].trim());
+			outputMessage.put(ConfigVersion, tokens[5].trim());
+			outputMessage.put(GenerateTime, tokens[6].trim());
+			outputMessage.put(SourceAddress, tokens[7].trim());
+			outputMessage.put(DestinationAddress, tokens[8].trim());
+			outputMessage.put(NATSourceIP, tokens[9].trim());
+			outputMessage.put(NATDestinationIP, tokens[10].trim());
+			outputMessage.put(Rule, tokens[11].trim());
+			outputMessage.put(SourceUser, tokens[12].trim());
+			outputMessage.put(DestinationUser, tokens[13].trim());
+			outputMessage.put(Application, tokens[14].trim());
+			outputMessage.put(VirtualSystem, tokens[15].trim());
+			outputMessage.put(SourceZone, tokens[16].trim());
+			outputMessage.put(DestinationZone, tokens[17].trim());
+			outputMessage.put(InboundInterface, tokens[18].trim());
+			outputMessage.put(OutboundInterface, tokens[19].trim());
+			outputMessage.put(LogAction, tokens[20].trim());
+			outputMessage.put(TimeLogged, tokens[21].trim());
+			outputMessage.put(SessionID, tokens[22].trim());
+			outputMessage.put(RepeatCount, tokens[23].trim());
+			outputMessage.put(SourcePort, tokens[24].trim());
+			outputMessage.put(DestinationPort, tokens[25].trim());
+			outputMessage.put(NATSourcePort, tokens[26].trim());
+			outputMessage.put(NATDestinationPort, tokens[27].trim());
+			outputMessage.put(Flags, tokens[28].trim());
+			outputMessage.put(IPProtocol, tokens[29].trim());
+			outputMessage.put(Action, tokens[30].trim());
 			
 			
 			if("THREAT".equals(type.toUpperCase())) {
-				outputMessage.put(URL, tokens[31]);
+				outputMessage.put(URL, tokens[31].trim());
 				try {
-					URL url = new URL(tokens[31]);
+					URL url = new URL(tokens[31].trim());
 					outputMessage.put(HOST, url.getHost());
 				} catch (MalformedURLException e) {
 				}
-				outputMessage.put(ThreatContentName, tokens[32]);
-				outputMessage.put(Category, tokens[33]);
-				outputMessage.put(Direction, tokens[34]);
-				outputMessage.put(Seqno, tokens[35]);
-				outputMessage.put(ActionFlags, tokens[36]);
-				outputMessage.put(SourceCountry, tokens[37]);
-				outputMessage.put(DestinationCountry, tokens[38]);
-				outputMessage.put(Cpadding, tokens[39]);
-				outputMessage.put(ContentType, tokens[40]);
+				outputMessage.put(ThreatContentName, tokens[32].trim());
+				outputMessage.put(Category, tokens[33].trim());
+				outputMessage.put(Direction, tokens[34].trim());
+				outputMessage.put(Seqno, tokens[35].trim());
+				outputMessage.put(ActionFlags, tokens[36].trim());
+				outputMessage.put(SourceCountry, tokens[37].trim());
+				outputMessage.put(DestinationCountry, tokens[38].trim());
+				outputMessage.put(Cpadding, tokens[39].trim());
+				outputMessage.put(ContentType, tokens[40].trim());
 				
 			}
 			else
 			{
-				outputMessage.put(Bytes, tokens[31]);
-				outputMessage.put(BytesSent, tokens[32]);
-				outputMessage.put(BytesReceived, tokens[33]);
-				outputMessage.put(Packets, tokens[34]);
-				outputMessage.put(StartTime, tokens[35]);
-				outputMessage.put(ElapsedTimeInSec, tokens[36]);
-				outputMessage.put(Category, tokens[37]);
-				outputMessage.put(Padding, tokens[38]);
-				outputMessage.put(Seqno, tokens[39]);
-				outputMessage.put(ActionFlags, tokens[40]);
-				outputMessage.put(SourceCountry, tokens[41]);
-				outputMessage.put(DestinationCountry, tokens[42]);
-				outputMessage.put(Cpadding, tokens[43]);
-				outputMessage.put(PktsSent, tokens[44]);
-				outputMessage.put(PktsReceived, tokens[45]);
+				outputMessage.put(Bytes, tokens[31].trim());
+				outputMessage.put(BytesSent, tokens[32].trim());
+				outputMessage.put(BytesReceived, tokens[33].trim());
+				outputMessage.put(Packets, tokens[34].trim());
+				outputMessage.put(StartTime, tokens[35].trim());
+				outputMessage.put(ElapsedTimeInSec, tokens[36].trim());
+				outputMessage.put(Category, tokens[37].trim());
+				outputMessage.put(Padding, tokens[38].trim());
+				outputMessage.put(Seqno, tokens[39].trim());
+				outputMessage.put(ActionFlags, tokens[40].trim());
+				outputMessage.put(SourceCountry, tokens[41].trim());
+				outputMessage.put(DestinationCountry, tokens[42].trim());
+				outputMessage.put(Cpadding, tokens[43].trim());
+				outputMessage.put(PktsSent, tokens[44].trim());
+				outputMessage.put(PktsReceived, tokens[45].trim());
 			}
 			
 		}

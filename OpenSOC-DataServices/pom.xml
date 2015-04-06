@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.opensoc</groupId>
 		<artifactId>OpenSOC-Streaming</artifactId>
-		<version>0.6BETA</version>
+		<version>0.7BETA</version>
 	</parent>
 
 	<modelVersion>4.0.0</modelVersion>

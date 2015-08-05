@@ -555,8 +555,8 @@ public abstract class TopologyRunner {
 			SpoutConfig kafkaConfig = new SpoutConfig(zk, input_topic, "",
 					input_topic);
 			kafkaConfig.scheme = new SchemeAsMultiScheme(new RawScheme());
-			kafkaConfig.forceFromStart = Boolean.valueOf("True");
-			kafkaConfig.startOffsetTime = -1;
+			kafkaConfig.forceFromStart = config.getBoolean("spout.kafka.forcefromstart", Boolean.valueOf("True"));
+			kafkaConfig.startOffsetTime = config.getInt("spout.kafka.start.offset.time", -1);
 
 			builder.setSpout(name, new KafkaSpout(kafkaConfig),
 					config.getInt("spout.kafka.parallelism.hint")).setNumTasks(

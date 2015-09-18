@@ -41,7 +41,7 @@ The sample topologies provided use a specific directory structure.  The example 
 https://github.com/OpenSOC/opensoc-streaming/tree/master/OpenSOC-Topologies/src/main/resources/OpenSOC_Configs
 ```
 
-topology.conf - settings specific to each topology
-features_enabled.conf - turn on and off features for each topology and control parallelism
-metrics.conf - export definitions for metrics to Graphite 
-topology_dentifier.conf - customer-specific tag (since we deploy to multiple data centers we need to identify where the alerts are coming from and what topologies we are looking at when we need to debug)
+- topology.conf - settings specific to each topology  
+- features_enabled.conf - turn on and off features for each topology and control parallelism  
+- metrics.conf - export definitions for metrics to Graphite  
+- topology_dentifier.conf - customer-specific tag (since we deploy to multiple data centers we need to identify where the alerts are coming from and what topologies we are looking at when we need to debug)

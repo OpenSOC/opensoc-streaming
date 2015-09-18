@@ -264,7 +264,7 @@ public abstract class TopologyRunner {
 			SettingsLoader.printConfigOptions((PropertiesConfiguration) config,
 					"bolt.enrichment.cif");
 		}
-		
+
 		if (config.getBoolean("bolt.enrichment.threat.enabled", false)) {
 			String component_name = config.getString(
 					"bolt.enrichment.threat.name", "DefaultThreatEnrichmentBolt");
@@ -507,7 +507,7 @@ public abstract class TopologyRunner {
 
 	private boolean initializeErrorIndexBolt(String component_name) {
 		try {
-			
+
 			Class loaded_class = Class.forName(config.getString("bolt.error.indexing.adapter"));
 			IndexAdapter adapter = (IndexAdapter) loaded_class.newInstance();
 
@@ -515,7 +515,7 @@ public abstract class TopologyRunner {
 			if (config.containsKey("bolt.alerts.indexing.timestamp")) {
 				dateFormat = config.getString("bolt.alerts.indexing.timestamp");
 			}
-			
+
 			TelemetryIndexingBolt indexing_bolt = new TelemetryIndexingBolt()
 					.withIndexIP(config.getString("es.ip"))
 					.withIndexPort(config.getInt("es.port"))
@@ -555,8 +555,8 @@ public abstract class TopologyRunner {
 			SpoutConfig kafkaConfig = new SpoutConfig(zk, input_topic, "",
 					input_topic);
 			kafkaConfig.scheme = new SchemeAsMultiScheme(new RawScheme());
-			kafkaConfig.forceFromStart = Boolean.valueOf("True");
-			kafkaConfig.startOffsetTime = -1;
+			kafkaConfig.forceFromStart = config.getBoolean("spout.kafka.forcefromstart", Boolean.valueOf("True"));
+			kafkaConfig.startOffsetTime = config.getInt("spout.kafka.start.offset.time", -1);
 
 			builder.setSpout(name, new KafkaSpout(kafkaConfig),
 					config.getInt("spout.kafka.parallelism.hint")).setNumTasks(
@@ -583,10 +583,10 @@ public abstract class TopologyRunner {
 			System.out.println("[OpenSOC] ------" + name
 					+ " is initializing from " + messageUpstreamComponent);
 
-			
+
 			String[] keys_from_settings = config.getStringArray("bolt.enrichment.geo.fields");
 			List<String> geo_keys = new ArrayList<String>(Arrays.asList(keys_from_settings));
-			
+
 			GeoMysqlAdapter geo_adapter = new GeoMysqlAdapter(
 					config.getString("mysql.ip"), config.getInt("mysql.port"),
 					config.getString("mysql.username"),
@@ -670,18 +670,18 @@ public abstract class TopologyRunner {
 			String alerts_path, JSONObject environment_identifier,
 			JSONObject topology_identifier) {
 		try {
-			
+
 			Class loaded_class = Class.forName(config.getString("bolt.alerts.adapter"));
 			Constructor constructor = loaded_class.getConstructor(new Class[] { Map.class});
-			
+
 			Map<String, String> settings = SettingsLoader.getConfigOptions((PropertiesConfiguration)config, config.getString("bolt.alerts.adapter") + ".");
-			
+
 			System.out.println("Adapter Settings: ");
 			SettingsLoader.printOptionalSettings(settings);
-			
+
 			AlertsAdapter alerts_adapter = (AlertsAdapter) constructor.newInstance(settings);
-			
-	
+
+
 
 			String messageUpstreamComponent = messageComponents
 					.get(messageComponents.size() - 1);
@@ -693,7 +693,7 @@ public abstract class TopologyRunner {
 					.generateAlertsIdentifier(environment_identifier,
 							topology_identifier);
 
-			 
+
 
 			TelemetryAlertsBolt alerts_bolt = new TelemetryAlertsBolt()
 					.withIdentifier(alerts_identifier).withMaxCacheSize(1000)
@@ -715,14 +715,14 @@ public abstract class TopologyRunner {
 	}
 
 	private boolean initializeAlertIndexing(String name) {
-		
+
 		try{
 		String messageUpstreamComponent = alertComponents.get(alertComponents
 				.size() - 1);
 
 		System.out.println("[OpenSOC] ------" + name + " is initializing from "
 				+ messageUpstreamComponent);
-		
+
 		Class loaded_class = Class.forName(config.getString("bolt.alerts.indexing.adapter"));
 		IndexAdapter adapter = (IndexAdapter) loaded_class.newInstance();
 
@@ -846,17 +846,17 @@ public abstract class TopologyRunner {
 
 			System.out.println("[OpenSOC] ------" + name
 					+ " is initializing from " + messageUpstreamComponent);
-			
+
 			Class loaded_class = Class.forName(config.getString("bolt.indexing.adapter"));
 			IndexAdapter adapter = (IndexAdapter) loaded_class.newInstance();
-			
+
 			Map<String, String> settings = SettingsLoader.getConfigOptions((PropertiesConfiguration)config, "optional.settings.bolt.index.search.");
-			
+
 			if(settings != null && settings.size() > 0)
 			{
 				adapter.setOptionalSettings(settings);
 				System.out.println("[OpenSOC] Index Bolt picket up optional settings:");
-				SettingsLoader.printOptionalSettings(settings);			
+				SettingsLoader.printOptionalSettings(settings);
 			}
 
 			// dateFormat defaults to hourly if not specified
@@ -889,8 +889,8 @@ public abstract class TopologyRunner {
 
 		return true;
 	}
-	
-	
+
+
 	private boolean initializeThreatEnrichment(String topology_name, String name) {
 		try {
 
@@ -947,13 +947,13 @@ public abstract class TopologyRunner {
 
 			String[] ipFields = config.getStringArray("bolt.enrichment.cif.fields.ip");
 			cif_keys.addAll(Arrays.asList(ipFields));
-			
+
 			String[] hostFields = config.getStringArray("bolt.enrichment.cif.fields.host");
 			cif_keys.addAll(Arrays.asList(hostFields));
-			
+
 			String[] emailFields = config.getStringArray("bolt.enrichment.cif.fields.email");
 			cif_keys.addAll(Arrays.asList(emailFields));
-			
+
 			GenericEnrichmentBolt cif_enrichment = new GenericEnrichmentBolt()
 					.withEnrichmentTag(
 							config.getString("bolt.enrichment.cif.enrichment_tag"))

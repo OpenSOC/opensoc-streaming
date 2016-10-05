@@ -42,7 +42,7 @@ import com.google.common.annotations.VisibleForTesting;
  * timestamp(dsc) for the given list of keys. Creates HConnection if it is not
  * already created and the same connection instance is being used for all
  * requests
- * 
+ *
  * @author sheetal
  * @version $Revision: 1.0 $
  */
@@ -59,20 +59,20 @@ public class PcapGetterHBaseImpl implements IPcapGetter {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see com.cisco.opensoc.hbase.client.IPcapGetter#getPcaps(java.util.List,
    * java.lang.String, long, long, boolean, boolean, long)
    */
- 
-  
+
+
 	@GET
 	@Path("pcap/test")
 	@Produces("text/html")
-	public Response  index() throws URISyntaxException { 
-		return Response.ok("ALL GOOD").build();   
+	public Response  index() throws URISyntaxException {
+		return Response.ok("ALL GOOD").build();
 	}
-	
-	
+
+
   public PcapsResponse getPcaps(List<String> keys, String lastRowKey,
       long startTime, long endTime, boolean includeReverseTraffic,
       boolean includeDuplicateLastRow, long maxResultSize) throws IOException {
@@ -121,11 +121,11 @@ public class PcapGetterHBaseImpl implements IPcapGetter {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see com.cisco.opensoc.hbase.client.IPcapGetter#getPcaps(java.lang.String, long,
    * long, boolean)
    */
- 
+
   public PcapsResponse getPcaps(String key, long startTime, long endTime,
       boolean includeReverseTraffic) throws IOException {
     Assert.hasText(key, "key must not be null or empty");
@@ -135,10 +135,10 @@ public class PcapGetterHBaseImpl implements IPcapGetter {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see com.cisco.opensoc.hbase.client.IPcapGetter#getPcaps(java.util.List)
    */
- 
+
   public PcapsResponse getPcaps(List<String> keys) throws IOException {
     Assert.notEmpty(keys, "'keys' must not be null or empty");
     return getPcaps(keys, null, -1, -1,
@@ -148,10 +148,10 @@ public class PcapGetterHBaseImpl implements IPcapGetter {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see com.cisco.opensoc.hbase.client.IPcapGetter#getPcaps(java.lang.String)
    */
- 
+
   public PcapsResponse getPcaps(String key) throws IOException {
     Assert.hasText(key, "key must not be null or empty");
     return getPcaps(Arrays.asList(key), null, -1, -1,
@@ -161,18 +161,14 @@ public class PcapGetterHBaseImpl implements IPcapGetter {
 
   /**
    * Always returns the singleton instance.
-   * 
+   *
    * @return IPcapGetter singleton instance
    * @throws IOException
    *           Signals that an I/O exception has occurred.
    */
-  public static IPcapGetter getInstance() throws IOException {
+  public static synchronized IPcapGetter getInstance() throws IOException {
     if (pcapGetterHBase == null) {
-      synchronized (PcapGetterHBaseImpl.class) {
-        if (pcapGetterHBase == null) {
-          pcapGetterHBase = new PcapGetterHBaseImpl();
-        }
-      }
+      pcapGetterHBase = new PcapGetterHBaseImpl();
     }
     return pcapGetterHBase;
   }
@@ -186,7 +182,7 @@ public class PcapGetterHBaseImpl implements IPcapGetter {
   /**
    * Adds reverse keys to the list if the flag 'includeReverseTraffic' is set to
    * true; removes duplicates and sorts the list by ascending order;.
-   * 
+   *
    * @param keys
    *          input keys
    * @param includeReverseTraffic
@@ -207,7 +203,7 @@ public class PcapGetterHBaseImpl implements IPcapGetter {
 
   /**
    * Removes the duplicate keys.
-   * 
+   *
    * @param keys
    *          the keys
    * @return the list
@@ -225,14 +221,14 @@ public
    * to the last element in the list; if the 'lastRowKey' is not matched
    * the complete list will be returned.
    * </p>
-   * 
+   *
    * <pre>
    * Eg :
    *  keys = [18800006-1800000b-06-0019-caac, 18800006-1800000b-06-0050-5af6, 18800006-1800000b-11-0035-3810]
    *  lastRowKey = "18800006-1800000b-06-0019-caac-65140-40815"
    *  and the response from this method [18800006-1800000b-06-0050-5af6, 18800006-1800000b-11-0035-3810]
    * </pre>
-   * 
+   *
    * @param keys
    *          keys
    * @param lastRowKey
@@ -259,7 +255,7 @@ public
   /**
    * Returns the first 'noOfTokens' tokens from the given key; token delimiter
    * "-";.
-   * 
+   *
    * @param key
    *          given key
    * @param noOfTokens
@@ -286,7 +282,7 @@ public
 
   /**
    * Process key.
-   * 
+   *
    * @param pcapsResponse
    *          the pcaps response
    * @param key
@@ -378,7 +374,7 @@ public
 
   /**
    * Adds the to response.
-   * 
+   *
    * @param pcapsResponse
    *          the pcaps response
    * @param scannedCells
@@ -416,14 +412,14 @@ public
    * ("srcIp-dstIp-protocol-srcPort-dstPort-id1") startKey =
    * "srcIp-dstIp-protocol-srcPort-dstPort-id1-00000" stopKey =
    * "srcIp-dstIp-protocol-srcPort-dstPort-id1-99999"
-   * 
+   *
    * c). 7 tokens ("srcIp-dstIp-protocol-srcPort-dstPort-id1-id2") 1>. if the
    * key is NOT part of the partial response from previous request, return
    * 'null' 2>. if the key is part of partial response from previous request
    * startKey = "srcIp-dstIp-protocol-srcPort-dstPort-id1-(id2+1)"; 1 is added
    * to exclude this key as it was included in the previous request stopKey =
    * "srcIp-dstIp-protocol-srcPort-dstPort-99999-99999"
-   * 
+   *
    * @param key
    *          the key
    * @param isLastRowKey
@@ -513,7 +509,7 @@ public
   /**
    * Returns false if keys is empty or null AND lastRowKey is null or
    * empty; otherwise returns true;.
-   * 
+   *
    * @param keys
    *          input row keys
    * @param lastRowKey
@@ -531,7 +527,7 @@ public
 
   /**
    * Executes the given Get request.
-   * 
+   *
    * @param table
    *          hbase table
    * @param get
@@ -554,7 +550,7 @@ public
 
   /**
    * Execute scan request.
-   * 
+   *
    * @param table
    *          hbase table
    * @param scan
@@ -586,7 +582,7 @@ public
 
   /**
    * Creates the get request.
-   * 
+   *
    * @param key
    *          the key
    * @param startTime
@@ -618,7 +614,7 @@ public
 
   /**
    * Creates the scan request.
-   * 
+   *
    * @param pcapsResponse
    *          the pcaps response
    * @param keysMap
@@ -665,7 +661,7 @@ public
 
   /**
    * Sets the time range on scan.
-   * 
+   *
    * @param scan
    *          the scan
    * @param startTime
@@ -700,7 +696,7 @@ public
 
   /**
    * Sets the time range on get.
-   * 
+   *
    * @param get
    *          the get
    * @param startTime
@@ -735,7 +731,7 @@ public
 
   /**
    * Gets the min limit for appending tokens.
-   * 
+   *
    * @return the min limit for appending tokens
    */
   private String getMinLimitForAppendingTokens() {
@@ -749,7 +745,7 @@ public
 
   /**
    * Gets the max limit for appending tokens.
-   * 
+   *
    * @return the max limit for appending tokens
    */
   private String getMaxLimitForAppendingTokens() {
@@ -763,10 +759,10 @@ public
 
   /**
    * The main method.
-   * 
+   *
    * @param args
    *          the arguments
-   * 
+   *
    * @throws IOException
    *           Signals that an I/O exception has occurred.
    */

@@ -23,7 +23,7 @@
 		<repository>
 			<id>Kraken-Repo</id>
 			<name>Kraken Repository</name>
-			<url>http://download.krakenapps.org</url>
+			<url>https://download.krakenapps.org</url>
 		</repository>
 	</repositories>
 
